@@ -162,9 +162,16 @@ export default function ChapterListPage() {
                 className={`rounded-lg border border-border bg-white p-4 transition-colors ${
                   isLocked
                     ? 'pointer-events-none opacity-50 grayscale'
-                    : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50'
+                    : status === 'REMEDIATION_REQUIRED'
+                      ? 'cursor-pointer hover:border-red-300 hover:bg-red-50'
+                      : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50'
                 }`}
                 role="listitem"
+                onClick={() => {
+                  if (!isLocked) {
+                    router.push(`/student/chapter/${chapter.id}/video`);
+                  }
+                }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">

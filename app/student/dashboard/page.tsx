@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import Link from 'next/link';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { curriculumApi } from '@/lib/api';
@@ -141,6 +142,45 @@ export default function StudentDashboardPage() {
           </dl>
         </div>
       </div>
+
+      {/* Materi yang Diikuti */}
+      {progress && Array.isArray(progress.materiProgress) && progress.materiProgress.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold text-foreground">Materi yang Diikuti</h2>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {progress.materiProgress.map((materi) => (
+              <Link
+                key={materi.materiId}
+                href={`/student/kurikulum/${materi.materiId}`}
+                className="block rounded-lg border border-border bg-white p-5 transition-shadow hover:shadow-md"
+              >
+                <h3 className="mb-3 text-sm font-semibold text-foreground">
+                  {materi.materiName}
+                </h3>
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>Progres</span>
+                  <span className="font-medium text-foreground">
+                    {materi.completionPercentage}%
+                  </span>
+                </div>
+                <div
+                  className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200"
+                  role="progressbar"
+                  aria-valuenow={materi.completionPercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Progres ${materi.materiName}`}
+                >
+                  <div
+                    className="h-full rounded-full bg-green-500 transition-all"
+                    style={{ width: `${materi.completionPercentage}%` }}
+                  />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

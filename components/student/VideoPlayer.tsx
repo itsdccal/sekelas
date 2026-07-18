@@ -203,31 +203,13 @@ export function VideoPlayer({
         </div>
       )}
 
-      {/* Completion navigation */}
+      {/* Notifikasi video selesai — kecil di kanan bawah */}
       {isCompleted && (
         <div
-          className="absolute inset-0 flex items-center justify-center bg-black/50 z-20"
+          className="absolute bottom-3 right-3 z-20 rounded-lg bg-green-600 px-4 py-2 text-white shadow-lg"
           data-testid="completion-overlay"
         >
-          <div className="bg-white rounded-xl p-6 shadow-lg text-center max-w-sm mx-4">
-            <p className="text-lg font-semibold text-foreground mb-2">
-              Video selesai! 🎉
-            </p>
-            <p className="text-muted-foreground mb-4 text-sm">
-              {chapterStatus === 'REMEDIATION_REQUIRED' || chapterStatus === 'READY_FOR_RETAKE'
-                ? 'Anda sudah menonton ulang video ini.'
-                : 'Lanjutkan ke kuis untuk menguji pemahaman Anda.'}
-            </p>
-            <Button
-              onClick={onComplete}
-              data-testid="next-button"
-              aria-label="Lanjut ke kuis atau chapter berikutnya"
-            >
-              {chapterStatus === 'READY_FOR_RETAKE'
-                ? 'Kerjakan Kuis Kembali'
-                : 'Lanjut ke Kuis'}
-            </Button>
-          </div>
+          <p className="text-sm font-medium">✅ Video selesai!</p>
         </div>
       )}
 

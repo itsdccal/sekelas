@@ -10,8 +10,8 @@ export async function GET(
 ) {
   await params; // consume params
 
-  // Big Buck Bunny - freely available sample video
-  const sampleVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+  // Sample video served from public folder (no CORS issues)
+  const sampleVideoUrl = new URL('/sample-video.mp4', request.url).toString();
 
   return NextResponse.redirect(sampleVideoUrl);
 }

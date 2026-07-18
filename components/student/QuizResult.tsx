@@ -8,9 +8,10 @@ interface QuizResultProps {
   result: QuizResult;
   onContinue: () => void;
   onRetake?: () => void;
+  onRewatchVideo?: () => void;
 }
 
-export function QuizResultDisplay({ result, onContinue, onRetake }: QuizResultProps) {
+export function QuizResultDisplay({ result, onContinue, onRetake, onRewatchVideo }: QuizResultProps) {
   const isPassed = result.status === 'PASSED';
   const isReadyForRetake = result.nextStatus === 'READY_FOR_RETAKE';
 
@@ -55,15 +56,26 @@ export function QuizResultDisplay({ result, onContinue, onRetake }: QuizResultPr
           Lanjut ke Chapter Berikutnya
         </Button>
       ) : (
-        <Button
-          onClick={onRetake}
-          disabled={!isReadyForRetake}
-          className="w-full"
-          variant="outline"
-          aria-label="Kerjakan Kuis Kembali"
-        >
-          Kerjakan Kuis Kembali
-        </Button>
+        <div className="w-full space-y-3">
+          <Button
+            onClick={onRetake}
+            disabled={!isReadyForRetake}
+            className="w-full"
+            variant="outline"
+            aria-label="Kerjakan Kuis Kembali"
+          >
+            Kerjakan Kuis Kembali
+          </Button>
+          {!isReadyForRetake && onRewatchVideo && (
+            <Button
+              onClick={onRewatchVideo}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+              aria-label="Tonton Ulang Video"
+            >
+              📺 Tonton Ulang Video
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

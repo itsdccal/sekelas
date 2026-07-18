@@ -1,14 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+const SAMPLE_VIDEO_URL = '/sample-video.mp4';
+
 /**
  * Mock chapter video info/progress endpoint for development.
  * Returns chapter progress with different statuses based on chapterId.
+ * For UNLOCKED and COMPLETED chapters, videoUrl points to a real playable video.
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   const { chapterId } = await params;
+
+  /** Resolve videoUrl based on chapter status */
+  function getVideoUrl(status: string): string {
+    if (status === 'UNLOCKED' || status === 'COMPLETED') {
+      return SAMPLE_VIDEO_URL;
+    }
+    return `/api/v1/video/chapter/${chapterId}/stream`;
+  }
 
   const chapterProgress: Record<string, {
     chapterId: string;
@@ -28,7 +39,7 @@ export async function GET(
       title: 'Persamaan Linear Satu Variabel',
       status: 'COMPLETED',
       watchedPercentage: 100,
-      videoUrl: '/api/v1/video/chapter/ch-1/stream',
+      videoUrl: SAMPLE_VIDEO_URL,
       videoDurationMinutes: 12,
       lastScore: 85,
       quizAttempts: 1,
@@ -41,7 +52,7 @@ export async function GET(
       title: 'Persamaan Linear Dua Variabel',
       status: 'COMPLETED',
       watchedPercentage: 100,
-      videoUrl: '/api/v1/video/chapter/ch-2/stream',
+      videoUrl: SAMPLE_VIDEO_URL,
       videoDurationMinutes: 15,
       lastScore: 90,
       quizAttempts: 1,
@@ -54,7 +65,7 @@ export async function GET(
       title: 'Sistem Persamaan Linear',
       status: 'UNLOCKED',
       watchedPercentage: 50,
-      videoUrl: '/api/v1/video/chapter/ch-3/stream',
+      videoUrl: SAMPLE_VIDEO_URL,
       videoDurationMinutes: 18,
       lastScore: null,
       quizAttempts: 0,
@@ -80,7 +91,7 @@ export async function GET(
       title: 'Bangun Datar',
       status: 'COMPLETED',
       watchedPercentage: 100,
-      videoUrl: '/api/v1/video/chapter/ch-5/stream',
+      videoUrl: SAMPLE_VIDEO_URL,
       videoDurationMinutes: 20,
       lastScore: 75,
       quizAttempts: 2,
@@ -120,12 +131,13 @@ export async function GET(
 
   if (!progress) {
     // Return a default LOCKED state for unknown chapters
+    const status = 'LOCKED';
     return NextResponse.json({
       chapterId,
       title: `Chapter ${chapterId}`,
-      status: 'LOCKED',
+      status,
       watchedPercentage: 0,
-      videoUrl: `/api/v1/video/chapter/${chapterId}/stream`,
+      videoUrl: getVideoUrl(status),
       videoDurationMinutes: 15,
       lastScore: null,
       quizAttempts: 0,

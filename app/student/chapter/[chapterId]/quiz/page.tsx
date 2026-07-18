@@ -50,6 +50,11 @@ export default function QuizPage() {
     router.push(`/student/chapter/${chapterId}/video`);
   }, [chapterId, router]);
 
+  // Called when student clicks "Tonton Ulang Video"
+  const handleRewatchVideo = useCallback(() => {
+    router.push(`/student/chapter/${chapterId}/video`);
+  }, [chapterId, router]);
+
   // Show result view after quiz submission
   if (quizResult) {
     return (
@@ -58,6 +63,7 @@ export default function QuizPage() {
           result={quizResult}
           onContinue={handleContinue}
           onRetake={handleRetake}
+          onRewatchVideo={handleRewatchVideo}
         />
       </div>
     );

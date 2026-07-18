@@ -49,11 +49,11 @@ export default function VideoPlayerPage() {
       const progress = await videoApi.getVideoInfo(chapterId);
       setVideoInfo(progress);
 
-      // The videoUrl is available via the video streaming endpoint.
-      // In production, the API may return the URL as part of the progress/info response.
-      // We use the standard streaming endpoint pattern for the video source.
+      // Gunakan videoUrl dari API response jika tersedia (URL langsung ke video)
+      // Fallback ke streaming endpoint jika tidak ada
+      const apiVideoUrl = (progress as unknown as { videoUrl?: string }).videoUrl;
       setVideoUrl(
-        `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/video/chapter/${chapterId}/stream`
+        apiVideoUrl || `${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/video/chapter/${chapterId}/stream`
       );
 
       // Update store with fetched progress
@@ -131,18 +131,27 @@ export default function VideoPlayerPage() {
     [chapterId, updateWatchedPercentage]
   );
 
-  // Handle video completion — navigate based on current chapter status
+  // Track video completion state
+  const [videoCompleted, setVideoCompleted] = useState(false);
+
+  // Handle video completion — tampilkan tombol kuis (jangan auto-navigate)
   const handleVideoComplete = useCallback(() => {
     // Stop heartbeat tracking
     if (trackerRef.current) {
       trackerRef.current.stop();
     }
+    setVideoCompleted(true);
+  }, []);
 
-    // During remediation, the API will transition to READY_FOR_RETAKE via heartbeat's onStatusChange.
-    // After rewatch completes, navigate to quiz for retake.
-    // For normal flow (UNLOCKED), navigate to quiz.
+  // Navigate ke halaman kuis
+  const goToQuiz = useCallback(() => {
     router.push(`/student/chapter/${chapterId}/quiz`);
   }, [chapterId, router]);
+
+  // Navigate kembali
+  const goBack = useCallback(() => {
+    router.back();
+  }, [router]);
 
   // Loading state
   if (isLoading) {
@@ -180,6 +189,21 @@ export default function VideoPlayerPage() {
 
   return (
     <div className="flex flex-col gap-4" data-testid="video-page">
+      {/* Tombol Kembali */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={goBack}
+          aria-label="Kembali ke daftar chapter"
+        >
+          ← Kembali
+        </Button>
+        <h1 className="text-lg font-semibold text-foreground">
+          Video Pembelajaran
+        </h1>
+      </div>
+
       {/* Connection warning toast */}
       {connectionWarning && (
         <div
@@ -211,6 +235,19 @@ export default function VideoPlayerPage() {
         onComplete={handleVideoComplete}
         onProgressUpdate={handleProgressUpdate}
       />
+
+      {/* Tombol Kerjakan Kuis — muncul setelah video 100% di kanan bawah */}
+      {videoCompleted && (
+        <div className="flex justify-end pt-4">
+          <Button
+            onClick={goToQuiz}
+            size="lg"
+            className="bg-primary-600 hover:bg-primary-700 text-white px-6 py-3 text-base font-semibold"
+          >
+            🎯 Kerjakan Kuis
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

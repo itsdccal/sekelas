@@ -140,15 +140,24 @@ export async function GET(
 
   // Return physics questions for physics chapters, math for others
   const physicsChapters = ['ch-10', 'ch-11', 'ch-12', 'ch-13', 'ch-14'];
-  const questions = physicsChapters.includes(chapterId) ? physicsQuestions : mathQuestions;
+  const rawQuestions = physicsChapters.includes(chapterId) ? physicsQuestions : mathQuestions;
+
+  // Map ke format yang diharapkan frontend (Question type)
+  const questions = rawQuestions.map(q => ({
+    id: q.id,
+    patternId: 'pattern-1',
+    text: q.questionText,
+    options: q.options.map(opt => ({
+      id: opt.id,
+      text: opt.text,
+      order: opt.orderIndex,
+    })),
+    correctOptionId: q.correctOptionId,
+  }));
 
   // Simulate small delay
   await new Promise((resolve) => setTimeout(resolve, 200));
 
-  return NextResponse.json({
-    chapterId,
-    questions,
-    timeLimit: 600, // 10 minutes in seconds
-    totalQuestions: questions.length,
-  });
+  // Return array langsung (frontend expect Question[])
+  return NextResponse.json(questions);
 }

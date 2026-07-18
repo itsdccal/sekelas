@@ -60,7 +60,9 @@ export function ChapterCard({ chapter, status, onClick }: ChapterCardProps) {
       className={cn(
         'relative flex items-center gap-4 rounded-lg border p-4 transition-colors',
         config.className,
-        config.clickable && status !== 'READY_FOR_RETAKE' && 'cursor-pointer hover:bg-accent/50',
+        config.clickable && status !== 'READY_FOR_RETAKE' && status !== 'REMEDIATION_REQUIRED' && 'cursor-pointer hover:bg-accent/50',
+        status === 'REMEDIATION_REQUIRED' && 'cursor-pointer hover:bg-red-50',
+        status === 'READY_FOR_RETAKE' && 'cursor-default',
         !config.clickable && 'cursor-not-allowed',
       )}
     >

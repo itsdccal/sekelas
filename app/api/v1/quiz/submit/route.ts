@@ -54,14 +54,12 @@ export async function POST(request: NextRequest) {
 
   const xpEarned = passed ? 150 : 0;
 
+  // Return format sesuai frontend QuizResult type
   return NextResponse.json({
-    chapterId,
+    status: passed ? 'PASSED' : 'FAILED',
     score: finalScore,
-    passed,
-    correctCount,
-    totalQuestions,
-    xpEarned,
-    results,
+    passingGrade: 70,
+    nextStatus: passed ? 'COMPLETED' : 'REMEDIATION_REQUIRED',
     message: passed
       ? 'Selamat! Kamu berhasil lulus kuis ini.'
       : 'Maaf, kamu belum berhasil. Silakan tonton ulang video dan coba lagi.',
