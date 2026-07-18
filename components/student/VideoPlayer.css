@@ -1,0 +1,25 @@
+/* VideoPlayer anti-skip CSS overrides */
+/* Disables all progress bar interactions to prevent seeking */
+
+.video-player-wrapper .vjs-progress-control {
+  pointer-events: none !important;
+  display: none !important;
+}
+
+.video-player-wrapper .vjs-progress-holder {
+  pointer-events: none !important;
+}
+
+.video-player-wrapper .vjs-seek-to-live-control {
+  display: none !important;
+}
+
+/* Prevent any seek tooltip from appearing */
+.video-player-wrapper .vjs-mouse-display {
+  display: none !important;
+}
+
+/* Ensure the play progress bar is still visible (read-only) but not interactive */
+.video-player-wrapper .vjs-play-progress {
+  pointer-events: none !important;
+}
