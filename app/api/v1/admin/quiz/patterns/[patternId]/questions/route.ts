@@ -131,7 +131,20 @@ export async function GET(
     ],
   };
 
-  const questions = questionsByPattern[patternId] || [];
+  const rawQuestions = questionsByPattern[patternId] || [];
 
-  return NextResponse.json({ questions });
+  // Map ke format Question type frontend dan return array langsung
+  const questions = rawQuestions.map(q => ({
+    id: q.id,
+    patternId: q.patternId,
+    text: q.questionText,
+    options: q.options.map(opt => ({
+      id: opt.id,
+      text: opt.text,
+      order: opt.orderIndex,
+    })),
+    correctOptionId: q.correctOptionId,
+  }));
+
+  return NextResponse.json(questions);
 }
