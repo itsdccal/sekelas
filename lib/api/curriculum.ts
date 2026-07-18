@@ -1,6 +1,18 @@
 import apiClient from './client';
 import { withRetry } from './retry';
-import type { Materi, Bab, Chapter } from '@/lib/types';
+import type { Materi, Bab, Chapter, StudentProgress } from '@/lib/types';
+
+/**
+ * Fetch student's own progress summary for a given semester.
+ */
+export async function getStudentProgress(semesterId: string): Promise<StudentProgress> {
+  return withRetry(async () => {
+    const response = await apiClient.get<StudentProgress>('/api/v1/student/progress', {
+      params: { semesterId },
+    });
+    return response.data;
+  });
+}
 
 /**
  * Fetch list of Materi for the given semester.
