@@ -1,14 +1,17 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Menu, LogOut } from 'lucide-react';
+import { Menu, LogOut, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
+import { useGamificationStore } from '@/stores/gamificationStore';
+import { formatXP } from '@/lib/utils/formatters';
 
 export function Header() {
   const { user, logout } = useAuthStore();
-  const { toggleSidebar } = useUIStore();
+  const { toggleSidebar, availableSemesters, selectedSemesterId, setSelectedSemester } = useUIStore();
+  const totalXP = useGamificationStore((state) => state.totalXP);
   const [currentTime, setCurrentTime] = useState<string>('');
 
   useEffect(() => {
@@ -56,7 +59,31 @@ export function Header() {
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
+        {/* Semester Dropdown */}
+        {availableSemesters.length > 0 && (
+          <select
+            value={selectedSemesterId ?? ''}
+            onChange={(e) => setSelectedSemester(e.target.value)}
+            className="rounded border border-primary-200 bg-primary-600 px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-white/50"
+            aria-label="Pilih semester"
+          >
+            {availableSemesters.map((semester) => (
+              <option key={semester.id} value={semester.id}>
+                {semester.name}
+              </option>
+            ))}
+          </select>
+        )}
+
+        {/* XP Display - Student only */}
+        {user?.role === 'STUDENT' && (
+          <div className="hidden items-center gap-1 rounded bg-primary-600 px-2 py-1 text-sm font-medium sm:flex" aria-label={`Total XP: ${formatXP(totalXP)}`}>
+            <Star className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+            <span>{formatXP(totalXP)}</span>
+          </div>
+        )}
+
         <Button
           variant="ghost"
           size="sm"

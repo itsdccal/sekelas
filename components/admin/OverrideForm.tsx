@@ -189,7 +189,7 @@ export function AuditLogTable({
 }: AuditLogTableProps) {
   // Sort entries by createdAt descending (newest first)
   const sortedEntries = useMemo(() => {
-    if (!entries) return [];
+    if (!entries || !Array.isArray(entries)) return [];
     return [...entries].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );

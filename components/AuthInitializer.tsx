@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuthStore, useUIStore } from '@/stores';
 
 /**
@@ -12,14 +12,16 @@ import { useAuthStore, useUIStore } from '@/stores';
  */
 export function AuthInitializer() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
-  const selectedSemesterId = useUIStore((state) => state.selectedSemesterId);
-  const setSelectedSemester = useUIStore((state) => state.setSelectedSemester);
-  const setAvailableSemesters = useUIStore((state) => state.setAvailableSemesters);
+  const initialized = useRef(false);
 
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
     checkAuth();
 
     // Set default semester for development
+    const { selectedSemesterId, setSelectedSemester, setAvailableSemesters } = useUIStore.getState();
     if (!selectedSemesterId) {
       setAvailableSemesters([
         { id: 'sem-1', name: 'Semester 1 (2024/2025)' },
@@ -27,7 +29,7 @@ export function AuthInitializer() {
       ]);
       setSelectedSemester('sem-1');
     }
-  }, [checkAuth, selectedSemesterId, setSelectedSemester, setAvailableSemesters]);
+  }, [checkAuth]);
 
   return null;
 }

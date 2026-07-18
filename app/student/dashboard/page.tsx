@@ -42,7 +42,10 @@ export default function StudentDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
-    if (!selectedSemesterId) return;
+    if (!selectedSemesterId) {
+      // Keep showing skeleton until semester is available
+      return;
+    }
 
     setIsLoading(true);
     setError(null);

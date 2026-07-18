@@ -54,17 +54,22 @@ export async function GET(request: NextRequest) {
 
   // Pagination
   const totalItems = filtered.length;
-  const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = (page - 1) * pageSize;
   const paginatedStudents = filtered.slice(startIndex, startIndex + pageSize);
 
+  // Map to match frontend's expected StudentMonitoringRow format
+  const data = paginatedStudents.map(s => ({
+    userId: s.userId,
+    name: s.name,
+    kelas: s.kelas,
+    totalProgress: s.progressPercentage,
+    totalXP: s.totalXP,
+  }));
+
   return NextResponse.json({
-    students: paginatedStudents,
-    pagination: {
-      page,
-      pageSize,
-      totalItems,
-      totalPages,
-    },
+    data,
+    total: totalItems,
+    page,
+    pageSize,
   });
 }

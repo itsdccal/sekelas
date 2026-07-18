@@ -25,6 +25,17 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
+      // Don't redirect if already on login page (prevents infinite loop)
+      if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+        return Promise.reject(error);
+      }
+
+      // Don't redirect for /auth/me calls (session check on page load)
+      const requestUrl = error.config?.url || '';
+      if (requestUrl.includes('/auth/me')) {
+        return Promise.reject(error);
+      }
+
       // Clear auth state and redirect to login (Requirement 16.2)
       try {
         const { useAuthStore } = await import('@/stores/authStore');

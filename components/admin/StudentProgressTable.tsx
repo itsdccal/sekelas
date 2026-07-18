@@ -104,7 +104,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
   // Sort data by totalProgress ascending (lowest first) — server may already sort,
   // but we ensure client-side sort as well for safety
   const sortedData = useMemo(
-    () => [...data].sort((a, b) => a.totalProgress - b.totalProgress),
+    () => Array.isArray(data) ? [...data].sort((a, b) => a.totalProgress - b.totalProgress) : [],
     [data]
   );
 

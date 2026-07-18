@@ -92,5 +92,12 @@ export async function GET() {
     },
   ];
 
-  return NextResponse.json({ auditLog });
+  // Return as a direct array (frontend expects AuditLogEntry[])
+  // Map chapterTitle → chapterName to match the type
+  const mapped = auditLog.map(entry => ({
+    ...entry,
+    chapterName: entry.chapterTitle,
+  }));
+
+  return NextResponse.json(mapped);
 }
