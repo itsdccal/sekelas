@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuthStore, useUIStore } from '@/stores';
 
 /**
@@ -12,13 +13,17 @@ import { useAuthStore, useUIStore } from '@/stores';
  */
 export function AuthInitializer() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
+  const pathname = usePathname();
   const initialized = useRef(false);
 
   useEffect(() => {
     if (initialized.current) return;
     initialized.current = true;
 
-    checkAuth();
+    // Don't check auth on login page — there's no cookie yet
+    if (pathname !== '/login') {
+      checkAuth();
+    }
 
     // Set default semester for development
     const { selectedSemesterId, setSelectedSemester, setAvailableSemesters } = useUIStore.getState();
@@ -29,7 +34,7 @@ export function AuthInitializer() {
       ]);
       setSelectedSemester('sem-1');
     }
-  }, [checkAuth]);
+  }, [checkAuth, pathname]);
 
   return null;
 }

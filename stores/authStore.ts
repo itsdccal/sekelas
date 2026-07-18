@@ -50,6 +50,10 @@ export const useAuthStore = create<AuthState>((set) => ({
       isLoading: false,
       error: null,
     });
+    // Redirect ke login tanpa perlu refresh manual
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
   },
 
   checkAuth: async () => {

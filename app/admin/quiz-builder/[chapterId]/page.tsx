@@ -31,7 +31,7 @@ export default function QuizBuilderPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <h1 className="text-2xl font-semibold text-foreground">
-          Quiz Builder
+          Pembangun Kuis
         </h1>
       </div>
 

@@ -73,7 +73,7 @@ export default function StudentDashboardPage() {
   if (error) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground">Beranda</h1>
         <div className="rounded-lg border border-border bg-white p-6" role="alert" aria-live="polite">
           <p className="mb-4 text-sm text-destructive">{error}</p>
           <Button onClick={fetchDashboardData} variant="default" size="sm">
@@ -87,7 +87,7 @@ export default function StudentDashboardPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-foreground">Beranda</h1>
         <div className="grid gap-6 md:grid-cols-2">
           <ProfileSkeleton />
           <ProgressSkeleton />
@@ -98,7 +98,7 @@ export default function StudentDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-foreground">Beranda</h1>
 
       <div className="grid gap-6 md:grid-cols-2">
         {/* Profile Card */}
@@ -134,7 +134,7 @@ export default function StudentDashboardPage() {
             </div>
             <div className="flex justify-between">
               <dt className="text-muted-foreground">Total XP</dt>
-              <dd className="font-medium text-primary-700">
+              <dd className="font-medium text-amber-600">
                 {progress ? formatXP(progress.totalXP) : '-'}
               </dd>
             </div>

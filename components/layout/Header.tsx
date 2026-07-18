@@ -78,8 +78,8 @@ export function Header() {
 
         {/* XP Display - Student only */}
         {user?.role === 'STUDENT' && (
-          <div className="hidden items-center gap-1 rounded bg-primary-600 px-2 py-1 text-sm font-medium sm:flex" aria-label={`Total XP: ${formatXP(totalXP)}`}>
-            <Star className="h-4 w-4 text-yellow-300" aria-hidden="true" />
+          <div className="hidden items-center gap-1 rounded bg-amber-500/20 px-2 py-1 text-sm font-medium text-amber-100 sm:flex" aria-label={`Total XP: ${formatXP(totalXP)}`}>
+            <Star className="h-4 w-4 text-amber-300" aria-hidden="true" />
             <span>{formatXP(totalXP)}</span>
           </div>
         )}
@@ -92,7 +92,7 @@ export function Header() {
           aria-label="Logout"
         >
           <LogOut className="h-4 w-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Logout</span>
+          <span className="hidden sm:inline">Keluar</span>
         </Button>
       </div>
     </header>

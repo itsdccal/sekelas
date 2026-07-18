@@ -64,10 +64,19 @@ export function ChapterCard({ chapter, status, onClick }: ChapterCardProps) {
         !config.clickable && 'cursor-not-allowed',
       )}
     >
-      {/* Status icon */}
-      <div className="flex-shrink-0">
-        <StatusIcon status={status} />
-      </div>
+      {/* Ikon gembok di tengah kartu untuk LOCKED (sesuai PRD) */}
+      {status === 'LOCKED' && (
+        <div className="absolute inset-0 flex items-center justify-center z-10">
+          <Lock className="h-8 w-8 text-gray-400" aria-label="Chapter terkunci" />
+        </div>
+      )}
+
+      {/* Status icon (non-LOCKED) */}
+      {status !== 'LOCKED' && (
+        <div className="flex-shrink-0">
+          <StatusIcon status={status} />
+        </div>
+      )}
 
       {/* Chapter info */}
       <div className="flex-1 min-w-0">

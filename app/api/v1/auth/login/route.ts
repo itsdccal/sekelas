@@ -2,28 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Mock login endpoint for development.
- * Accepts any email/password and returns a user based on email pattern.
  *
- * Test accounts:
- * - Student: student@sekelas.id / password123
- * - Admin:   admin@sekelas.id / password123
+ * Akun yang tersedia:
+ * - Siswa:  student@sekelas.id / password123
+ * - Admin:  admin@sekelas.id / password123
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
   const { email, password } = body;
 
-  // Simple validation
-  if (!email || !password || password.length < 8) {
+  // Validasi input dasar
+  if (!email || !password) {
     return NextResponse.json(
       { message: 'Email atau password salah' },
       { status: 401 }
     );
   }
 
-  // Determine role based on email
-  const isAdmin = email.toLowerCase().includes('admin');
+  // Hanya terima akun yang valid
+  const validAccounts: Record<string, { password: string; role: 'STUDENT' | 'ADMIN' }> = {
+    'admin': { password: '123', role: 'ADMIN' },
+    'siswa': { password: '123', role: 'STUDENT' },
+  };
 
-  const user = isAdmin
+  const account = validAccounts[email.toLowerCase()];
+
+  if (!account || account.password !== password) {
+    return NextResponse.json(
+      { message: 'Email atau password salah' },
+      { status: 401 }
+    );
+  }
+
+  const user = account.role === 'ADMIN'
     ? {
         id: 'admin-001',
         email: email,
@@ -45,7 +56,7 @@ export async function POST(request: NextRequest) {
     expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
   });
 
-  // Set cookies for middleware auth check
+  // Set cookies untuk middleware auth check
   response.cookies.set('auth_token', 'mock-jwt-token-' + user.id, {
     httpOnly: true,
     path: '/',

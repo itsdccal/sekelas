@@ -7,7 +7,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Dashboard Admin</h1>
+      <h1 className="text-2xl font-bold text-foreground">Beranda Admin</h1>
 
       <div className="rounded-lg border border-border bg-white p-6">
         <h2 className="mb-4 text-lg font-semibold">Selamat datang, {user?.firstName || 'Admin'}!</h2>

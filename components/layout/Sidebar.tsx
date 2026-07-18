@@ -21,16 +21,16 @@ interface NavItem {
 }
 
 const studentMenuItems: NavItem[] = [
-  { label: 'Dashboard', href: '/student/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: 'Beranda', href: '/student/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { label: 'Kurikulum', href: '/student/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
   { label: 'Raport', href: '/student/raport', icon: <FileText className="h-5 w-5" /> },
-  { label: 'Badge', href: '/student/badges', icon: <User className="h-5 w-5" /> },
+  { label: 'Koleksi Badge', href: '/student/badges', icon: <User className="h-5 w-5" /> },
 ];
 
 const adminMenuItems: NavItem[] = [
-  { label: 'Dashboard', href: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: 'Beranda', href: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { label: 'Kurikulum', href: '/admin/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
-  { label: 'Quiz Builder', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
+  { label: 'Pembangun Kuis', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
   { label: 'Monitoring', href: '/admin/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
   { label: 'Override', href: '/admin/override', icon: <Settings className="h-5 w-5" /> },
 ];

@@ -19,8 +19,6 @@ export function validateLogin(email: string, password: string): ValidationResult
 
   if (!password || password.length === 0) {
     errors.password = 'Password wajib diisi';
-  } else if (password.length < 8) {
-    errors.password = 'Password minimal 8 karakter';
   } else if (password.length > 64) {
     errors.password = 'Password maksimal 64 karakter';
   }

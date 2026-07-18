@@ -376,7 +376,7 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
                     }}
                     aria-label={`Edit soal ${idx + 1}`}
                   >
-                    Edit
+                    Ubah
                   </Button>
                   <Button
                     variant="destructive"

@@ -58,7 +58,7 @@ export default function QuizBuilderIndexPage() {
   if (!selectedSemesterId) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold">Quiz Builder</h1>
+        <h1 className="text-2xl font-semibold">Pembangun Kuis</h1>
         <p className="text-muted-foreground">Pilih semester terlebih dahulu pada header.</p>
       </div>
     );
@@ -69,7 +69,7 @@ export default function QuizBuilderIndexPage() {
       <div className="space-y-1">
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
           <PenTool className="h-6 w-6 text-primary-600" />
-          Quiz Builder
+          Pembangun Kuis
         </h1>
         <p className="text-sm text-muted-foreground">
           Pilih Chapter untuk mengelola pola soal dan pertanyaan kuis.
