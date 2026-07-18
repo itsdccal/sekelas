@@ -3,6 +3,7 @@
 import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
+import { GamificationOverlay } from '@/components/student/GamificationOverlay';
 
 export default function StudentLayout({
   children,
@@ -31,6 +32,9 @@ export default function StudentLayout({
           {children}
         </main>
       </div>
+
+      {/* Gamification notifications/popups — always visible across all student pages */}
+      <GamificationOverlay />
     </div>
   );
 }

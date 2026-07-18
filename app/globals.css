@@ -64,3 +64,27 @@ body {
   outline: 2px solid var(--color-primary-600);
   outline-offset: 2px;
 }
+
+/* XP Notification animation: slide in from top-right, then fade out */
+@keyframes xp-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+.animate-xp-slide-in {
+  animation: xp-slide-in 3s ease-in-out forwards;
+}
