@@ -52,6 +52,8 @@ export interface CrudTableProps<T> {
   getRowKey: (item: T) => string;
   /** Callback when an operation succeeds (for toast/notification) */
   onSuccess?: (message: string) => void;
+  /** Optional callback when a row is clicked (for drill-down navigation) */
+  onRowClick?: (item: T) => void;
 }
 
 // --- Skeleton Loader ---
@@ -128,6 +130,7 @@ export function CrudTable<T>({
   addLabel = "Tambah",
   getItemName,
   getRowKey,
+  onRowClick,
 }: CrudTableProps<T>) {
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -215,7 +218,11 @@ export function CrudTable<T>({
                 data.map((item) => (
                   <tr
                     key={getRowKey(item)}
-                    className="hover:bg-accent/50 transition-colors"
+                    className={cn(
+                      "hover:bg-accent/50 transition-colors",
+                      onRowClick && "cursor-pointer"
+                    )}
+                    onClick={() => onRowClick?.(item)}
                   >
                     {columns.map((col) => (
                       <td key={col.key} className="px-4 py-3">
@@ -225,7 +232,7 @@ export function CrudTable<T>({
                       </td>
                     ))}
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                         <Button
                           variant="default"
                           size="sm"
