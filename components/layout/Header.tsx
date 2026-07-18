@@ -43,7 +43,7 @@ export function Header() {
           onClick={toggleSidebar}
           aria-label="Toggle navigasi"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-6 w-6" aria-hidden="true" />
         </Button>
 
         <div className="flex flex-col">
@@ -64,7 +64,7 @@ export function Header() {
           onClick={logout}
           aria-label="Logout"
         >
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-4 w-4" aria-hidden="true" />
           <span className="hidden sm:inline">Logout</span>
         </Button>
       </div>

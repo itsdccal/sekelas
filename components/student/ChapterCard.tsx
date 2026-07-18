@@ -49,6 +49,7 @@ export function ChapterCard({ chapter, status, onClick }: ChapterCardProps) {
       role="button"
       tabIndex={config.clickable ? 0 : -1}
       aria-disabled={!config.clickable}
+      aria-label={`${chapter.name}${!config.clickable ? ' (terkunci)' : ''}`}
       onClick={handleClick}
       onKeyDown={(e) => {
         if ((e.key === 'Enter' || e.key === ' ') && config.clickable && status !== 'READY_FOR_RETAKE') {
@@ -88,8 +89,9 @@ export function ChapterCard({ chapter, status, onClick }: ChapterCardProps) {
           variant="default"
           onClick={handleRetakeClick}
           className="flex-shrink-0"
+          aria-label="Kerjakan Kuis Kembali"
         >
-          <RefreshCw className="h-3.5 w-3.5" />
+          <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />
           Kerjakan Kuis Kembali
         </Button>
       )}

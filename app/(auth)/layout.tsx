@@ -4,8 +4,8 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-primary-50">
+    <main className="flex min-h-screen items-center justify-center bg-primary-50" aria-label="Halaman autentikasi">
       {children}
-    </div>
+    </main>
   );
 }

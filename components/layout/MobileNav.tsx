@@ -55,7 +55,7 @@ export function MobileNav() {
             onClick={() => setSidebarOpen(false)}
             aria-label="Tutup navigasi"
           >
-            <X className="h-5 w-5" />
+            <X className="h-5 w-5" aria-hidden="true" />
           </Button>
         </div>
 
