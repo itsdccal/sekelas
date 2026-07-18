@@ -25,7 +25,7 @@ export default function QuizBuilderPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/kurikulum')}
+          onClick={() => router.push('/admin/kurikulum')}
           aria-label="Kembali ke Kurikulum"
         >
           <ArrowLeft className="h-5 w-5" />

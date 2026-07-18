@@ -21,18 +21,18 @@ interface NavItem {
 }
 
 const studentMenuItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { label: 'Kurikulum', href: '/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
-  { label: 'Raport', href: '/raport', icon: <FileText className="h-5 w-5" /> },
-  { label: 'Badge', href: '/badges', icon: <User className="h-5 w-5" /> },
+  { label: 'Dashboard', href: '/student/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: 'Kurikulum', href: '/student/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
+  { label: 'Raport', href: '/student/raport', icon: <FileText className="h-5 w-5" /> },
+  { label: 'Badge', href: '/student/badges', icon: <User className="h-5 w-5" /> },
 ];
 
 const adminMenuItems: NavItem[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { label: 'Kurikulum', href: '/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
-  { label: 'Quiz Builder', href: '/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
-  { label: 'Monitoring', href: '/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
-  { label: 'Override', href: '/override', icon: <Settings className="h-5 w-5" /> },
+  { label: 'Dashboard', href: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
+  { label: 'Kurikulum', href: '/admin/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
+  { label: 'Quiz Builder', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
+  { label: 'Monitoring', href: '/admin/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
+  { label: 'Override', href: '/admin/override', icon: <Settings className="h-5 w-5" /> },
 ];
 
 interface SidebarProps {
