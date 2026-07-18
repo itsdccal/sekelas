@@ -1,2 +1,5 @@
-// Zustand stores will be added in tasks 2.1–2.5
-export {};
+export { useAuthStore } from './authStore';
+export { useChapterStore } from './chapterStore';
+export { useGamificationStore } from './gamificationStore';
+export { useQuizStore } from './quizStore';
+export { useUIStore } from './uiStore';

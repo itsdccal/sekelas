@@ -7,3 +7,4 @@ export * as curriculumApi from './curriculum';
 export * as videoApi from './video';
 export * as quizApi from './quiz';
 export * as adminApi from './admin';
+export * as gamificationApi from './gamification';

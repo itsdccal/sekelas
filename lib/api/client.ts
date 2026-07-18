@@ -12,13 +12,11 @@ apiClient.interceptors.response.use(
   async (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Lazy import to avoid circular dependency and initialization issues
-      // Auth store may not exist yet (task 2.1)
       try {
-        // @ts-expect-error - authStore will be created in task 2.1
         const { useAuthStore } = await import('@/stores/authStore');
         useAuthStore.getState().logout();
       } catch {
-        // Auth store not available yet — clear any manual state if needed
+        // Auth store not available yet
       }
 
       if (typeof window !== 'undefined') {
