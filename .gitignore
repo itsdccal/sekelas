@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.kiro/specs/sekelas-lms-frontend/.config.kiro
+/docs
+/.kiro
+.vscode/settings.json
