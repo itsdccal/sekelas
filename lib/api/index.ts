@@ -1,4 +1,4 @@
-export { default as apiClient } from './client';
+export { default as apiClient, ForbiddenError } from './client';
 export { withRetry, classifyError, isRetryable, getErrorMessage } from './retry';
 export type { RetryConfig, ApiErrorType } from './retry';
 
