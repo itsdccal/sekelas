@@ -34,7 +34,14 @@ export async function GET(
     ],
   };
 
-  const patterns = patternsByChapter[chapterId] || [];
+  const patterns = (patternsByChapter[chapterId] || []).map(p => ({
+    id: p.id,
+    chapterId: p.chapterId,
+    patternCode: p.name,
+    description: p.description,
+    questionCount: p.questionCount,
+  }));
 
-  return NextResponse.json({ patterns });
+  // Return array langsung (frontend expect QuestionPattern[])
+  return NextResponse.json(patterns);
 }
