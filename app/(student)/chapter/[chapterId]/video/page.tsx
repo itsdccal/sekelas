@@ -103,8 +103,10 @@ export default function VideoPlayerPage() {
     });
 
     trackerRef.current = tracker;
-    // Start tracker immediately
-    tracker.start(videoInfo.watchedPercentage);
+    // Start tracker — during remediation, start from 0 (fresh rewatch)
+    const startPercentage =
+      videoInfo.status === 'REMEDIATION_REQUIRED' ? 0 : videoInfo.watchedPercentage;
+    tracker.start(startPercentage);
 
     // Cleanup on unmount
     return () => {
@@ -129,14 +131,16 @@ export default function VideoPlayerPage() {
     [chapterId, updateWatchedPercentage]
   );
 
-  // Handle video completion — navigate to quiz page
+  // Handle video completion — navigate based on current chapter status
   const handleVideoComplete = useCallback(() => {
     // Stop heartbeat tracking
     if (trackerRef.current) {
       trackerRef.current.stop();
     }
 
-    // Navigate to quiz page
+    // During remediation, the API will transition to READY_FOR_RETAKE via heartbeat's onStatusChange.
+    // After rewatch completes, navigate to quiz for retake.
+    // For normal flow (UNLOCKED), navigate to quiz.
     router.push(`/student/chapter/${chapterId}/quiz`);
   }, [chapterId, router]);
 
@@ -201,7 +205,9 @@ export default function VideoPlayerPage() {
         videoUrl={videoUrl}
         chapterId={chapterId}
         chapterStatus={videoInfo.status}
-        initialProgress={videoInfo.watchedPercentage}
+        initialProgress={
+          videoInfo.status === 'REMEDIATION_REQUIRED' ? 0 : videoInfo.watchedPercentage
+        }
         onComplete={handleVideoComplete}
         onProgressUpdate={handleProgressUpdate}
       />
