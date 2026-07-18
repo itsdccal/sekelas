@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, ChevronRight, Loader2 } from "lucide-react";
+import { Plus, Trash2, ChevronRight, Loader2, FileQuestion, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -303,23 +303,28 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header with back button */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-4 pb-4 border-b border-border">
         <Button variant="outline" size="sm" onClick={onBack}>
           ← Kembali
         </Button>
         <div>
-          <h3 className="text-base font-semibold">{pattern.patternCode}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold">{pattern.patternCode}</h3>
+            <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+              {questions.length} soal
+            </span>
+          </div>
           {pattern.description && (
-            <p className="text-sm text-muted-foreground">{pattern.description}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{pattern.description}</p>
           )}
         </div>
       </div>
 
       {/* Add question button */}
       <div className="flex justify-end">
-        <Button onClick={() => setIsQuestionFormOpen(true)}>
+        <Button onClick={() => setIsQuestionFormOpen(true)} className="shadow-sm">
           <Plus className="h-4 w-4" aria-hidden="true" />
           Tambah Soal
         </Button>
@@ -340,31 +345,45 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
       {isLoading ? (
         <div className="space-y-3" role="status" aria-label="Memuat soal...">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-md bg-muted animate-pulse" />
+            <div key={i} className="h-20 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       ) : questions.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-          Belum ada soal dalam pola ini.
+        <div className="rounded-xl border-2 border-dashed border-border p-10 text-center">
+          <FileQuestion className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">Belum ada soal dalam pola ini</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Klik tombol &quot;Tambah Soal&quot; untuk menambahkan pertanyaan pertama.
+          </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {questions.map((question, idx) => (
             <div
               key={question.id}
-              className="rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors"
+              className="rounded-lg border border-border bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3">
+                {/* Question number badge */}
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0 mt-0.5">
+                  {idx + 1}
+                </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
-                    Soal {idx + 1}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-sm font-medium text-foreground leading-relaxed">
                     {question.text}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {question.options.length} opsi jawaban
-                  </p>
+                  {/* Preview first option */}
+                  {question.options.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1.5">
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded bg-gray-100 text-[10px] font-medium text-gray-600 shrink-0">A</span>
+                      <span className="truncate">{question.options[0].text}</span>
+                      {question.options.length > 1 && (
+                        <span className="text-muted-foreground/60 shrink-0">
+                          (+{question.options.length - 1} opsi lain)
+                        </span>
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
@@ -487,11 +506,16 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Pola Soal</h2>
-        <Button onClick={() => setIsPatternFormOpen(true)}>
+      <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div>
+          <h2 className="text-lg font-semibold">Pola Soal</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Kelola pola dan bank soal untuk chapter ini
+          </p>
+        </div>
+        <Button onClick={() => setIsPatternFormOpen(true)} className="shadow-sm">
           <Plus className="h-4 w-4" aria-hidden="true" />
           Buat Pola Baru
         </Button>
@@ -512,19 +536,23 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
       {isLoading ? (
         <div className="space-y-3" role="status" aria-label="Memuat pola soal...">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-md bg-muted animate-pulse" />
+            <div key={i} className="h-20 rounded-lg bg-muted animate-pulse" />
           ))}
         </div>
       ) : patterns.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-8 text-center text-muted-foreground">
-          Belum ada pola soal. Klik &quot;Buat Pola Baru&quot; untuk membuat pola soal pertama.
+        <div className="rounded-xl border-2 border-dashed border-border p-10 text-center">
+          <ClipboardList className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
+          <p className="text-sm font-medium text-muted-foreground">Belum ada pola soal</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Klik tombol &quot;Buat Pola Baru&quot; untuk membuat pola soal pertama.
+          </p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {patterns.map((pattern) => (
             <div
               key={pattern.id}
-              className="rounded-lg border border-border p-4 hover:bg-accent/50 transition-colors cursor-pointer group"
+              className="rounded-lg border border-border bg-white border-l-4 border-l-primary-500 p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
               onClick={() => setSelectedPattern(pattern)}
               role="button"
               tabIndex={0}
@@ -538,15 +566,19 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{pattern.patternCode}</p>
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-mono font-medium text-gray-700">
+                      {pattern.patternCode}
+                    </span>
+                    <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+                      {pattern.questionCount} soal
+                    </span>
+                  </div>
                   {pattern.description && (
-                    <p className="text-sm text-muted-foreground truncate">
+                    <p className="text-sm text-muted-foreground mt-1.5 truncate">
                       {pattern.description}
                     </p>
                   )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {pattern.questionCount} soal
-                  </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
@@ -561,7 +593,7 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
                   <ChevronRight
-                    className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors"
+                    className="h-5 w-5 text-muted-foreground group-hover:text-primary-600 transition-colors"
                     aria-hidden="true"
                   />
                 </div>
