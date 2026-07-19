@@ -177,92 +177,135 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
 
       {/* Table */}
       {!isLoading && !error && (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm" role="table">
-            <thead className="bg-muted">
-              <tr>
-                <th
-                  className="px-4 py-3 text-left font-medium text-foreground"
-                  scope="col"
-                >
-                  Nama
-                </th>
-                <th
-                  className="px-4 py-3 text-left font-medium text-foreground"
-                  scope="col"
-                >
-                  Kelas
-                </th>
-                <th
-                  className="px-4 py-3 text-left font-medium text-foreground"
-                  scope="col"
-                >
-                  Progres (%)
-                </th>
-                <th
-                  className="px-4 py-3 text-left font-medium text-foreground"
-                  scope="col"
-                >
-                  Total XP
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {sortedData.length === 0 ? (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm" role="table">
+              <thead className="bg-muted">
                 <tr>
-                  <td
-                    colSpan={4}
-                    className="px-4 py-8 text-center text-muted-foreground"
+                  <th
+                    className="px-4 py-3 text-left font-medium text-foreground"
+                    scope="col"
                   >
-                    Tidak ada data siswa ditemukan.
-                  </td>
+                    Nama
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left font-medium text-foreground"
+                    scope="col"
+                  >
+                    Kelas
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left font-medium text-foreground"
+                    scope="col"
+                  >
+                    Progres (%)
+                  </th>
+                  <th
+                    className="px-4 py-3 text-left font-medium text-foreground"
+                    scope="col"
+                  >
+                    Total XP
+                  </th>
                 </tr>
-              ) : (
-                sortedData.map((student) => (
-                  <tr
-                    key={student.userId}
-                    className="hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => onStudentClick(student.userId)}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`Lihat detail ${student.name}`}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onStudentClick(student.userId);
-                      }
-                    }}
-                  >
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-primary-700">
-                        {student.name}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
-                      {student.kelas}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-16 rounded-full bg-muted overflow-hidden">
-                          <div
-                            className="h-full rounded-full bg-primary-600 transition-all"
-                            style={{ width: `${student.totalProgress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-medium">
-                          {student.totalProgress}%
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 font-medium">
-                      {student.totalXP.toLocaleString("id-ID")} XP
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sortedData.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
+                      Tidak ada data siswa ditemukan.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  sortedData.map((student) => (
+                    <tr
+                      key={student.userId}
+                      className="hover:bg-accent/50 transition-colors cursor-pointer"
+                      onClick={() => onStudentClick(student.userId)}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Lihat detail ${student.name}`}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onStudentClick(student.userId);
+                        }
+                      }}
+                    >
+                      <td className="px-4 py-3">
+                        <span className="font-medium text-primary-700">
+                          {student.name}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {student.kelas}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-16 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className="h-full rounded-full bg-primary-600 transition-all"
+                              style={{ width: `${student.totalProgress}%` }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium">
+                            {student.totalProgress}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {student.totalXP.toLocaleString("id-ID")} XP
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="sm:hidden space-y-2">
+            {sortedData.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Tidak ada data siswa ditemukan.
+              </p>
+            ) : (
+              sortedData.map((student) => (
+                <button
+                  key={student.userId}
+                  type="button"
+                  className="w-full rounded-lg border border-border bg-white p-3 text-left active:bg-accent/30 transition-colors"
+                  onClick={() => onStudentClick(student.userId)}
+                  aria-label={`Lihat detail ${student.name}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-primary-700 text-sm">{student.name}</span>
+                    <span className="text-xs text-muted-foreground">{student.kelas}</span>
+                  </div>
+                  <div className="mt-2 flex items-center gap-3">
+                    <div className="flex-1">
+                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-primary-600 transition-all"
+                          style={{ width: `${student.totalProgress}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-xs font-semibold text-foreground shrink-0">
+                      {student.totalProgress}%
+                    </span>
+                  </div>
+                  <div className="mt-1.5 text-xs text-muted-foreground">
+                    {student.totalXP.toLocaleString("id-ID")} XP
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Pagination */}

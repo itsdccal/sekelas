@@ -133,11 +133,11 @@ export default function QuizBuilderIndexPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="space-y-1">
-        <h1 className="flex items-center gap-2 text-2xl font-semibold">
-          <PenTool className="h-6 w-6 text-primary-600" />
+        <h1 className="flex items-center gap-2 text-lg sm:text-2xl font-semibold">
+          <PenTool className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
           Bank Soal
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           Kelola pola soal dan pertanyaan untuk Kuis Chapter, Pre Test, dan Post Test.
         </p>
       </div>
@@ -150,7 +150,7 @@ export default function QuizBuilderIndexPage() {
             role="tab"
             aria-selected={quizType === type}
             onClick={() => handleQuizTypeChange(type)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex-1 rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
               quizType === type
                 ? 'bg-white text-primary-700 shadow-sm'
                 : 'text-muted-foreground hover:text-foreground'

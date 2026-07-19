@@ -9,7 +9,7 @@ export default function MonitoringPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-semibold text-foreground">
+      <h1 className="text-lg sm:text-2xl font-semibold text-foreground">
         Pemantauan Progres Siswa
       </h1>
 

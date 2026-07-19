@@ -265,64 +265,96 @@ export function AuditLogTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-border">
-      <table className="w-full text-sm" role="table">
-        <thead className="bg-muted">
-          <tr>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Admin
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Siswa
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Chapter
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Skor
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Alasan
-            </th>
-            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Waktu
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-border">
-          {sortedEntries.length === 0 ? (
+    <>
+      {/* Desktop Table */}
+      <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
+        <table className="w-full text-sm" role="table">
+          <thead className="bg-muted">
             <tr>
-              <td
-                colSpan={6}
-                className="px-4 py-8 text-center text-muted-foreground"
-              >
-                Belum ada riwayat penyesuaian.
-              </td>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Admin
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Siswa
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Chapter
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Skor
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Alasan
+              </th>
+              <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+                Waktu
+              </th>
             </tr>
-          ) : (
-            sortedEntries.map((entry) => (
-              <tr key={entry.id} className="hover:bg-accent/50 transition-colors">
-                <td className="px-4 py-3">{entry.adminName}</td>
-                <td className="px-4 py-3">{entry.studentName}</td>
-                <td className="px-4 py-3">{entry.chapterName}</td>
-                <td className="px-4 py-3 font-medium">
-                  {entry.score != null ? `${entry.score}%` : '—'}
-                </td>
-                <td className="px-4 py-3 max-w-[200px] truncate" title={entry.reason}>
-                  {entry.reason}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                    {formatTimestamp(entry.createdAt)}
-                  </span>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {sortedEntries.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
+                  Belum ada riwayat penyesuaian.
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+            ) : (
+              sortedEntries.map((entry) => (
+                <tr key={entry.id} className="hover:bg-accent/50 transition-colors">
+                  <td className="px-4 py-3">{entry.adminName}</td>
+                  <td className="px-4 py-3">{entry.studentName}</td>
+                  <td className="px-4 py-3">{entry.chapterName}</td>
+                  <td className="px-4 py-3 font-medium">
+                    {entry.score != null ? `${entry.score}%` : '—'}
+                  </td>
+                  <td className="px-4 py-3 max-w-[200px] truncate" title={entry.reason}>
+                    {entry.reason}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className="flex items-center gap-1 text-muted-foreground">
+                      <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                      {formatTimestamp(entry.createdAt)}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="sm:hidden space-y-3">
+        {sortedEntries.length === 0 ? (
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            Belum ada riwayat penyesuaian.
+          </p>
+        ) : (
+          sortedEntries.map((entry) => (
+            <div key={entry.id} className="rounded-lg border border-border bg-white p-3 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">{entry.studentName}</span>
+                <span className="text-xs font-semibold text-primary-700">
+                  {entry.score != null ? `${entry.score}%` : '—'}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">{entry.chapterName}</p>
+              <p className="text-xs text-foreground line-clamp-2">{entry.reason}</p>
+              <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                <span className="text-xs text-muted-foreground">{entry.adminName}</span>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Clock className="h-3 w-3" aria-hidden="true" />
+                  {formatTimestamp(entry.createdAt)}
+                </span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </>
   );
 }
 
