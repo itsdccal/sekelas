@@ -12,14 +12,30 @@ import {
   Trophy,
   Star,
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
 import { useUIStore } from '@/stores/uiStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
 import { curriculumApi } from '@/lib/api';
-import { formatCompletionPercentage, formatXP } from '@/lib/utils/formatters';
+import { formatXP } from '@/lib/utils/formatters';
 import { Button } from '@/components/ui/button';
-import type { StudentProgress, MateriProgress, BabProgress, ChapterProgress, ChapterStatus } from '@/lib/types';
+import type {
+  StudentProgress,
+  MateriProgress,
+  BabProgress,
+  ChapterProgress,
+  ChapterStatus,
+} from '@/lib/types';
 
-// ─── Status icon component (same mapping as ChapterCard) ───
+// ─── Status icon component ───
 
 function ChapterStatusIcon({ status }: { status: ChapterStatus }) {
   switch (status) {
@@ -47,77 +63,169 @@ function statusLabel(status: ChapterStatus): string {
     case 'COMPLETED':
       return 'Selesai';
     case 'REMEDIATION_REQUIRED':
-      return 'Perlu Remediasi';
+      return 'Remediasi';
     case 'READY_FOR_RETAKE':
-      return 'Siap Kuis Ulang';
+      return 'Kuis Ulang';
     default:
       return '';
   }
 }
 
-// ─── Skeleton components ───
+// ─── Skeleton ───
 
-function XPSkeleton() {
+function PageSkeleton() {
   return (
-    <div className="rounded-lg border border-border bg-white p-6" aria-busy="true" aria-label="Memuat XP">
-      <div className="mb-3 h-5 w-24 animate-pulse rounded bg-muted" />
-      <div className="h-8 w-36 animate-pulse rounded bg-muted" />
-      <div className="mt-4 space-y-2">
-        <div className="h-4 w-48 animate-pulse rounded bg-muted" />
-        <div className="h-4 w-40 animate-pulse rounded bg-muted" />
+    <div className="space-y-4" aria-busy="true" aria-label="Memuat raport">
+      <div className="grid gap-3 grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
+      <div className="h-52 animate-pulse rounded-lg bg-muted" />
+      <div className="space-y-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
+        ))}
       </div>
     </div>
   );
 }
 
-function MateriListSkeleton() {
+// ─── Pre/Post Test Chart ───
+
+function PrePostTestChart({ babs }: { babs: BabProgress[] }) {
+  const chartData = babs
+    .filter((bab) => bab.preTestScore !== null)
+    .map((bab) => ({
+      name: bab.babName.length > 12 ? bab.babName.substring(0, 12) + '…' : bab.babName,
+      fullName: bab.babName,
+      'Pre Test': bab.preTestScore ?? 0,
+      'Post Test': bab.postTestScore ?? 0,
+    }));
+
+  if (chartData.length === 0) {
+    return (
+      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
+        <p className="text-sm text-muted-foreground">Belum ada data Pre/Post Test</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-4" aria-busy="true" aria-label="Memuat raport">
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="rounded-lg border border-border bg-white p-4">
-          <div className="flex items-center justify-between">
-            <div className="h-5 w-48 animate-pulse rounded bg-muted" />
-            <div className="h-5 w-16 animate-pulse rounded bg-muted" />
-          </div>
-          <div className="mt-3 space-y-2">
-            <div className="h-4 w-full animate-pulse rounded bg-muted" />
-            <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
-          </div>
-        </div>
-      ))}
+    <div className="h-52 w-full sm:h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 11, fill: '#64748b' }}
+            axisLine={{ stroke: '#e2e8f0' }}
+            interval={0}
+          />
+          <YAxis
+            domain={[0, 100]}
+            tick={{ fontSize: 11, fill: '#64748b' }}
+            axisLine={{ stroke: '#e2e8f0' }}
+            width={35}
+          />
+          <Tooltip
+            contentStyle={{
+              borderRadius: '8px',
+              border: '1px solid #e2e8f0',
+              fontSize: '12px',
+            }}
+            formatter={(value: number, name: string) => [`${value}`, name]}
+            labelFormatter={(_, payload) => {
+              const item = payload?.[0]?.payload;
+              return item?.fullName ?? '';
+            }}
+          />
+          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
+          <Bar dataKey="Pre Test" fill="#f59e0b" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="Post Test" fill="#16a34a" radius={[3, 3, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
 
-// ─── Bab detail (expandable) ───
+// ─── Chapter Log — card-based for mobile ───
 
-function BabDetail({ bab }: { bab: BabProgress }) {
+function ChapterLogCard({ chapter }: { chapter: ChapterProgress }) {
+  return (
+    <div className="flex items-center gap-3 rounded-md border border-border/50 bg-gray-50 px-3 py-2.5">
+      <ChapterStatusIcon status={chapter.status} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground truncate">{chapter.chapterId}</p>
+        <p className="text-xs text-muted-foreground">{statusLabel(chapter.status)}</p>
+      </div>
+      <div className="flex items-center gap-3 text-xs shrink-0">
+        <div className="text-center">
+          <p className={`font-semibold ${chapter.quizAttempts > 1 ? 'text-amber-600' : 'text-foreground'}`}>
+            {chapter.quizAttempts}×
+          </p>
+          <p className="text-muted-foreground">Kuis</p>
+        </div>
+        <div className="text-center">
+          <p className={`font-semibold ${chapter.videoWatchAttempts > 1 ? 'text-amber-600' : 'text-foreground'}`}>
+            {chapter.videoWatchAttempts}×
+          </p>
+          <p className="text-muted-foreground">Video</p>
+        </div>
+        <div className="text-center w-8">
+          {chapter.lastScore !== null ? (
+            <p className={`font-bold ${chapter.lastScore >= 70 ? 'text-green-600' : 'text-red-500'}`}>
+              {chapter.lastScore}
+            </p>
+          ) : (
+            <p className="text-muted-foreground">—</p>
+          )}
+          <p className="text-muted-foreground">Skor</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Bab Accordion ───
+
+function BabSection({ bab }: { bab: BabProgress }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-l-2 border-muted pl-4">
+    <div className="rounded-lg border border-border bg-white overflow-hidden">
       <button
         type="button"
-        className="flex w-full items-center gap-2 py-2 text-left text-sm font-medium text-foreground hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
+        className="flex w-full items-center gap-2 p-3 sm:p-4 text-left hover:bg-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        aria-controls={`bab-${bab.babId}-chapters`}
+        aria-controls={`bab-log-${bab.babId}`}
       >
         {expanded ? (
-          <ChevronDown className="h-4 w-4 flex-shrink-0" />
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-4 w-4 flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         )}
-        <span>{bab.babName}</span>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {bab.chapters.filter((c) => c.status === 'COMPLETED').length}/{bab.chapters.length} chapter
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-foreground truncate">{bab.babName}</p>
+          <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+            {bab.preTestScore !== null && (
+              <span>Pre: <strong className="text-amber-600">{bab.preTestScore}</strong></span>
+            )}
+            {bab.postTestScore !== null && (
+              <span>Post: <strong className="text-green-600">{bab.postTestScore}</strong></span>
+            )}
+          </div>
+        </div>
+        <span className="text-xs font-medium text-muted-foreground shrink-0">
+          {bab.chapters.filter((c) => c.status === 'COMPLETED').length}/{bab.chapters.length}
         </span>
       </button>
 
       {expanded && (
-        <div id={`bab-${bab.babId}-chapters`} className="mt-1 space-y-1 pb-2">
-          {bab.chapters.map((chapter) => (
-            <ChapterRow key={chapter.chapterId} chapter={chapter} />
+        <div id={`bab-log-${bab.babId}`} className="border-t border-border px-3 py-2.5 sm:px-4 sm:py-3 space-y-2">
+          {bab.chapters.map((ch) => (
+            <ChapterLogCard key={ch.chapterId} chapter={ch} />
           ))}
         </div>
       )}
@@ -125,83 +233,46 @@ function BabDetail({ bab }: { bab: BabProgress }) {
   );
 }
 
-function ChapterRow({ chapter }: { chapter: ChapterProgress }) {
-  return (
-    <div className="flex items-center gap-3 rounded px-2 py-1.5 text-sm">
-      <ChapterStatusIcon status={chapter.status} />
-      <span className="flex-1 text-foreground">{statusLabel(chapter.status)}</span>
-      <span className="text-xs text-muted-foreground">
-        {chapter.quizAttempts > 0
-          ? `${chapter.quizAttempts} percobaan kuis`
-          : 'Belum kuis'}
-      </span>
-    </div>
-  );
-}
+// ─── Materi Section ───
 
-// ─── Materi accordion item ───
-
-function MateriItem({ materi }: { materi: MateriProgress }) {
-  const [expanded, setExpanded] = useState(false);
+function MateriSection({ materi }: { materi: MateriProgress }) {
+  const [expanded, setExpanded] = useState(true);
 
   return (
-    <div className="rounded-lg border border-border bg-white overflow-hidden">
+    <div className="space-y-2">
       <button
         type="button"
-        className="flex w-full items-center gap-3 p-4 text-left hover:bg-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-t-lg"
+        className="flex w-full items-center gap-2 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        aria-controls={`materi-${materi.materiId}-content`}
       >
         {expanded ? (
-          <ChevronDown className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         ) : (
-          <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
-        <span className="flex-1 font-medium text-foreground">{materi.materiName}</span>
-        <span className="text-sm font-semibold text-primary-700">
+        <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{materi.materiName}</h3>
+        <span className="ml-auto shrink-0 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">
           {materi.completionPercentage}%
         </span>
       </button>
 
       {expanded && (
-        <div id={`materi-${materi.materiId}-content`} className="border-t border-border px-4 py-3 space-y-2">
-          {materi.babs.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Tidak ada Bab.</p>
-          ) : (
-            materi.babs.map((bab) => <BabDetail key={bab.babId} bab={bab} />)
-          )}
+        <div className="space-y-2">
+          {materi.babs.map((bab) => (
+            <BabSection key={bab.babId} bab={bab} />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-// ─── Milestone list ───
-
-function MilestoneList({ milestones }: { milestones: { id: string; name: string }[] }) {
-  if (milestones.length === 0) return null;
-
-  return (
-    <div className="mt-4">
-      <h3 className="mb-2 text-sm font-semibold text-foreground">Milestone Tercapai</h3>
-      <ul className="space-y-1">
-        {milestones.map((m) => (
-          <li key={m.id} className="flex items-center gap-2 text-sm text-foreground">
-            <Trophy className="h-4 w-4 text-yellow-500" aria-hidden="true" />
-            {m.name}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-// ─── Main page ───
+// ─── Main Page ───
 
 export default function RaportPage() {
   const selectedSemesterId = useUIStore((state) => state.selectedSemesterId);
-  const { totalXP, badges } = useGamificationStore();
+  const { totalXP, badges, fetchGamificationData } = useGamificationStore();
 
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -213,17 +284,10 @@ export default function RaportPage() {
     setIsLoading(true);
     setError(null);
 
-    const timeoutId = setTimeout(() => {
-      setIsLoading(false);
-      setError('Waktu permintaan habis. Silakan coba lagi.');
-    }, 10000);
-
     try {
       const data = await curriculumApi.getStudentProgress(selectedSemesterId);
-      clearTimeout(timeoutId);
       setProgress(data);
     } catch {
-      clearTimeout(timeoutId);
       setError('Gagal memuat data raport. Silakan coba lagi.');
     } finally {
       setIsLoading(false);
@@ -232,20 +296,25 @@ export default function RaportPage() {
 
   useEffect(() => {
     fetchRaportData();
-  }, [fetchRaportData]);
+    fetchGamificationData();
+  }, [fetchRaportData, fetchGamificationData]);
 
-  // Derive milestones from earned badges (badges with isEarned=true represent achieved milestones)
+  // Derived data
   const earnedMilestones = badges
     .filter((b) => b.isEarned)
     .map((b) => ({ id: b.id, name: b.name }));
 
+  const allBabs: BabProgress[] = progress
+    ? progress.materiProgress.flatMap((m) => m.babs)
+    : [];
+
   // ─── Error state ───
   if (error) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Raport</h1>
-        <div className="rounded-lg border border-border bg-white p-6" role="alert" aria-live="polite">
-          <p className="mb-4 text-sm text-destructive">{error}</p>
+      <div className="space-y-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Raport</h1>
+        <div className="rounded-lg border border-border bg-white p-5" role="alert" aria-live="polite">
+          <p className="mb-3 text-sm text-destructive">{error}</p>
           <Button onClick={fetchRaportData} variant="default" size="sm">
             Coba Lagi
           </Button>
@@ -257,16 +326,9 @@ export default function RaportPage() {
   // ─── Loading state ───
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Raport</h1>
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2">
-            <MateriListSkeleton />
-          </div>
-          <div>
-            <XPSkeleton />
-          </div>
-        </div>
+      <div className="space-y-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Raport</h1>
+        <PageSkeleton />
       </div>
     );
   }
@@ -274,11 +336,11 @@ export default function RaportPage() {
   // ─── Empty state ───
   if (!progress || progress.materiProgress.length === 0) {
     return (
-      <div className="space-y-6">
-        <h1 className="text-2xl font-bold text-foreground">Raport</h1>
-        <div className="rounded-lg border border-border bg-white p-12 text-center">
-          <Star className="mx-auto h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
-          <p className="mt-4 text-sm text-muted-foreground">
+      <div className="space-y-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Raport</h1>
+        <div className="rounded-lg border border-border bg-white p-10 text-center">
+          <Star className="mx-auto h-10 w-10 text-muted-foreground/50" aria-hidden="true" />
+          <p className="mt-3 text-sm text-muted-foreground">
             Belum ada aktivitas belajar yang tercatat
           </p>
         </div>
@@ -286,29 +348,61 @@ export default function RaportPage() {
     );
   }
 
-  // ─── Content state ───
+  // ─── Content ───
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-foreground">Raport</h1>
+    <div className="space-y-5">
+      <h1 className="text-xl sm:text-2xl font-bold text-foreground">Raport</h1>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Materi list with completion % */}
-        <div className="md:col-span-2 space-y-4">
-          {progress.materiProgress.map((materi) => (
-            <MateriItem key={materi.materiId} materi={materi} />
-          ))}
+      {/* Summary cards — always 3 columns, compact on mobile */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="rounded-lg border border-border bg-white p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs font-medium text-muted-foreground">Total XP</p>
+          <p className="mt-0.5 text-lg sm:text-2xl font-bold text-primary-700">{formatXP(totalXP)}</p>
         </div>
+        <div className="rounded-lg border border-border bg-white p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs font-medium text-muted-foreground">Chapter</p>
+          <p className="mt-0.5 text-lg sm:text-2xl font-bold text-foreground">
+            {progress.completedChapters}
+            <span className="text-sm sm:text-base font-normal text-muted-foreground">
+              /{progress.totalChapters}
+            </span>
+          </p>
+        </div>
+        <div className="rounded-lg border border-border bg-white p-3 sm:p-4">
+          <p className="text-[10px] sm:text-xs font-medium text-muted-foreground">Milestone</p>
+          <p className="mt-0.5 text-lg sm:text-2xl font-bold text-amber-600">{earnedMilestones.length}</p>
+        </div>
+      </div>
 
-        {/* XP + Milestones sidebar */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-white p-6">
-            <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Total XP</h2>
-            <p className="text-2xl font-bold text-primary-700">
-              {formatXP(progress.totalXP)}
-            </p>
-            <MilestoneList milestones={earnedMilestones} />
-          </div>
+      {/* Pre Test vs Post Test Chart */}
+      <div className="rounded-lg border border-border bg-white p-3 sm:p-5">
+        <h2 className="mb-3 text-sm sm:text-base font-semibold text-foreground">
+          Pre Test vs Post Test
+        </h2>
+        <PrePostTestChart babs={allBabs} />
+      </div>
+
+      {/* Milestones */}
+      {earnedMilestones.length > 0 && (
+        <div className="rounded-lg border border-border bg-white p-3 sm:p-5">
+          <h2 className="mb-2 text-sm sm:text-base font-semibold text-foreground">Milestone Tercapai</h2>
+          <ul className="space-y-1.5">
+            {earnedMilestones.map((m) => (
+              <li key={m.id} className="flex items-center gap-2 text-sm text-foreground">
+                <Trophy className="h-4 w-4 text-yellow-500 shrink-0" aria-hidden="true" />
+                {m.name}
+              </li>
+            ))}
+          </ul>
         </div>
+      )}
+
+      {/* Log per Chapter */}
+      <div className="space-y-4">
+        <h2 className="text-sm sm:text-lg font-semibold text-foreground">Log Aktivitas per Chapter</h2>
+        {progress.materiProgress.map((materi) => (
+          <MateriSection key={materi.materiId} materi={materi} />
+        ))}
       </div>
     </div>
   );

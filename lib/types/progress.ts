@@ -5,6 +5,12 @@ export type ChapterStatus =
   | 'REMEDIATION_REQUIRED'
   | 'READY_FOR_RETAKE';
 
+export type BabStatus =
+  | 'LOCKED'
+  | 'UNLOCKED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'; // completed = Post Test lulus
+
 export interface ChapterProgress {
   chapterId: string;
   status: ChapterStatus;
@@ -32,5 +38,10 @@ export interface MateriProgress {
 export interface BabProgress {
   babId: string;
   babName: string;
+  status: BabStatus;
+  preTestCompleted: boolean;
+  postTestCompleted: boolean;
+  preTestScore: number | null;
+  postTestScore: number | null;
   chapters: ChapterProgress[];
 }
