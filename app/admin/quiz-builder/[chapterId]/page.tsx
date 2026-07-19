@@ -42,8 +42,8 @@ export default function QuizBuilderPage() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => router.push('/admin/quiz-builder')}
-          aria-label="Kembali ke Bank Soal"
+          onClick={() => router.back()}
+          aria-label="Kembali"
           className="shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />

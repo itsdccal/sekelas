@@ -304,13 +304,6 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
     <div className="space-y-5">
       {/* Header */}
       <div className="pb-4 border-b border-border">
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-xs text-primary-600 hover:underline mb-1"
-        >
-          ← Kembali ke daftar topik
-        </button>
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="text-sm sm:text-base font-semibold truncate">{pattern.patternCode}</h3>
           <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
