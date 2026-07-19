@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, BookOpen, Loader2, AlertCircle, Lock, CheckCircle, ClipboardCheck, FileQuestion } from 'lucide-react';
+import { ArrowLeft, BookOpen, AlertCircle, Lock, CheckCircle, ClipboardCheck, FileQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { curriculumApi, pretestApi, posttestApi } from '@/lib/api';
 import type { Bab } from '@/lib/types';
@@ -15,13 +15,6 @@ interface BabWithStatus extends Bab {
   completedChapters: number;
 }
 
-/**
- * Bab list page with Duolingo-style progressive flow.
- * Bab 1 is unlocked, rest are locked until previous Bab's Post Test is passed.
- * Shows Pre Test / Post Test status indicators.
- *
- * Requirements: 18.1, 18.2, 18.7
- */
 export default function BabListPage() {
   const params = useParams();
   const router = useRouter();
@@ -38,7 +31,6 @@ export default function BabListPage() {
       const data = await curriculumApi.getBabList(materiId);
       const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
 
-      // Fetch pre/post test status for each bab
       const babsWithStatus: BabWithStatus[] = await Promise.all(
         sorted.map(async (bab, index) => {
           let preTestCompleted = false;
@@ -47,41 +39,25 @@ export default function BabListPage() {
           try {
             const preStatus = await pretestApi.getPreTestStatus(bab.id);
             preTestCompleted = preStatus.completed;
-          } catch {
-            // Default to not completed
-          }
+          } catch { /* default */ }
 
           try {
             const postStatus = await posttestApi.getPostTestStatus(bab.id);
             postTestCompleted = postStatus.passed;
-          } catch {
-            // Default to not completed
-          }
+          } catch { /* default */ }
 
-          // Determine bab status based on progressive flow:
-          // First bab is always unlocked
-          // Subsequent babs are locked until previous bab's post test is passed
           let babStatus: BabStatus = 'LOCKED';
           if (index === 0) {
             babStatus = postTestCompleted ? 'COMPLETED' : (preTestCompleted ? 'IN_PROGRESS' : 'UNLOCKED');
           }
-          // Will be updated below based on previous bab status
 
-          return {
-            ...bab,
-            babStatus,
-            preTestCompleted,
-            postTestCompleted,
-            completedChapters: 0, // Will be calculated per-chapter in detail view
-          };
+          return { ...bab, babStatus, preTestCompleted, postTestCompleted, completedChapters: 0 };
         })
       );
 
-      // Recalculate status based on sequential logic
       for (let i = 1; i < babsWithStatus.length; i++) {
         const previousBab = babsWithStatus[i - 1];
         if (previousBab.postTestCompleted) {
-          // Previous bab completed — this bab is at least unlocked
           const currentBab = babsWithStatus[i];
           if (currentBab.postTestCompleted) {
             babsWithStatus[i].babStatus = 'COMPLETED';
@@ -91,7 +67,6 @@ export default function BabListPage() {
             babsWithStatus[i].babStatus = 'UNLOCKED';
           }
         }
-        // else: stays LOCKED
       }
 
       setBabs(babsWithStatus);
@@ -108,62 +83,43 @@ export default function BabListPage() {
 
   const handleBabClick = useCallback(
     (bab: BabWithStatus) => {
-      if (bab.babStatus === 'LOCKED') {
-        // Do nothing — will show locked message via UI
-        return;
-      }
-
+      if (bab.babStatus === 'LOCKED') return;
       if (!bab.preTestCompleted) {
-        // Navigate to Pre Test gate
         router.push(`/student/bab/${bab.id}/pretest`);
       } else {
-        // Navigate to chapter list
         router.push(`/student/kurikulum/${materiId}/${bab.id}`);
       }
     },
     [materiId, router]
   );
 
-  // Skeleton loading state
   if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="h-9 w-9 animate-pulse rounded-md bg-gray-200" />
-          <div className="h-6 w-40 animate-pulse rounded bg-gray-200" />
+          <div className="h-8 w-8 animate-pulse rounded bg-muted" />
+          <div className="h-6 w-32 animate-pulse rounded bg-muted" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-24 animate-pulse rounded-lg border border-border bg-gray-100"
-            />
+            <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="space-y-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.push('/student/kurikulum')}
-          aria-label="Kembali ke daftar materi"
-        >
+        <Button variant="ghost" size="sm" onClick={() => router.push('/student/kurikulum')}>
           <ArrowLeft className="h-4 w-4" />
           Kembali
         </Button>
-        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8 text-center">
           <AlertCircle className="h-8 w-8 text-red-500" />
           <p className="text-sm text-red-700">{error}</p>
-          <Button onClick={fetchBabs} size="sm">
-            <Loader2 className="h-4 w-4" />
-            Coba Lagi
-          </Button>
+          <Button onClick={fetchBabs} size="sm">Coba Lagi</Button>
         </div>
       </div>
     );
@@ -171,104 +127,104 @@ export default function BabListPage() {
 
   return (
     <div className="space-y-4">
-      {/* Back navigation */}
+      {/* Header */}
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 shrink-0"
           onClick={() => router.push('/student/kurikulum')}
           aria-label="Kembali ke daftar materi"
         >
           <ArrowLeft className="h-4 w-4" />
-          Kembali
         </Button>
-        <h1 className="text-lg font-semibold text-gray-900">Daftar Bab</h1>
+        <h1 className="text-lg sm:text-xl font-bold text-foreground">Daftar Bab</h1>
       </div>
 
-      {/* Empty state */}
       {babs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 p-12">
-          <BookOpen className="h-10 w-10 text-gray-400" />
-          <p className="text-sm text-gray-500">
-            Belum ada bab tersedia pada materi ini.
-          </p>
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border p-10 text-center">
+          <BookOpen className="h-10 w-10 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">Belum ada bab tersedia</p>
         </div>
       ) : (
-        /* Bab list with progressive indicators */
         <div className="space-y-3">
-          {babs.map((bab) => {
+          {babs.map((bab, index) => {
             const isLocked = bab.babStatus === 'LOCKED';
             const isCompleted = bab.babStatus === 'COMPLETED';
+            const isInProgress = bab.babStatus === 'IN_PROGRESS';
 
             return (
               <button
                 key={bab.id}
                 onClick={() => handleBabClick(bab)}
                 disabled={isLocked}
-                className={`w-full rounded-lg border p-4 text-left transition-colors ${
+                className={`w-full rounded-xl p-4 text-left transition-all ${
                   isLocked
-                    ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 grayscale'
+                    ? 'cursor-not-allowed border border-gray-200 bg-gray-50 opacity-50'
                     : isCompleted
-                      ? 'border-green-200 bg-green-50 hover:border-green-300'
-                      : 'border-border bg-white hover:border-primary-300 hover:bg-primary-50'
+                      ? 'border border-green-200 bg-gradient-to-r from-green-50 to-white shadow-sm hover:shadow-md'
+                      : 'border border-border bg-white shadow-sm hover:shadow-md hover:border-primary-300 active:scale-[0.99]'
                 }`}
                 aria-label={`${bab.name}${isLocked ? ' — Terkunci' : ''}`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {/* Status icon */}
-                    {isLocked && <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />}
-                    {isCompleted && <CheckCircle className="h-5 w-5 text-green-500" aria-hidden="true" />}
-                    {!isLocked && !isCompleted && <BookOpen className="h-5 w-5 text-primary-600" aria-hidden="true" />}
-
-                    <div>
-                      <h2 className={`font-medium ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>
-                        {bab.name}
-                      </h2>
-                      <p className={`mt-0.5 text-xs ${isLocked ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {bab.chapterCount} chapter
-                      </p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  {/* Number badge */}
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                    isLocked
+                      ? 'bg-gray-200 text-gray-400'
+                      : isCompleted
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-primary-100 text-primary-700'
+                  }`}>
+                    {isLocked ? (
+                      <Lock className="h-4 w-4" />
+                    ) : isCompleted ? (
+                      <CheckCircle className="h-4 w-4" />
+                    ) : (
+                      index + 1
+                    )}
                   </div>
 
-                  {/* Progress indicators */}
-                  {!isLocked && (
-                    <div className="flex items-center gap-2">
-                      {/* Pre Test indicator */}
-                      <div
-                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h2 className={`text-sm font-semibold ${isLocked ? 'text-gray-400' : 'text-foreground'}`}>
+                      {bab.name}
+                    </h2>
+                    <p className={`mt-0.5 text-xs ${isLocked ? 'text-gray-300' : 'text-muted-foreground'}`}>
+                      {bab.chapterCount} chapter
+                    </p>
+
+                    {/* Progress indicators — only when not locked */}
+                    {!isLocked && (
+                      <div className="mt-2 flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                           bab.preTestCompleted
                             ? 'bg-green-100 text-green-700'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
-                        title={bab.preTestCompleted ? 'Pre Test selesai' : 'Pre Test belum dikerjakan'}
-                      >
-                        <FileQuestion className="h-3 w-3" aria-hidden="true" />
-                        <span>Pre</span>
-                      </div>
-
-                      {/* Post Test indicator */}
-                      <div
-                        className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                            : isInProgress || isCompleted
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-gray-100 text-gray-500'
+                        }`}>
+                          <FileQuestion className="h-3 w-3" />
+                          Pre Test
+                        </span>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                           bab.postTestCompleted
                             ? 'bg-green-100 text-green-700'
                             : 'bg-gray-100 text-gray-500'
-                        }`}
-                        title={bab.postTestCompleted ? 'Post Test lulus' : 'Post Test belum dikerjakan'}
-                      >
-                        <ClipboardCheck className="h-3 w-3" aria-hidden="true" />
-                        <span>Post</span>
+                        }`}>
+                          <ClipboardCheck className="h-3 w-3" />
+                          Post Test
+                        </span>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
 
-                {/* Locked message */}
-                {isLocked && (
-                  <p className="mt-2 text-xs text-gray-400">
-                    Selesaikan Post Test bab sebelumnya untuk membuka bab ini
-                  </p>
-                )}
+                    {isLocked && (
+                      <p className="mt-1.5 text-[11px] text-gray-400">
+                        Selesaikan Post Test bab sebelumnya
+                      </p>
+                    )}
+                  </div>
+                </div>
               </button>
             );
           })}

@@ -9,6 +9,16 @@ import { getErrorMessage } from '@/lib/api/retry';
 import type { Materi } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
+/** Accent colors for materi cards */
+const CARD_ACCENTS = [
+  'border-l-primary-500',
+  'border-l-blue-500',
+  'border-l-amber-500',
+  'border-l-purple-500',
+  'border-l-rose-500',
+  'border-l-teal-500',
+];
+
 export default function KurikulumPage() {
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
@@ -32,7 +42,6 @@ export default function KurikulumPage() {
       try {
         const data = await curriculumApi.getMateriList(selectedSemesterId!);
         if (!cancelled) {
-          // Sort by orderIndex ascending for safety (API should already sort)
           const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
           setMateriList(sorted);
         }
@@ -48,10 +57,7 @@ export default function KurikulumPage() {
     }
 
     fetchMateri();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [selectedSemesterId]);
 
   function handleRetry() {
@@ -65,45 +71,33 @@ export default function KurikulumPage() {
         const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
         setMateriList(sorted);
       })
-      .catch((err) => {
-        setError(getErrorMessage(err));
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      .catch((err) => setError(getErrorMessage(err)))
+      .finally(() => setIsLoading(false));
   }
 
-  // Loading skeleton
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-foreground">Kurikulum</h1>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="animate-pulse rounded-lg border border-border bg-white p-5"
-            >
-              <div className="mb-3 h-5 w-3/4 rounded bg-muted" />
-              <div className="mb-2 h-4 w-full rounded bg-muted" />
-              <div className="h-4 w-1/3 rounded bg-muted" />
-            </div>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <p className="text-sm text-muted-foreground">Pilih materi untuk mulai belajar</p>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-foreground">Kurikulum</h1>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-white p-10 text-center">
-          <AlertCircle className="mb-3 h-10 w-10 text-destructive" />
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-white p-8 text-center">
+          <AlertCircle className="mb-3 h-8 w-8 text-destructive" />
           <p className="mb-4 text-sm text-muted-foreground">{error}</p>
           <Button onClick={handleRetry} variant="outline" size="sm">
-            <RefreshCw className="mr-2 h-4 w-4" />
+            <RefreshCw className="h-4 w-4" />
             Coba Lagi
           </Button>
         </div>
@@ -111,13 +105,12 @@ export default function KurikulumPage() {
     );
   }
 
-  // Empty state
   if (materiList.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold text-foreground">Kurikulum</h1>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-white p-10 text-center">
-          <BookOpen className="mb-3 h-10 w-10 text-muted-foreground" />
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-white p-10 text-center">
+          <BookOpen className="mb-3 h-10 w-10 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
             Belum ada materi tersedia untuk semester ini
           </p>
@@ -126,30 +119,37 @@ export default function KurikulumPage() {
     );
   }
 
-  // Materi list
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold text-foreground">Kurikulum</h1>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {materiList.map((materi) => (
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <p className="text-sm text-muted-foreground">Pilih materi untuk mulai belajar</p>
+      </div>
+
+      <div className="space-y-3">
+        {materiList.map((materi, index) => (
           <Link
             key={materi.id}
             href={`/student/kurikulum/${materi.id}`}
-            className="group rounded-lg border border-border bg-white p-5 transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
+            className={`block rounded-lg border border-l-4 ${CARD_ACCENTS[index % CARD_ACCENTS.length]} border-border bg-white p-4 transition-all hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2`}
           >
-            <h2 className="mb-1 text-base font-semibold text-foreground group-hover:text-primary-700">
-              {materi.name}
-            </h2>
-            {materi.description && (
-              <p className="mb-3 line-clamp-2 text-sm text-muted-foreground">
-                {materi.description}
-              </p>
-            )}
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <BookOpen className="h-3.5 w-3.5" />
-              <span>
-                {materi.babCount} {materi.babCount === 1 ? 'Bab' : 'Bab'}
-              </span>
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-base font-semibold text-foreground">
+                  {materi.name}
+                </h2>
+                {materi.description && (
+                  <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
+                    {materi.description}
+                  </p>
+                )}
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {materi.babCount} Bab
+                </p>
+              </div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+                <BookOpen className="h-5 w-5" />
+              </div>
             </div>
           </Link>
         ))}
