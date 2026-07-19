@@ -2,8 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { PenTool, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, ChevronRight } from 'lucide-react';
 import { curriculumApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
 import type { Materi, Bab, Chapter, QuizType } from '@/lib/types';
@@ -133,8 +132,7 @@ export default function QuizBuilderIndexPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="space-y-1">
-        <h1 className="flex items-center gap-2 text-lg sm:text-2xl font-semibold">
-          <PenTool className="h-5 w-5 sm:h-6 sm:w-6 text-primary-600" />
+        <h1 className="text-lg sm:text-2xl font-semibold">
           Bank Soal
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground">
@@ -193,19 +191,6 @@ export default function QuizBuilderIndexPage() {
           </>
         )}
       </nav>
-
-      {/* Back button */}
-      {level !== 'materi' && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleBack}
-          className="gap-1.5 text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Kembali
-        </Button>
-      )}
 
       {/* Drill-down list panel */}
       {isLoading ? (

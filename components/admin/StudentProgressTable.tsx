@@ -111,9 +111,9 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
   return (
     <div className="space-y-4">
       {/* Toolbar: Search + Class Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative flex-1">
           <Search
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
@@ -129,21 +129,19 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
         </div>
 
         {/* Class Filter Dropdown */}
-        <div className="shrink-0">
-          <select
-            value={kelas}
-            onChange={(e) => setKelas(e.target.value)}
-            className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-            aria-label="Filter berdasarkan kelas"
-          >
-            <option value="">Semua Kelas</option>
-            {availableClasses.map((cls) => (
-              <option key={cls} value={cls}>
-                {cls}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={kelas}
+          onChange={(e) => setKelas(e.target.value)}
+          className="h-10 w-full sm:w-auto rounded-md border border-input bg-background px-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
+          aria-label="Filter berdasarkan kelas"
+        >
+          <option value="">Semua Kelas</option>
+          {availableClasses.map((cls) => (
+            <option key={cls} value={cls}>
+              {cls}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Error State */}

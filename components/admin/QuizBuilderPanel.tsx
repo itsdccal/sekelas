@@ -302,22 +302,24 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
 
   return (
     <div className="space-y-5">
-      {/* Header with back button */}
-      <div className="flex flex-col gap-3 pb-4 border-b border-border sm:flex-row sm:items-center sm:gap-4">
-        <Button variant="outline" size="sm" onClick={onBack} className="self-start">
-          ← Kembali
-        </Button>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-sm sm:text-base font-semibold truncate">{pattern.patternCode}</h3>
-            <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
-              {questions.length} soal
-            </span>
-          </div>
-          {pattern.description && (
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">{pattern.description}</p>
-          )}
+      {/* Header */}
+      <div className="pb-4 border-b border-border">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-xs text-primary-600 hover:underline mb-1"
+        >
+          ← Kembali ke daftar topik
+        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <h3 className="text-sm sm:text-base font-semibold truncate">{pattern.patternCode}</h3>
+          <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
+            {questions.length} soal
+          </span>
         </div>
+        {pattern.description && (
+          <p className="text-xs sm:text-sm text-muted-foreground truncate">{pattern.description}</p>
+        )}
       </div>
 
       {/* Add question button */}
