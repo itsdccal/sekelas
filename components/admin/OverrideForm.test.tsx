@@ -43,16 +43,15 @@ describe('OverrideForm', () => {
     expect(screen.getByText('Alasan minimal 10 karakter')).toBeInTheDocument();
   });
 
-  it('enables confirm button when form is valid (reason >= 10 chars + score for FORCE_COMPLETE)', async () => {
+  it('enables confirm button when form is valid (score + reason)', async () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    // Default action is FORCE_COMPLETE, so score is required
-    const textarea = screen.getByLabelText(/alasan/i);
-    await user.type(textarea, 'Alasan penyesuaian yang cukup panjang');
-
     const scoreInput = screen.getByPlaceholderText('0–100');
     await user.type(scoreInput, '75');
+
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan penyesuaian yang cukup panjang');
 
     const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     expect(confirmBtn).not.toBeDisabled();
@@ -62,8 +61,22 @@ describe('OverrideForm', () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
+    const scoreInput = screen.getByPlaceholderText('0–100');
+    await user.type(scoreInput, '75');
+
     const textarea = screen.getByLabelText(/alasan/i);
     await user.type(textarea, 'short');
+
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
+    expect(confirmBtn).toBeDisabled();
+  });
+
+  it('disables confirm button when score is missing', async () => {
+    const user = userEvent.setup();
+    render(<OverrideForm {...defaultProps} />);
+
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan valid untuk penyesuaian');
 
     const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     expect(confirmBtn).toBeDisabled();
@@ -73,11 +86,11 @@ describe('OverrideForm', () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    const textarea = screen.getByLabelText(/alasan/i);
-    await user.type(textarea, 'Alasan valid untuk penyesuaian');
-
     const scoreInput = screen.getByPlaceholderText('0–100');
     await user.type(scoreInput, '80');
+
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan valid untuk penyesuaian');
 
     const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     await user.click(confirmBtn);
@@ -86,29 +99,6 @@ describe('OverrideForm', () => {
       action: 'FORCE_COMPLETE',
       reason: 'Alasan valid untuk penyesuaian',
       score: 80,
-    });
-  });
-
-  it('does not require score for RESET_QUIZ action', async () => {
-    const user = userEvent.setup();
-    render(<OverrideForm {...defaultProps} />);
-
-    // Change action to RESET_QUIZ
-    const actionSelect = screen.getByLabelText(/pilih aksi penyesuaian/i);
-    await user.selectOptions(actionSelect, 'RESET_QUIZ');
-
-    const textarea = screen.getByLabelText(/alasan/i);
-    await user.type(textarea, 'Error teknis saat kuis berlangsung');
-
-    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
-    expect(confirmBtn).not.toBeDisabled();
-
-    await user.click(confirmBtn);
-
-    expect(defaultProps.onConfirm).toHaveBeenCalledWith({
-      action: 'RESET_QUIZ',
-      reason: 'Error teknis saat kuis berlangsung',
-      score: undefined,
     });
   });
 
@@ -127,11 +117,11 @@ describe('OverrideForm', () => {
 
     render(<OverrideForm {...defaultProps} onConfirm={onConfirm} />);
 
-    const textarea = screen.getByLabelText(/alasan/i);
-    await user.type(textarea, 'Alasan valid untuk penyesuaian');
-
     const scoreInput = screen.getByPlaceholderText('0–100');
     await user.type(scoreInput, '75');
+
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan valid untuk penyesuaian');
 
     const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     await user.click(confirmBtn);
@@ -189,7 +179,7 @@ describe('AuditLogTable', () => {
       chapterId: 'ch-1',
       chapterName: 'Chapter A',
       action: 'FORCE_COMPLETE',
-      reason: 'Kondisi khusus siswa',
+      reason: 'Kondisi khusus siswa dalam pembelajaran',
       score: 75,
       createdAt: '2024-01-15T10:30:00Z',
     },
@@ -201,9 +191,9 @@ describe('AuditLogTable', () => {
       studentName: 'Sari',
       chapterId: 'ch-2',
       chapterName: 'Chapter B',
-      action: 'RESET_QUIZ',
-      reason: 'Rekomendasi guru karena error teknis',
-      score: null,
+      action: 'FORCE_COMPLETE',
+      reason: 'Rekomendasi guru karena sudah menguasai materi',
+      score: 82,
       createdAt: '2024-01-16T14:00:00Z',
     },
     {
@@ -216,7 +206,7 @@ describe('AuditLogTable', () => {
       chapterName: 'Chapter C',
       action: 'FORCE_COMPLETE',
       reason: 'Sakit berkepanjangan, sudah ujian offline',
-      score: 80,
+      score: 70,
       createdAt: '2024-01-14T08:00:00Z',
     },
   ];
@@ -227,7 +217,7 @@ describe('AuditLogTable', () => {
     expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Siswa')).toBeInTheDocument();
     expect(screen.getByText('Chapter')).toBeInTheDocument();
-    expect(screen.getByText('Aksi')).toBeInTheDocument();
+    expect(screen.getByText('Skor')).toBeInTheDocument();
     expect(screen.getByText('Alasan')).toBeInTheDocument();
     expect(screen.getByText('Waktu')).toBeInTheDocument();
   });
@@ -236,7 +226,6 @@ describe('AuditLogTable', () => {
     render(<AuditLogTable entries={mockEntries} />);
 
     const rows = screen.getAllByRole('row');
-    // First data row (index 1 because 0 is header)
     expect(rows[1]).toHaveTextContent('Sari'); // Jan 16 - newest
     expect(rows[2]).toHaveTextContent('Budi'); // Jan 15
     expect(rows[3]).toHaveTextContent('Andi'); // Jan 14 - oldest
@@ -268,17 +257,11 @@ describe('AuditLogTable', () => {
     expect(onRetry).toHaveBeenCalled();
   });
 
-  it('displays score for FORCE_COMPLETE entries', () => {
+  it('displays score values correctly', () => {
     render(<AuditLogTable entries={mockEntries} />);
 
-    expect(screen.getByText('(Skor: 75%)')).toBeInTheDocument();
-    expect(screen.getByText('(Skor: 80%)')).toBeInTheDocument();
-  });
-
-  it('displays action labels correctly', () => {
-    render(<AuditLogTable entries={mockEntries} />);
-
-    expect(screen.getAllByText('Luluskan')).toHaveLength(2);
-    expect(screen.getByText('Reset Kuis')).toBeInTheDocument();
+    expect(screen.getByText('75%')).toBeInTheDocument();
+    expect(screen.getByText('82%')).toBeInTheDocument();
+    expect(screen.getByText('70%')).toBeInTheDocument();
   });
 });

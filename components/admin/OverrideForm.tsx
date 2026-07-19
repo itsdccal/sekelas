@@ -13,9 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { validateOverrideReason, validateOverrideScore } from '@/lib/utils/validation';
 import type { ChapterStatus, OverrideAction, AuditLogEntry } from '@/lib/types';
-import { OVERRIDE_ACTION_LABELS } from '@/lib/types/admin';
 import { isOverrideAllowed } from '@/lib/utils/chapterStatus';
-import { Shield, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 // --- OverrideForm Props ---
 
@@ -27,7 +26,7 @@ export interface OverrideFormProps {
   onCancel: () => void;
 }
 
-// --- OverrideForm Dialog Component (renamed to "Penyesuaian Nilai") ---
+// --- OverrideForm Dialog Component ("Penyesuaian Nilai") ---
 
 export function OverrideForm({
   student,
@@ -36,20 +35,15 @@ export function OverrideForm({
   onConfirm,
   onCancel,
 }: OverrideFormProps) {
-  const [action, setAction] = useState<OverrideAction>('FORCE_COMPLETE');
   const [reason, setReason] = useState('');
   const [score, setScore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isDisabled = currentStatus === 'COMPLETED';
-  const scoreRequired = action === 'FORCE_COMPLETE';
 
   const reasonValidation = useMemo(() => validateOverrideReason(reason), [reason]);
-  const scoreValidation = useMemo(
-    () => validateOverrideScore(score, scoreRequired),
-    [score, scoreRequired]
-  );
+  const scoreValidation = useMemo(() => validateOverrideScore(score, true), [score]);
 
   const canSubmit =
     reasonValidation.valid &&
@@ -65,9 +59,9 @@ export function OverrideForm({
 
     try {
       await onConfirm({
-        action,
+        action: 'FORCE_COMPLETE',
         reason,
-        score: scoreRequired ? Number(score) : undefined,
+        score: Number(score),
       });
     } catch (err) {
       setError(
@@ -78,20 +72,17 @@ export function OverrideForm({
     } finally {
       setIsSubmitting(false);
     }
-  }, [canSubmit, onConfirm, action, reason, score, scoreRequired]);
+  }, [canSubmit, onConfirm, reason, score]);
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
       <DialogContent aria-labelledby="override-dialog-title">
         <DialogHeader>
           <DialogTitle id="override-dialog-title">
-            <span className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary-600" aria-hidden="true" />
-              Penyesuaian Nilai
-            </span>
+            Penyesuaian Nilai
           </DialogTitle>
           <DialogDescription>
-            Sesuaikan status atau nilai Chapter untuk siswa ini.
+            Luluskan Chapter ini untuk siswa dengan skor yang ditentukan.
           </DialogDescription>
         </DialogHeader>
 
@@ -119,67 +110,39 @@ export function OverrideForm({
             </p>
           )}
 
-          {/* Action select */}
+          {/* Score field */}
           <div className="space-y-1.5">
             <label
-              htmlFor="override-action"
+              htmlFor="override-score"
               className="text-sm font-medium text-foreground"
             >
-              Aksi <span className="text-destructive">*</span>
+              Skor yang diberikan <span className="text-destructive">*</span>
             </label>
-            <select
-              id="override-action"
-              value={action}
-              onChange={(e) => setAction(e.target.value as OverrideAction)}
-              disabled={isDisabled || isSubmitting}
-              className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
-              aria-label="Pilih aksi penyesuaian"
-            >
-              {(Object.entries(OVERRIDE_ACTION_LABELS) as [OverrideAction, string][]).map(
-                ([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                )
-              )}
-            </select>
-          </div>
-
-          {/* Score field — only shown for FORCE_COMPLETE */}
-          {scoreRequired && (
-            <div className="space-y-1.5">
-              <label
-                htmlFor="override-score"
-                className="text-sm font-medium text-foreground"
-              >
-                Skor yang diberikan <span className="text-destructive">*</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  id="override-score"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={score}
-                  onChange={(e) => setScore(e.target.value)}
-                  disabled={isDisabled || isSubmitting}
-                  placeholder="0–100"
-                  className="h-10 w-24 rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
-                  aria-describedby="score-hint score-error"
-                  aria-invalid={score !== '' && !scoreValidation.valid}
-                />
-                <span className="text-sm text-muted-foreground">%</span>
-              </div>
-              {score !== '' && scoreValidation.errors.score && (
-                <p id="score-error" className="text-xs text-destructive" role="alert">
-                  {scoreValidation.errors.score}
-                </p>
-              )}
-              <p id="score-hint" className="text-xs text-muted-foreground">
-                Nilai yang akan dicatat sebagai skor kuis siswa
-              </p>
+            <div className="flex items-center gap-2">
+              <input
+                id="override-score"
+                type="number"
+                min={0}
+                max={100}
+                value={score}
+                onChange={(e) => setScore(e.target.value)}
+                disabled={isDisabled || isSubmitting}
+                placeholder="0–100"
+                className="h-10 w-24 rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
+                aria-describedby="score-hint score-error"
+                aria-invalid={score !== '' && !scoreValidation.valid}
+              />
+              <span className="text-sm text-muted-foreground">%</span>
             </div>
-          )}
+            {score !== '' && scoreValidation.errors.score && (
+              <p id="score-error" className="text-xs text-destructive" role="alert">
+                {scoreValidation.errors.score}
+              </p>
+            )}
+            <p id="score-hint" className="text-xs text-muted-foreground">
+              Nilai yang akan dicatat sebagai skor kuis siswa
+            </p>
+          </div>
 
           {/* Reason field */}
           <div className="space-y-1.5">
@@ -260,17 +223,6 @@ export interface AuditLogTableProps {
   onRetry?: () => void;
 }
 
-function actionLabel(action: string): string {
-  const labels: Record<string, string> = {
-    FORCE_COMPLETE: 'Luluskan',
-    RESET_QUIZ: 'Reset Kuis',
-    UNLOCK_NEXT: 'Buka Berikutnya',
-    RESET_PROGRESS: 'Reset Progress',
-    OVERRIDE: 'Penyesuaian',
-  };
-  return labels[action] || action;
-}
-
 export function AuditLogTable({
   entries,
   isLoading = false,
@@ -290,7 +242,7 @@ export function AuditLogTable({
       <div className="space-y-3" role="status" aria-label="Memuat riwayat penyesuaian...">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex gap-4 animate-pulse">
-            {Array.from({ length: 6 }).map((_, j) => (
+            {Array.from({ length: 5 }).map((_, j) => (
               <div key={j} className="h-10 flex-1 rounded-md bg-muted" />
             ))}
           </div>
@@ -327,7 +279,7 @@ export function AuditLogTable({
               Chapter
             </th>
             <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
-              Aksi
+              Skor
             </th>
             <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
               Alasan
@@ -353,15 +305,8 @@ export function AuditLogTable({
                 <td className="px-4 py-3">{entry.adminName}</td>
                 <td className="px-4 py-3">{entry.studentName}</td>
                 <td className="px-4 py-3">{entry.chapterName}</td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex items-center rounded-full bg-primary-50 px-2 py-0.5 text-xs font-medium text-primary-700">
-                    {actionLabel(entry.action)}
-                  </span>
-                  {entry.score != null && (
-                    <span className="ml-1.5 text-xs text-muted-foreground">
-                      (Skor: {entry.score}%)
-                    </span>
-                  )}
+                <td className="px-4 py-3 font-medium">
+                  {entry.score != null ? `${entry.score}%` : '—'}
                 </td>
                 <td className="px-4 py-3 max-w-[200px] truncate" title={entry.reason}>
                   {entry.reason}

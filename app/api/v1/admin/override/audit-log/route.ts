@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * Mock admin override audit log endpoint for development.
- * Returns recent override/penyesuaian actions with details.
+ * Returns recent penyesuaian nilai actions with details.
  */
 export async function GET() {
   const auditLog = [
@@ -27,9 +27,9 @@ export async function GET() {
       studentName: 'Ahmad Rizki',
       chapterId: 'ch-4',
       chapterName: 'Pertidaksamaan Linear',
-      action: 'RESET_QUIZ',
-      reason: 'Terjadi error teknis saat pengerjaan kuis',
-      score: null,
+      action: 'FORCE_COMPLETE',
+      reason: 'Terjadi error teknis saat kuis, siswa sudah menguasai materi berdasarkan penilaian tutor',
+      score: 70,
       createdAt: '2024-01-19T14:30:00Z',
     },
     {
@@ -53,26 +53,13 @@ export async function GET() {
       studentName: 'Melati Kusuma',
       chapterId: 'ch-2',
       chapterName: 'Persamaan Linear Dua Variabel',
-      action: 'UNLOCK_NEXT',
-      reason: 'Override karena masalah koneksi internet saat kuis berlangsung',
-      score: null,
+      action: 'FORCE_COMPLETE',
+      reason: 'Masalah koneksi berulang saat kuis, sudah lulus ujian offline dengan skor baik',
+      score: 72,
       createdAt: '2024-01-17T16:00:00Z',
     },
     {
       id: 'audit-005',
-      adminId: 'admin-001',
-      adminName: 'Admin Sekelas',
-      studentId: 'student-019',
-      studentName: 'Bayu Firmansyah',
-      chapterId: 'ch-1',
-      chapterName: 'Persamaan Linear Satu Variabel',
-      action: 'RESET_PROGRESS',
-      reason: 'Siswa request ulang dari awal karena lama tidak aktif belajar',
-      score: null,
-      createdAt: '2024-01-16T10:00:00Z',
-    },
-    {
-      id: 'audit-006',
       adminId: 'admin-001',
       adminName: 'Admin Sekelas',
       studentId: 'student-006',
@@ -83,19 +70,6 @@ export async function GET() {
       reason: 'Siswa sudah lulus ujian remedial offline yang diadakan tutor',
       score: 85,
       createdAt: '2024-01-15T09:30:00Z',
-    },
-    {
-      id: 'audit-007',
-      adminId: 'admin-001',
-      adminName: 'Admin Sekelas',
-      studentId: 'student-012',
-      studentName: 'Dewi Safitri',
-      chapterId: 'ch-7',
-      chapterName: 'Transformasi Geometri',
-      action: 'RESET_QUIZ',
-      reason: 'Kuis terpotong karena maintenance server di jam belajar siswa',
-      score: null,
-      createdAt: '2024-01-14T13:00:00Z',
     },
   ];
 

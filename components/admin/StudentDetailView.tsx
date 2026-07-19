@@ -11,7 +11,6 @@ import {
   Circle,
   ArrowLeft,
   RefreshCw,
-  Shield,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -124,11 +123,10 @@ function ChapterRow({ chapter, onOverrideClick }: ChapterRowProps) {
           <Button
             variant="outline"
             size="sm"
-            className="h-7 gap-1.5 text-xs"
+            className="h-7 text-xs"
             onClick={() => onOverrideClick(chapter)}
             aria-label={`Penyesuaian chapter ${chapter.chapterId}`}
           >
-            <Shield className="h-3 w-3" aria-hidden="true" />
             Penyesuaian
           </Button>
         ) : (
@@ -269,73 +267,28 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
       score: data.score,
     });
 
-    // Update local state based on action
-    if (data.action === 'FORCE_COMPLETE') {
-      setProgress((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          completedChapters: prev.completedChapters + 1,
-          materiProgress: prev.materiProgress.map((materi) => ({
-            ...materi,
-            babs: materi.babs.map((bab) => ({
-              ...bab,
-              chapters: bab.chapters.map((ch) =>
-                ch.chapterId === overrideTarget.chapterId
-                  ? { ...ch, status: 'COMPLETED' as ChapterStatus, lastScore: data.score ?? ch.lastScore }
-                  : ch
-              ),
-            })),
+    // Update local state: set chapter status to COMPLETED with score
+    setProgress((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        completedChapters: prev.completedChapters + 1,
+        materiProgress: prev.materiProgress.map((materi) => ({
+          ...materi,
+          babs: materi.babs.map((bab) => ({
+            ...bab,
+            chapters: bab.chapters.map((ch) =>
+              ch.chapterId === overrideTarget.chapterId
+                ? { ...ch, status: 'COMPLETED' as ChapterStatus, lastScore: data.score ?? ch.lastScore }
+                : ch
+            ),
           })),
-        };
-      });
-    } else if (data.action === 'RESET_QUIZ') {
-      setProgress((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          materiProgress: prev.materiProgress.map((materi) => ({
-            ...materi,
-            babs: materi.babs.map((bab) => ({
-              ...bab,
-              chapters: bab.chapters.map((ch) =>
-                ch.chapterId === overrideTarget.chapterId
-                  ? { ...ch, status: 'UNLOCKED' as ChapterStatus, lastScore: null, quizAttempts: 0 }
-                  : ch
-              ),
-            })),
-          })),
-        };
-      });
-    } else if (data.action === 'UNLOCK_NEXT') {
-      // Find the next locked chapter and unlock it
-      setProgress((prev) => {
-        if (!prev) return prev;
-        let unlocked = false;
-        return {
-          ...prev,
-          materiProgress: prev.materiProgress.map((materi) => ({
-            ...materi,
-            babs: materi.babs.map((bab) => ({
-              ...bab,
-              chapters: bab.chapters.map((ch) => {
-                if (!unlocked && ch.status === 'LOCKED') {
-                  unlocked = true;
-                  return { ...ch, status: 'UNLOCKED' as ChapterStatus };
-                }
-                return ch;
-              }),
-            })),
-          })),
-        };
-      });
-    } else if (data.action === 'RESET_PROGRESS') {
-      // Re-fetch data after reset
-      await fetchDetail();
-    }
+        })),
+      };
+    });
 
     setOverrideTarget(null);
-  }, [overrideTarget, userId, fetchDetail]);
+  }, [overrideTarget, userId]);
 
   return (
     <div className="space-y-4">
