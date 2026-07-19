@@ -221,17 +221,22 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                 sortedData.map((student) => (
                   <tr
                     key={student.userId}
-                    className="hover:bg-accent/50 transition-colors"
+                    className="hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => onStudentClick(student.userId)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Lihat detail ${student.name}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onStudentClick(student.userId);
+                      }
+                    }}
                   >
                     <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        className="text-left font-medium text-primary-700 hover:text-primary-800 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-1 rounded-sm"
-                        onClick={() => onStudentClick(student.userId)}
-                        aria-label={`Lihat detail ${student.name}`}
-                      >
+                      <span className="font-medium text-primary-700">
                         {student.name}
-                      </button>
+                      </span>
                     </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {student.kelas}

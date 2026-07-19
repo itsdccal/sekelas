@@ -13,7 +13,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { validateQuestion } from "@/lib/utils/validation";
-import type { Question } from "@/lib/types";
+import type { Question, QuizType } from "@/lib/types";
 
 // --- Props ---
 
@@ -23,10 +23,13 @@ export interface QuestionFormProps {
   onSubmit: (data: {
     text: string;
     options: { text: string; order: number }[];
-    correctOptionIndex: number;
+    correctOptionIndex: number | null;
+    xpPerQuestion: number;
   }) => Promise<void>;
   /** If provided, the form is in edit mode with pre-filled data */
   initialData?: Question;
+  /** Quiz type determines which fields are visible */
+  quizType?: QuizType;
 }
 
 // --- Constants ---
@@ -41,13 +44,20 @@ export function QuestionForm({
   onOpenChange,
   onSubmit,
   initialData,
+  quizType = 'CHAPTER_QUIZ',
 }: QuestionFormProps) {
   const [text, setText] = useState("");
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [correctOptionIndex, setCorrectOptionIndex] = useState<number | null>(null);
+  const [xpPerQuestion, setXpPerQuestion] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+
+  // Pre Test has no passing grade but DOES have correct answers (for placement calculation)
+  // Students just don't see the feedback
+  const showCorrectOption = true; // All types need correctOption
+  const showXpField = quizType !== 'PRE_TEST';
 
   // Initialize form when dialog opens or initialData changes
   useEffect(() => {
@@ -68,11 +78,13 @@ export function QuestionForm({
         } else {
           setCorrectOptionIndex(null);
         }
+        setXpPerQuestion(initialData.xpPerQuestion ?? 0);
       } else {
         // Create mode: reset
         setText("");
         setOptions(["", "", "", ""]);
         setCorrectOptionIndex(null);
+        setXpPerQuestion(0);
       }
       setErrors({});
       setApiError(null);
@@ -115,8 +127,15 @@ export function QuestionForm({
       correctOptionIndex !== null ? String(correctOptionIndex) : null;
     const validation = validateQuestion(text, options, correctOptionValue);
 
-    setErrors(validation.errors);
+    // Additional XP validation
+    const newErrors = { ...validation.errors };
+    if (showXpField && (xpPerQuestion < 0 || xpPerQuestion > 1000 || !Number.isInteger(xpPerQuestion))) {
+      newErrors.xpPerQuestion = 'XP harus bilangan bulat antara 0–1000';
+    }
+
+    setErrors(newErrors);
     if (!validation.valid) return;
+    if (newErrors.xpPerQuestion) return;
 
     setIsSubmitting(true);
     try {
@@ -126,7 +145,8 @@ export function QuestionForm({
           text: optText,
           order: idx + 1,
         })),
-        correctOptionIndex: correctOptionIndex!,
+        correctOptionIndex,
+        xpPerQuestion: showXpField ? xpPerQuestion : 0,
       });
       // Close on success
       onOpenChange(false);
@@ -152,7 +172,9 @@ export function QuestionForm({
           <DialogDescription>
             {isEditMode
               ? "Ubah teks soal, opsi jawaban, dan jawaban benar."
-              : "Buat soal baru dengan minimal 4 opsi jawaban dan pilih satu jawaban benar."}
+              : quizType === 'PRE_TEST'
+                ? "Buat soal baru dengan minimal 4 opsi jawaban. Jawaban benar digunakan untuk menentukan penempatan siswa."
+                : "Buat soal baru dengan minimal 4 opsi jawaban dan pilih satu jawaban benar."}
           </DialogDescription>
         </DialogHeader>
 
@@ -214,17 +236,19 @@ export function QuestionForm({
             <div className="space-y-2">
               {options.map((optionText, idx) => (
                 <div key={idx} className="flex items-start gap-2">
-                  {/* Radio for correct answer */}
-                  <div className="flex items-center pt-2.5">
-                    <input
-                      type="radio"
-                      name="correctOption"
-                      checked={correctOptionIndex === idx}
-                      onChange={() => setCorrectOptionIndex(idx)}
-                      className="h-4 w-4 accent-primary-600 cursor-pointer"
-                      aria-label={`Tandai opsi ${idx + 1} sebagai jawaban benar`}
-                    />
-                  </div>
+                  {/* Radio for correct answer (hidden for Pre Test) */}
+                  {showCorrectOption && (
+                    <div className="flex items-center pt-2.5">
+                      <input
+                        type="radio"
+                        name="correctOption"
+                        checked={correctOptionIndex === idx}
+                        onChange={() => setCorrectOptionIndex(idx)}
+                        className="h-4 w-4 accent-primary-600 cursor-pointer"
+                        aria-label={`Tandai opsi ${idx + 1} sebagai jawaban benar`}
+                      />
+                    </div>
+                  )}
 
                   {/* Option text input */}
                   <div className="flex-1">
@@ -274,16 +298,54 @@ export function QuestionForm({
             )}
 
             {/* Correct option error */}
-            {errors.correctOption && (
+            {showCorrectOption && errors.correctOption && (
               <p className="text-xs text-red-600" role="alert">
                 {errors.correctOption}
               </p>
             )}
 
-            <p className="text-xs text-muted-foreground">
-              Pilih radio di sebelah kiri untuk menandai jawaban benar.
-            </p>
+            {showCorrectOption && (
+              <p className="text-xs text-muted-foreground">
+                {quizType === 'PRE_TEST'
+                  ? 'Pilih jawaban benar — digunakan untuk menghitung penempatan (siswa tidak melihat hasilnya).'
+                  : 'Pilih radio di sebelah kiri untuk menandai jawaban benar.'}
+              </p>
+            )}
           </div>
+
+          {/* XP per Question — compact inline (hidden for Pre Test) */}
+          {showXpField && (
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-yellow-100">
+                  <span className="text-xs">⚡</span>
+                </span>
+                <label htmlFor="xpPerQuestion" className="text-sm font-medium text-foreground whitespace-nowrap">
+                  XP Reward
+                </label>
+              </div>
+              <div className="flex items-center gap-2 flex-1">
+                <input
+                  id="xpPerQuestion"
+                  type="number"
+                  min={0}
+                  max={1000}
+                  value={xpPerQuestion}
+                  onChange={(e) => setXpPerQuestion(Math.max(0, Math.min(1000, parseInt(e.target.value) || 0)))}
+                  className="h-9 w-24 rounded-md border border-input bg-background px-3 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-1"
+                  placeholder="0"
+                  aria-invalid={!!errors.xpPerQuestion}
+                  aria-describedby={errors.xpPerQuestion ? "xp-error" : undefined}
+                />
+                <span className="text-xs text-muted-foreground">poin per jawaban benar</span>
+              </div>
+              {errors.xpPerQuestion && (
+                <p id="xp-error" className="text-xs text-red-600">
+                  {errors.xpPerQuestion}
+                </p>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button

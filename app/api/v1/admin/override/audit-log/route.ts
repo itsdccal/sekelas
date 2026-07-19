@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 /**
  * Mock admin override audit log endpoint for development.
- * Returns recent override actions with details.
+ * Returns recent override/penyesuaian actions with details.
  */
 export async function GET() {
   const auditLog = [
@@ -13,9 +13,10 @@ export async function GET() {
       studentId: 'student-005',
       studentName: 'Dimas Pratama',
       chapterId: 'ch-6',
-      chapterTitle: 'Bangun Ruang',
-      action: 'UNLOCK_NEXT',
+      chapterName: 'Bangun Ruang',
+      action: 'FORCE_COMPLETE',
       reason: 'Siswa sudah menunjukkan pemahaman melalui tugas tambahan',
+      score: 75,
       createdAt: '2024-01-20T09:00:00Z',
     },
     {
@@ -25,9 +26,10 @@ export async function GET() {
       studentId: 'student-003',
       studentName: 'Ahmad Rizki',
       chapterId: 'ch-4',
-      chapterTitle: 'Pertidaksamaan Linear',
+      chapterName: 'Pertidaksamaan Linear',
       action: 'RESET_QUIZ',
       reason: 'Terjadi error teknis saat pengerjaan kuis',
+      score: null,
       createdAt: '2024-01-19T14:30:00Z',
     },
     {
@@ -37,9 +39,10 @@ export async function GET() {
       studentId: 'student-008',
       studentName: 'Lina Maharani',
       chapterId: 'ch-3',
-      chapterTitle: 'Sistem Persamaan Linear',
+      chapterName: 'Sistem Persamaan Linear',
       action: 'FORCE_COMPLETE',
       reason: 'Siswa pindahan, materi sudah dikuasai di sekolah sebelumnya',
+      score: 80,
       createdAt: '2024-01-18T11:00:00Z',
     },
     {
@@ -49,9 +52,10 @@ export async function GET() {
       studentId: 'student-014',
       studentName: 'Melati Kusuma',
       chapterId: 'ch-2',
-      chapterTitle: 'Persamaan Linear Dua Variabel',
+      chapterName: 'Persamaan Linear Dua Variabel',
       action: 'UNLOCK_NEXT',
-      reason: 'Override karena masalah koneksi internet saat kuis',
+      reason: 'Override karena masalah koneksi internet saat kuis berlangsung',
+      score: null,
       createdAt: '2024-01-17T16:00:00Z',
     },
     {
@@ -61,9 +65,10 @@ export async function GET() {
       studentId: 'student-019',
       studentName: 'Bayu Firmansyah',
       chapterId: 'ch-1',
-      chapterTitle: 'Persamaan Linear Satu Variabel',
+      chapterName: 'Persamaan Linear Satu Variabel',
       action: 'RESET_PROGRESS',
-      reason: 'Siswa request ulang dari awal karena lama tidak aktif',
+      reason: 'Siswa request ulang dari awal karena lama tidak aktif belajar',
+      score: null,
       createdAt: '2024-01-16T10:00:00Z',
     },
     {
@@ -73,9 +78,10 @@ export async function GET() {
       studentId: 'student-006',
       studentName: 'Rina Wulandari',
       chapterId: 'ch-10',
-      chapterTitle: 'Hukum Newton I',
+      chapterName: 'Hukum Newton I',
       action: 'FORCE_COMPLETE',
-      reason: 'Siswa sudah lulus ujian remedial offline',
+      reason: 'Siswa sudah lulus ujian remedial offline yang diadakan tutor',
+      score: 85,
       createdAt: '2024-01-15T09:30:00Z',
     },
     {
@@ -85,19 +91,13 @@ export async function GET() {
       studentId: 'student-012',
       studentName: 'Dewi Safitri',
       chapterId: 'ch-7',
-      chapterTitle: 'Transformasi Geometri',
+      chapterName: 'Transformasi Geometri',
       action: 'RESET_QUIZ',
-      reason: 'Kuis terpotong karena maintenance server',
+      reason: 'Kuis terpotong karena maintenance server di jam belajar siswa',
+      score: null,
       createdAt: '2024-01-14T13:00:00Z',
     },
   ];
 
-  // Return as a direct array (frontend expects AuditLogEntry[])
-  // Map chapterTitle → chapterName to match the type
-  const mapped = auditLog.map(entry => ({
-    ...entry,
-    chapterName: entry.chapterTitle,
-  }));
-
-  return NextResponse.json(mapped);
+  return NextResponse.json(auditLog);
 }

@@ -9,9 +9,10 @@ interface QuizResultProps {
   onContinue: () => void;
   onRetake?: () => void;
   onRewatchVideo?: () => void;
+  onBack?: () => void;
 }
 
-export function QuizResultDisplay({ result, onContinue, onRetake, onRewatchVideo }: QuizResultProps) {
+export function QuizResultDisplay({ result, onContinue, onRetake, onRewatchVideo, onBack }: QuizResultProps) {
   const isPassed = result.status === 'PASSED';
   const isReadyForRetake = result.nextStatus === 'READY_FOR_RETAKE';
 
@@ -48,33 +49,49 @@ export function QuizResultDisplay({ result, onContinue, onRetake, onRewatchVideo
 
       {/* Action button */}
       {isPassed ? (
-        <Button
-          onClick={onContinue}
-          className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white"
-          aria-label="Lanjut ke Chapter Berikutnya"
-        >
-          Lanjut ke Chapter Berikutnya
-        </Button>
-      ) : (
         <div className="w-full space-y-3">
           <Button
-            onClick={onRetake}
-            disabled={!isReadyForRetake}
-            className="w-full"
-            variant="outline"
-            aria-label="Kerjakan Kuis Kembali"
+            onClick={onContinue}
+            className="w-full bg-green-600 hover:bg-green-700 active:bg-green-800 text-white"
+            aria-label="Lanjut ke Chapter Berikutnya"
           >
-            Kerjakan Kuis Kembali
+            Lanjut ke Chapter Berikutnya
           </Button>
-          {!isReadyForRetake && onRewatchVideo && (
+          {onBack && (
             <Button
-              onClick={onRewatchVideo}
-              className="w-full bg-primary-600 hover:bg-primary-700 text-white"
-              aria-label="Tonton Ulang Video"
+              onClick={onBack}
+              variant="ghost"
+              className="w-full text-muted-foreground"
+              aria-label="Kembali"
             >
-              📺 Tonton Ulang Video
+              ← Kembali ke Daftar Chapter
             </Button>
           )}
+        </div>
+      ) : (
+        <div className="w-full space-y-3">
+          {isReadyForRetake ? (
+            <Button
+              onClick={onRetake}
+              className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+              aria-label="Kerjakan Kuis Kembali"
+            >
+              Kerjakan Kuis Kembali
+            </Button>
+          ) : onRewatchVideo ? (
+            <>
+              <Button
+                onClick={onRewatchVideo}
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white"
+                aria-label="Tonton Ulang Video"
+              >
+                📺 Tonton Ulang Video
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Tonton ulang video terlebih dahulu untuk bisa mengerjakan kuis kembali.
+              </p>
+            </>
+          ) : null}
         </div>
       )}
     </div>

@@ -37,20 +37,24 @@ describe('OverrideForm', () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
+    const textarea = screen.getByLabelText(/alasan/i);
     await user.type(textarea, 'pendek');
 
     expect(screen.getByText('Alasan minimal 10 karakter')).toBeInTheDocument();
   });
 
-  it('enables confirm button when reason is valid (>= 10 chars)', async () => {
+  it('enables confirm button when form is valid (reason >= 10 chars + score for FORCE_COMPLETE)', async () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
-    await user.type(textarea, 'Alasan override yang cukup panjang');
+    // Default action is FORCE_COMPLETE, so score is required
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan penyesuaian yang cukup panjang');
 
-    const confirmBtn = screen.getByRole('button', { name: /konfirmasi override/i });
+    const scoreInput = screen.getByPlaceholderText('0–100');
+    await user.type(scoreInput, '75');
+
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     expect(confirmBtn).not.toBeDisabled();
   });
 
@@ -58,30 +62,60 @@ describe('OverrideForm', () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
+    const textarea = screen.getByLabelText(/alasan/i);
     await user.type(textarea, 'short');
 
-    const confirmBtn = screen.getByRole('button', { name: /konfirmasi override/i });
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     expect(confirmBtn).toBeDisabled();
   });
 
-  it('calls onConfirm with reason when confirmed', async () => {
+  it('calls onConfirm with action, reason, and score when confirmed', async () => {
     const user = userEvent.setup();
     render(<OverrideForm {...defaultProps} />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
-    await user.type(textarea, 'Alasan valid untuk override');
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan valid untuk penyesuaian');
 
-    const confirmBtn = screen.getByRole('button', { name: /konfirmasi override/i });
+    const scoreInput = screen.getByPlaceholderText('0–100');
+    await user.type(scoreInput, '80');
+
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     await user.click(confirmBtn);
 
-    expect(defaultProps.onConfirm).toHaveBeenCalledWith('Alasan valid untuk override');
+    expect(defaultProps.onConfirm).toHaveBeenCalledWith({
+      action: 'FORCE_COMPLETE',
+      reason: 'Alasan valid untuk penyesuaian',
+      score: 80,
+    });
+  });
+
+  it('does not require score for RESET_QUIZ action', async () => {
+    const user = userEvent.setup();
+    render(<OverrideForm {...defaultProps} />);
+
+    // Change action to RESET_QUIZ
+    const actionSelect = screen.getByLabelText(/pilih aksi penyesuaian/i);
+    await user.selectOptions(actionSelect, 'RESET_QUIZ');
+
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Error teknis saat kuis berlangsung');
+
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
+    expect(confirmBtn).not.toBeDisabled();
+
+    await user.click(confirmBtn);
+
+    expect(defaultProps.onConfirm).toHaveBeenCalledWith({
+      action: 'RESET_QUIZ',
+      reason: 'Error teknis saat kuis berlangsung',
+      score: undefined,
+    });
   });
 
   it('disables form when currentStatus is COMPLETED', () => {
     render(<OverrideForm {...defaultProps} currentStatus="COMPLETED" />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
+    const textarea = screen.getByLabelText(/alasan/i);
     expect(textarea).toBeDisabled();
 
     expect(screen.getByText(/sudah berstatus COMPLETED/)).toBeInTheDocument();
@@ -93,10 +127,13 @@ describe('OverrideForm', () => {
 
     render(<OverrideForm {...defaultProps} onConfirm={onConfirm} />);
 
-    const textarea = screen.getByLabelText(/alasan override/i);
-    await user.type(textarea, 'Alasan valid untuk override');
+    const textarea = screen.getByLabelText(/alasan/i);
+    await user.type(textarea, 'Alasan valid untuk penyesuaian');
 
-    const confirmBtn = screen.getByRole('button', { name: /konfirmasi override/i });
+    const scoreInput = screen.getByPlaceholderText('0–100');
+    await user.type(scoreInput, '75');
+
+    const confirmBtn = screen.getByRole('button', { name: /konfirmasi penyesuaian/i });
     await user.click(confirmBtn);
 
     await waitFor(() => {
@@ -104,7 +141,8 @@ describe('OverrideForm', () => {
     });
 
     // Form data preserved
-    expect(textarea).toHaveValue('Alasan valid untuk override');
+    expect(textarea).toHaveValue('Alasan valid untuk penyesuaian');
+    expect(scoreInput).toHaveValue(75);
   });
 
   it('shows character counter', async () => {
@@ -113,7 +151,7 @@ describe('OverrideForm', () => {
 
     expect(screen.getByText('0/500')).toBeInTheDocument();
 
-    const textarea = screen.getByLabelText(/alasan override/i);
+    const textarea = screen.getByLabelText(/alasan/i);
     await user.type(textarea, 'Hello World');
 
     expect(screen.getByText('11/500')).toBeInTheDocument();
@@ -128,6 +166,16 @@ describe('OverrideForm', () => {
 
     expect(defaultProps.onCancel).toHaveBeenCalled();
   });
+
+  it('validates score is between 0-100', async () => {
+    const user = userEvent.setup();
+    render(<OverrideForm {...defaultProps} />);
+
+    const scoreInput = screen.getByPlaceholderText('0–100');
+    await user.type(scoreInput, '150');
+
+    expect(screen.getByText('Skor harus antara 0–100')).toBeInTheDocument();
+  });
 });
 
 describe('AuditLogTable', () => {
@@ -136,30 +184,39 @@ describe('AuditLogTable', () => {
       id: '1',
       adminId: 'admin-1',
       adminName: 'Admin Satu',
-      action: 'OVERRIDE',
+      studentId: 'student-1',
       studentName: 'Budi',
+      chapterId: 'ch-1',
       chapterName: 'Chapter A',
+      action: 'FORCE_COMPLETE',
       reason: 'Kondisi khusus siswa',
+      score: 75,
       createdAt: '2024-01-15T10:30:00Z',
     },
     {
       id: '2',
       adminId: 'admin-1',
       adminName: 'Admin Satu',
-      action: 'OVERRIDE',
+      studentId: 'student-2',
       studentName: 'Sari',
+      chapterId: 'ch-2',
       chapterName: 'Chapter B',
-      reason: 'Rekomendasi guru',
+      action: 'RESET_QUIZ',
+      reason: 'Rekomendasi guru karena error teknis',
+      score: null,
       createdAt: '2024-01-16T14:00:00Z',
     },
     {
       id: '3',
       adminId: 'admin-2',
       adminName: 'Admin Dua',
-      action: 'OVERRIDE',
+      studentId: 'student-3',
       studentName: 'Andi',
+      chapterId: 'ch-3',
       chapterName: 'Chapter C',
-      reason: 'Sakit berkepanjangan',
+      action: 'FORCE_COMPLETE',
+      reason: 'Sakit berkepanjangan, sudah ujian offline',
+      score: 80,
       createdAt: '2024-01-14T08:00:00Z',
     },
   ];
@@ -170,6 +227,7 @@ describe('AuditLogTable', () => {
     expect(screen.getByText('Admin')).toBeInTheDocument();
     expect(screen.getByText('Siswa')).toBeInTheDocument();
     expect(screen.getByText('Chapter')).toBeInTheDocument();
+    expect(screen.getByText('Aksi')).toBeInTheDocument();
     expect(screen.getByText('Alasan')).toBeInTheDocument();
     expect(screen.getByText('Waktu')).toBeInTheDocument();
   });
@@ -187,13 +245,13 @@ describe('AuditLogTable', () => {
   it('shows empty state when no entries', () => {
     render(<AuditLogTable entries={[]} />);
 
-    expect(screen.getByText('Belum ada riwayat override.')).toBeInTheDocument();
+    expect(screen.getByText('Belum ada riwayat penyesuaian.')).toBeInTheDocument();
   });
 
   it('shows loading skeleton', () => {
     render(<AuditLogTable isLoading />);
 
-    expect(screen.getByRole('status', { name: /memuat audit log/i })).toBeInTheDocument();
+    expect(screen.getByRole('status', { name: /memuat riwayat penyesuaian/i })).toBeInTheDocument();
   });
 
   it('shows error state with retry button', async () => {
@@ -208,5 +266,19 @@ describe('AuditLogTable', () => {
     await user.click(retryBtn);
 
     expect(onRetry).toHaveBeenCalled();
+  });
+
+  it('displays score for FORCE_COMPLETE entries', () => {
+    render(<AuditLogTable entries={mockEntries} />);
+
+    expect(screen.getByText('(Skor: 75%)')).toBeInTheDocument();
+    expect(screen.getByText('(Skor: 80%)')).toBeInTheDocument();
+  });
+
+  it('displays action labels correctly', () => {
+    render(<AuditLogTable entries={mockEntries} />);
+
+    expect(screen.getAllByText('Luluskan')).toHaveLength(2);
+    expect(screen.getByText('Reset Kuis')).toBeInTheDocument();
   });
 });

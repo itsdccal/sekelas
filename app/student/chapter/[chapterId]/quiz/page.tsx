@@ -55,6 +55,11 @@ export default function QuizPage() {
     router.push(`/student/chapter/${chapterId}/video`);
   }, [chapterId, router]);
 
+  // Called when student clicks "Kembali"
+  const handleBack = useCallback(() => {
+    router.back();
+  }, [router]);
+
   // Show result view after quiz submission
   if (quizResult) {
     return (
@@ -64,6 +69,7 @@ export default function QuizPage() {
           onContinue={handleContinue}
           onRetake={handleRetake}
           onRewatchVideo={handleRewatchVideo}
+          onBack={handleBack}
         />
       </div>
     );

@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, FileText, Loader2, AlertCircle, Lock, CheckCircle, AlertTriangle, RefreshCw } from 'lucide-react';
+import { ArrowLeft, FileText, Loader2, AlertCircle, Lock, CheckCircle, AlertTriangle, RefreshCw, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { curriculumApi } from '@/lib/api';
+import { curriculumApi, posttestApi } from '@/lib/api';
 import { useChapterStore } from '@/stores/chapterStore';
-import type { Chapter } from '@/lib/types';
-import type { ChapterStatus } from '@/lib/types';
+import type { Chapter, ChapterStatus } from '@/lib/types';
 
 function getStatusIcon(status: ChapterStatus | undefined) {
   switch (status) {
@@ -42,6 +41,13 @@ function getStatusLabel(status: ChapterStatus | undefined): string | null {
   }
 }
 
+/**
+ * Chapter list page with sequential locking and Post Test gate.
+ * Chapters must be completed in order.
+ * When all chapters are COMPLETED, Post Test button appears.
+ *
+ * Requirements: 18.4, 18.5, 18.8
+ */
 export default function ChapterListPage() {
   const params = useParams();
   const router = useRouter();
@@ -51,6 +57,11 @@ export default function ChapterListPage() {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [postTestStatus, setPostTestStatus] = useState<{
+    available: boolean;
+    completed: boolean;
+    passed: boolean;
+  }>({ available: false, completed: false, passed: false });
 
   const { progressMap, fetchProgress, isLoading: progressLoading } = useChapterStore();
 
@@ -59,11 +70,19 @@ export default function ChapterListPage() {
     setError(null);
     try {
       const data = await curriculumApi.getChapterList(babId);
-      // Sort by orderIndex ascending
       const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
       setChapters(sorted);
+
       // Fetch progress for this bab
       await fetchProgress(babId);
+
+      // Check post test status
+      try {
+        const ptStatus = await posttestApi.getPostTestStatus(babId);
+        setPostTestStatus(ptStatus);
+      } catch {
+        // Default
+      }
     } catch {
       setError('Gagal memuat daftar chapter. Silakan coba lagi.');
     } finally {
@@ -74,6 +93,12 @@ export default function ChapterListPage() {
   useEffect(() => {
     fetchChapters();
   }, [fetchChapters]);
+
+  // Check if all chapters are completed
+  const allChaptersCompleted = useMemo(() => {
+    if (chapters.length === 0) return false;
+    return chapters.every((ch) => progressMap[ch.id]?.status === 'COMPLETED');
+  }, [chapters, progressMap]);
 
   const loading = isLoading || progressLoading;
 
@@ -97,7 +122,7 @@ export default function ChapterListPage() {
     );
   }
 
-  // Error state with retry
+  // Error state
   if (error) {
     return (
       <div className="space-y-4">
@@ -147,14 +172,29 @@ export default function ChapterListPage() {
           </p>
         </div>
       ) : (
-        /* Chapter list - basic cards (ChapterCard component comes in task 7.3) */
         <div className="space-y-3">
-          {chapters.map((chapter) => {
+          {/* Chapter list with sequential locking */}
+          {chapters.map((chapter, index) => {
             const progress = progressMap[chapter.id];
             const status = progress?.status;
-            const isLocked = status === 'LOCKED';
-            const icon = getStatusIcon(status);
-            const label = getStatusLabel(status);
+
+            // Sequential locking logic: chapter is locked if previous chapter isn't completed
+            // (unless it's the first chapter or already has a status from API)
+            let effectiveStatus = status;
+            if (index > 0 && !status) {
+              const prevChapter = chapters[index - 1];
+              const prevStatus = progressMap[prevChapter.id]?.status;
+              if (prevStatus !== 'COMPLETED') {
+                effectiveStatus = 'LOCKED';
+              }
+            }
+            if (index === 0 && !status) {
+              effectiveStatus = 'UNLOCKED';
+            }
+
+            const isLocked = effectiveStatus === 'LOCKED';
+            const icon = getStatusIcon(effectiveStatus);
+            const label = getStatusLabel(effectiveStatus);
 
             return (
               <div
@@ -162,14 +202,18 @@ export default function ChapterListPage() {
                 className={`rounded-lg border border-border bg-white p-4 transition-colors ${
                   isLocked
                     ? 'pointer-events-none opacity-50 grayscale'
-                    : status === 'REMEDIATION_REQUIRED'
+                    : effectiveStatus === 'REMEDIATION_REQUIRED'
                       ? 'cursor-pointer hover:border-red-300 hover:bg-red-50'
                       : 'cursor-pointer hover:border-primary-300 hover:bg-primary-50'
                 }`}
                 role="listitem"
                 onClick={() => {
                   if (!isLocked) {
-                    router.push(`/student/chapter/${chapter.id}/video`);
+                    if (effectiveStatus === 'READY_FOR_RETAKE') {
+                      router.push(`/student/chapter/${chapter.id}/quiz`);
+                    } else {
+                      router.push(`/student/chapter/${chapter.id}/video`);
+                    }
                   }
                 }}
               >
@@ -185,10 +229,45 @@ export default function ChapterListPage() {
                       )}
                     </div>
                   </div>
+                  {isLocked && (
+                    <Lock className="h-4 w-4 text-gray-300" aria-hidden="true" />
+                  )}
                 </div>
               </div>
             );
           })}
+
+          {/* Post Test section */}
+          <div className="mt-6 border-t border-border pt-4">
+            {postTestStatus.passed ? (
+              <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-4">
+                <CheckCircle className="h-5 w-5 text-green-500" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-green-800">Post Test Selesai</p>
+                  <p className="text-xs text-green-600">Bab ini telah diselesaikan</p>
+                </div>
+              </div>
+            ) : allChaptersCompleted ? (
+              <Button
+                onClick={() => router.push(`/student/bab/${babId}/posttest`)}
+                className="w-full gap-2 bg-primary-600 hover:bg-primary-700 text-white"
+                aria-label="Kerjakan Post Test"
+              >
+                <ClipboardCheck className="h-4 w-4" />
+                Kerjakan Post Test
+              </Button>
+            ) : (
+              <div className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                <Lock className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Post Test</p>
+                  <p className="text-xs text-gray-400">
+                    Selesaikan semua chapter untuk membuka Post Test
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

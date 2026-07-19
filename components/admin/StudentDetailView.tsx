@@ -11,15 +11,18 @@ import {
   Circle,
   ArrowLeft,
   RefreshCw,
+  Shield,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { OverrideForm } from '@/components/admin/OverrideForm';
 import type {
   StudentProgress,
   MateriProgress,
   BabProgress,
   ChapterProgress,
   ChapterStatus,
+  OverrideAction,
 } from '@/lib/types';
 
 // ─── Props ───
@@ -86,17 +89,24 @@ function DetailSkeleton() {
   );
 }
 
-// ─── Chapter row (displays status icon, label, last score, remediation attempts) ───
+// ─── Chapter row with Override button (Req 13.1) ───
 
-function ChapterRow({ chapter }: { chapter: ChapterProgress }) {
+interface ChapterRowProps {
+  chapter: ChapterProgress;
+  onOverrideClick: (chapter: ChapterProgress) => void;
+}
+
+function ChapterRow({ chapter, onOverrideClick }: ChapterRowProps) {
   const remediationAttempts = chapter.videoWatchAttempts > 0
     ? chapter.videoWatchAttempts - 1
     : 0;
 
+  const canOverride = chapter.status !== 'COMPLETED';
+
   return (
     <div className="flex items-center gap-3 rounded px-2 py-2 text-sm hover:bg-accent/20">
       <StatusIcon status={chapter.status} />
-      <span className="min-w-[120px] font-medium text-foreground">
+      <span className="min-w-[100px] font-medium text-foreground">
         {statusLabel(chapter.status)}
       </span>
       <span className="text-xs text-muted-foreground">
@@ -104,10 +114,26 @@ function ChapterRow({ chapter }: { chapter: ChapterProgress }) {
           ? `Skor: ${chapter.lastScore}%`
           : 'Belum kuis'}
       </span>
-      <span className="ml-auto text-xs text-muted-foreground">
+      <span className="text-xs text-muted-foreground">
         {remediationAttempts > 0
           ? `${remediationAttempts} remediasi`
           : ''}
+      </span>
+      <span className="ml-auto">
+        {canOverride ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 gap-1.5 text-xs"
+            onClick={() => onOverrideClick(chapter)}
+            aria-label={`Penyesuaian chapter ${chapter.chapterId}`}
+          >
+            <Shield className="h-3 w-3" aria-hidden="true" />
+            Penyesuaian
+          </Button>
+        ) : (
+          <span className="text-xs text-green-600 font-medium">✓ Selesai</span>
+        )}
       </span>
     </div>
   );
@@ -115,7 +141,12 @@ function ChapterRow({ chapter }: { chapter: ChapterProgress }) {
 
 // ─── Bab detail (expandable) ───
 
-function BabDetail({ bab }: { bab: BabProgress }) {
+interface BabDetailProps {
+  bab: BabProgress;
+  onOverrideClick: (chapter: ChapterProgress) => void;
+}
+
+function BabDetail({ bab, onOverrideClick }: BabDetailProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -141,7 +172,11 @@ function BabDetail({ bab }: { bab: BabProgress }) {
       {expanded && (
         <div id={`detail-bab-${bab.babId}-chapters`} className="mt-1 space-y-1 pb-2">
           {bab.chapters.map((chapter) => (
-            <ChapterRow key={chapter.chapterId} chapter={chapter} />
+            <ChapterRow
+              key={chapter.chapterId}
+              chapter={chapter}
+              onOverrideClick={onOverrideClick}
+            />
           ))}
         </div>
       )}
@@ -151,7 +186,12 @@ function BabDetail({ bab }: { bab: BabProgress }) {
 
 // ─── Materi accordion item ───
 
-function MateriItem({ materi }: { materi: MateriProgress }) {
+interface MateriItemProps {
+  materi: MateriProgress;
+  onOverrideClick: (chapter: ChapterProgress) => void;
+}
+
+function MateriItem({ materi, onOverrideClick }: MateriItemProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -176,10 +216,12 @@ function MateriItem({ materi }: { materi: MateriProgress }) {
 
       {expanded && (
         <div id={`detail-materi-${materi.materiId}-content`} className="border-t border-border px-4 py-3 space-y-2">
-          {materi.babs.length === 0 ? (
+          {!materi.babs || materi.babs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Tidak ada Bab.</p>
           ) : (
-            materi.babs.map((bab) => <BabDetail key={bab.babId} bab={bab} />)
+            materi.babs.map((bab) => (
+              <BabDetail key={bab.babId} bab={bab} onOverrideClick={onOverrideClick} />
+            ))
           )}
         </div>
       )}
@@ -193,6 +235,9 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Override dialog state
+  const [overrideTarget, setOverrideTarget] = useState<ChapterProgress | null>(null);
 
   const fetchDetail = useCallback(async () => {
     setIsLoading(true);
@@ -211,6 +256,86 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
+
+  // Handle override confirm
+  const handleOverrideConfirm = useCallback(async (data: { action: OverrideAction; reason: string; score?: number }) => {
+    if (!overrideTarget) return;
+
+    await adminApi.overrideChapter({
+      userId,
+      chapterId: overrideTarget.chapterId,
+      action: data.action,
+      reason: data.reason,
+      score: data.score,
+    });
+
+    // Update local state based on action
+    if (data.action === 'FORCE_COMPLETE') {
+      setProgress((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          completedChapters: prev.completedChapters + 1,
+          materiProgress: prev.materiProgress.map((materi) => ({
+            ...materi,
+            babs: materi.babs.map((bab) => ({
+              ...bab,
+              chapters: bab.chapters.map((ch) =>
+                ch.chapterId === overrideTarget.chapterId
+                  ? { ...ch, status: 'COMPLETED' as ChapterStatus, lastScore: data.score ?? ch.lastScore }
+                  : ch
+              ),
+            })),
+          })),
+        };
+      });
+    } else if (data.action === 'RESET_QUIZ') {
+      setProgress((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          materiProgress: prev.materiProgress.map((materi) => ({
+            ...materi,
+            babs: materi.babs.map((bab) => ({
+              ...bab,
+              chapters: bab.chapters.map((ch) =>
+                ch.chapterId === overrideTarget.chapterId
+                  ? { ...ch, status: 'UNLOCKED' as ChapterStatus, lastScore: null, quizAttempts: 0 }
+                  : ch
+              ),
+            })),
+          })),
+        };
+      });
+    } else if (data.action === 'UNLOCK_NEXT') {
+      // Find the next locked chapter and unlock it
+      setProgress((prev) => {
+        if (!prev) return prev;
+        let unlocked = false;
+        return {
+          ...prev,
+          materiProgress: prev.materiProgress.map((materi) => ({
+            ...materi,
+            babs: materi.babs.map((bab) => ({
+              ...bab,
+              chapters: bab.chapters.map((ch) => {
+                if (!unlocked && ch.status === 'LOCKED') {
+                  unlocked = true;
+                  return { ...ch, status: 'UNLOCKED' as ChapterStatus };
+                }
+                return ch;
+              }),
+            })),
+          })),
+        };
+      });
+    } else if (data.action === 'RESET_PROGRESS') {
+      // Re-fetch data after reset
+      await fetchDetail();
+    }
+
+    setOverrideTarget(null);
+  }, [overrideTarget, userId, fetchDetail]);
 
   return (
     <div className="space-y-4">
@@ -259,9 +384,24 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
             <span>{progress.totalXP} XP</span>
           </div>
           {progress.materiProgress.map((materi) => (
-            <MateriItem key={materi.materiId} materi={materi} />
+            <MateriItem
+              key={materi.materiId}
+              materi={materi}
+              onOverrideClick={(chapter) => setOverrideTarget(chapter)}
+            />
           ))}
         </div>
+      )}
+
+      {/* Override Dialog */}
+      {overrideTarget && (
+        <OverrideForm
+          student={{ id: userId, name: userId }}
+          chapter={{ id: overrideTarget.chapterId, name: overrideTarget.chapterId }}
+          currentStatus={overrideTarget.status}
+          onConfirm={handleOverrideConfirm}
+          onCancel={() => setOverrideTarget(null)}
+        />
       )}
     </div>
   );

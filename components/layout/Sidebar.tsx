@@ -32,9 +32,9 @@ const adminMenuItems: NavItem[] = [
   { label: 'Beranda', href: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
   { label: 'Kurikulum', href: '/admin/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
   { label: 'Bank Soal', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
-  { label: 'Kelola Badge', href: '/admin/badges', icon: <Award className="h-5 w-5" /> },
-  { label: 'Pemantauan', href: '/admin/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
-  { label: 'Penyesuaian Nilai', href: '/admin/override', icon: <Settings className="h-5 w-5" /> },
+  { label: 'Kelola Milestone', href: '/admin/badges', icon: <Award className="h-5 w-5" /> },
+  { label: 'Pemantauan Siswa', href: '/admin/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
+  { label: 'Catatan Perubahan', href: '/admin/override', icon: <Settings className="h-5 w-5" /> },
 ];
 
 interface SidebarProps {

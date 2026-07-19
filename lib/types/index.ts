@@ -41,7 +41,10 @@ export type {
 
 export type {
   AuditLogEntry,
+  OverrideAction,
   OverrideRequest,
   StudentMonitoringRow,
   VideoUploadResponse,
 } from './admin';
+
+export { OVERRIDE_ACTION_LABELS } from './admin';

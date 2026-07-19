@@ -88,18 +88,47 @@ export function validateQuestion(
 }
 
 /**
- * Validate Override reason field.
+ * Validate Override/Penyesuaian Nilai form fields.
  * - reason: required, min 10 chars, max 500 chars
+ * - action: required
+ * - score: required if action is FORCE_COMPLETE, 0-100 integer
  */
 export function validateOverrideReason(reason: string): ValidationResult {
   const errors: Record<string, string> = {};
 
   if (!reason || reason.trim().length === 0) {
-    errors.reason = 'Alasan override wajib diisi';
+    errors.reason = 'Alasan wajib diisi';
   } else if (reason.length < 10) {
     errors.reason = 'Alasan minimal 10 karakter';
   } else if (reason.length > 500) {
     errors.reason = 'Alasan maksimal 500 karakter';
+  }
+
+  return { valid: Object.keys(errors).length === 0, errors };
+}
+
+/**
+ * Validate override score field.
+ * - score: required for FORCE_COMPLETE, 0–100 integer
+ */
+export function validateOverrideScore(score: string, required: boolean): ValidationResult {
+  const errors: Record<string, string> = {};
+
+  if (!required) {
+    return { valid: true, errors };
+  }
+
+  if (score === '' || score === null || score === undefined) {
+    errors.score = 'Skor wajib diisi untuk meluluskan chapter';
+  } else {
+    const numScore = Number(score);
+    if (isNaN(numScore)) {
+      errors.score = 'Skor harus berupa angka';
+    } else if (!Number.isInteger(numScore)) {
+      errors.score = 'Skor harus bilangan bulat';
+    } else if (numScore < 0 || numScore > 100) {
+      errors.score = 'Skor harus antara 0–100';
+    }
   }
 
   return { valid: Object.keys(errors).length === 0, errors };

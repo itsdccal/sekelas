@@ -43,3 +43,7 @@ next-env.d.ts
 /docs
 /.kiro
 .vscode/settings.json
+
+# AI agent config files
+AGENTS.md
+CLAUDE.md

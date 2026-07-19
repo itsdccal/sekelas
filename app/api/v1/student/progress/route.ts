@@ -43,8 +43,8 @@ export async function GET() {
             postTestScore: null,
             chapters: [
               { chapterId: 'ch-5', title: 'Bangun Datar', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 2, videoWatchAttempts: 1, xpEarned: 100 },
-              { chapterId: 'ch-6', title: 'Bangun Ruang', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 2, videoWatchAttempts: 2, xpEarned: 0 },
-              { chapterId: 'ch-7', title: 'Transformasi Geometri', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0, xpEarned: 0 },
+              { chapterId: 'ch-6', title: 'Bangun Ruang', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 2, videoWatchAttempts: 1, xpEarned: 100 },
+              { chapterId: 'ch-7', title: 'Transformasi Geometri', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1, xpEarned: 150 },
             ],
           },
           {
@@ -78,7 +78,7 @@ export async function GET() {
             chapters: [
               { chapterId: 'ch-10', title: 'Hukum Newton I', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1, xpEarned: 150 },
               { chapterId: 'ch-11', title: 'Hukum Newton II', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, videoWatchAttempts: 1, xpEarned: 100 },
-              { chapterId: 'ch-12', title: 'Hukum Newton III', status: 'UNLOCKED', watchedPercentage: 20, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1, xpEarned: 0 },
+              { chapterId: 'ch-12', title: 'Hukum Newton III', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1, xpEarned: 150 },
             ],
           },
           {
