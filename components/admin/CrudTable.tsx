@@ -183,82 +183,136 @@ export function CrudTable<T>({
       {isLoading ? (
         <TableSkeleton columns={columns.length} />
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-border">
-          <table className="w-full text-sm" role="table">
-            <thead className="bg-muted">
-              <tr>
-                {columns.map((col) => (
+        <>
+          {/* Desktop Table */}
+          <div className="hidden sm:block overflow-x-auto rounded-lg border border-border">
+            <table className="w-full text-sm" role="table">
+              <thead className="bg-muted">
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col.key}
+                      className="px-4 py-3 text-left font-medium text-foreground"
+                      scope="col"
+                    >
+                      {col.header}
+                    </th>
+                  ))}
                   <th
-                    key={col.key}
-                    className="px-4 py-3 text-left font-medium text-foreground"
+                    className="px-4 py-3 text-right font-medium text-foreground"
                     scope="col"
                   >
-                    {col.header}
+                    Aksi
                   </th>
-                ))}
-                <th
-                  className="px-4 py-3 text-right font-medium text-foreground"
-                  scope="col"
-                >
-                  Aksi
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {data.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={columns.length + 1}
-                    className="px-4 py-8 text-center text-muted-foreground"
-                  >
-                    Belum ada data.
-                  </td>
                 </tr>
-              ) : (
-                data.map((item) => (
-                  <tr
-                    key={getRowKey(item)}
-                    className={cn(
-                      "hover:bg-accent/50 transition-colors",
-                      onRowClick && "cursor-pointer"
-                    )}
-                    onClick={() => onRowClick?.(item)}
-                  >
-                    {columns.map((col) => (
-                      <td key={col.key} className="px-4 py-3">
+              </thead>
+              <tbody className="divide-y divide-border">
+                {data.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={columns.length + 1}
+                      className="px-4 py-8 text-center text-muted-foreground"
+                    >
+                      Belum ada data.
+                    </td>
+                  </tr>
+                ) : (
+                  data.map((item) => (
+                    <tr
+                      key={getRowKey(item)}
+                      className={cn(
+                        "hover:bg-accent/50 transition-colors",
+                        onRowClick && "cursor-pointer"
+                      )}
+                      onClick={() => onRowClick?.(item)}
+                    >
+                      {columns.map((col) => (
+                        <td key={col.key} className="px-4 py-3">
+                          {col.render
+                            ? col.render(item)
+                            : String((item as Record<string, unknown>)[col.key] ?? "")}
+                        </td>
+                      ))}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => onEdit(item)}
+                            aria-label={`Ubah ${getItemName ? getItemName(item) : "item"}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                            Ubah
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteClick(item)}
+                            aria-label={`Hapus ${getItemName ? getItemName(item) : "item"}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                            Hapus
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="sm:hidden space-y-3">
+            {data.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">Belum ada data.</p>
+            ) : (
+              data.map((item) => (
+                <div
+                  key={getRowKey(item)}
+                  className={cn(
+                    "rounded-lg border border-border bg-white p-3 space-y-2",
+                    onRowClick && "cursor-pointer active:bg-accent/30"
+                  )}
+                  onClick={() => onRowClick?.(item)}
+                >
+                  {columns.map((col) => (
+                    <div key={col.key} className="flex items-center justify-between gap-2">
+                      <span className="text-xs text-muted-foreground">{col.header}</span>
+                      <span className="text-sm font-medium text-foreground text-right">
                         {col.render
                           ? col.render(item)
                           : String((item as Record<string, unknown>)[col.key] ?? "")}
-                      </td>
-                    ))}
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => onEdit(item)}
-                          aria-label={`Ubah ${getItemName ? getItemName(item) : "item"}`}
-                        >
-                          <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                          Ubah
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDeleteClick(item)}
-                          aria-label={`Hapus ${getItemName ? getItemName(item) : "item"}`}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                          Hapus
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                      </span>
+                    </div>
+                  ))}
+                  <div className="flex items-center gap-2 pt-1 border-t border-border/50" onClick={(e) => e.stopPropagation()}>
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => onEdit(item)}
+                      aria-label={`Ubah ${getItemName ? getItemName(item) : "item"}`}
+                    >
+                      <Pencil className="h-3 w-3" aria-hidden="true" />
+                      Ubah
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="flex-1 h-8 text-xs"
+                      onClick={() => handleDeleteClick(item)}
+                      aria-label={`Hapus ${getItemName ? getItemName(item) : "item"}`}
+                    >
+                      <Trash2 className="h-3 w-3" aria-hidden="true" />
+                      Hapus
+                    </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </>
       )}
 
       {/* Pagination */}

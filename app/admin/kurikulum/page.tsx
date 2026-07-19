@@ -449,18 +449,19 @@ export default function AdminKurikulumPage() {
   return (
     <div className="space-y-4">
       {/* Header with back navigation */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {nav.level !== "materi" && (
           <Button
             variant="ghost"
             size="icon"
             onClick={navigateBack}
             aria-label="Kembali"
+            className="shrink-0"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
         )}
-        <h1 className="text-2xl font-semibold text-foreground">
+        <h1 className="text-lg sm:text-2xl font-semibold text-foreground truncate">
           {getPageTitle()}
         </h1>
       </div>

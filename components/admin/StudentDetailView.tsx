@@ -103,22 +103,24 @@ function ChapterRow({ chapter, onOverrideClick }: ChapterRowProps) {
   const canOverride = chapter.status !== 'COMPLETED';
 
   return (
-    <div className="flex items-center gap-3 rounded px-2 py-2 text-sm hover:bg-accent/20">
-      <StatusIcon status={chapter.status} />
-      <span className="min-w-[100px] font-medium text-foreground">
-        {statusLabel(chapter.status)}
-      </span>
-      <span className="text-xs text-muted-foreground">
-        {chapter.lastScore !== null
-          ? `Skor: ${chapter.lastScore}%`
-          : 'Belum kuis'}
-      </span>
-      <span className="text-xs text-muted-foreground">
-        {remediationAttempts > 0
-          ? `${remediationAttempts} remediasi`
-          : ''}
-      </span>
-      <span className="ml-auto">
+    <div className="flex flex-col gap-1.5 rounded px-2 py-2 text-sm hover:bg-accent/20 sm:flex-row sm:items-center sm:gap-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <StatusIcon status={chapter.status} />
+        <span className="font-medium text-foreground truncate">
+          {statusLabel(chapter.status)}
+        </span>
+        <span className="text-xs text-muted-foreground shrink-0">
+          {chapter.lastScore !== null
+            ? `Skor: ${chapter.lastScore}%`
+            : 'Belum kuis'}
+        </span>
+        {remediationAttempts > 0 && (
+          <span className="text-xs text-muted-foreground shrink-0">
+            {remediationAttempts} remediasi
+          </span>
+        )}
+      </div>
+      <div className="ml-6 sm:ml-auto">
         {canOverride ? (
           <Button
             variant="outline"
@@ -132,7 +134,7 @@ function ChapterRow({ chapter, onOverrideClick }: ChapterRowProps) {
         ) : (
           <span className="text-xs text-green-600 font-medium">✓ Selesai</span>
         )}
-      </span>
+      </div>
     </div>
   );
 }

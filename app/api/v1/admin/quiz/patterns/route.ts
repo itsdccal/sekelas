@@ -2,14 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Mock admin quiz pattern creation endpoint for development.
+ * Accepts both chapterId (for chapter quiz) and babId-as-chapterId (for pre/post test).
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, description, chapterId } = body;
+  const { patternCode, description, chapterId, name } = body;
 
-  if (!name || !chapterId) {
+  // Accept either patternCode or name as the identifier
+  const topicName = patternCode || name;
+  
+  if (!topicName || !chapterId) {
     return NextResponse.json(
-      { message: 'Missing required fields: name, chapterId' },
+      { message: 'Missing required fields: patternCode/name, chapterId' },
       { status: 400 }
     );
   }
@@ -19,9 +23,10 @@ export async function POST(request: NextRequest) {
 
   const newPattern = {
     id: `pattern-${Date.now()}`,
-    name,
-    description: description || '',
+    patternCode: topicName,
+    description: description || topicName,
     chapterId,
+    quizType: 'CHAPTER_QUIZ',
     questionCount: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),

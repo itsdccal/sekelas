@@ -327,14 +327,20 @@ Cek apakah pre test sudah dikerjakan untuk bab ini.
 
 ### GET /api/v1/pretest/bab/{babId}/questions
 
-Ambil soal pre test untuk bab. Backend ambil soal dari topik Pre Test bab ini.
+Ambil soal pre test untuk bab. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
+
+**Logika backend:**
+1. Baca config distribusi Pre Test untuk bab ini
+2. Untuk setiap chapter: ambil N soal acak dari Bank Soal chapter tersebut
+3. Urutkan soal berdasarkan orderIndex chapter (soal chapter 1 dulu, lalu chapter 2, dst)
+4. Kirim tanpa `correctOptionId`
 
 **Response 200:**
 ```json
 [
   {
     "id": "string",
-    "patternId": "string",
+    "chapterId": "string (chapter asal soal ini)",
     "text": "string",
     "options": [
       { "id": "string", "text": "string", "order": "number" }
@@ -343,13 +349,13 @@ Ambil soal pre test untuk bab. Backend ambil soal dari topik Pre Test bab ini.
 ]
 ```
 
-> **Catatan:** Sama seperti quiz, `correctOptionId` TIDAK dikirim ke student.
+> **Catatan:** `correctOptionId` TIDAK dikirim ke student. Field `chapterId` digunakan backend untuk menentukan placement.
 
 ---
 
 ### POST /api/v1/pretest/submit
 
-Submit jawaban pre test. Backend hitung skor untuk tentukan placement.
+Submit jawaban pre test. Backend hitung skor per chapter untuk tentukan placement.
 
 **Request Body:**
 ```json
@@ -374,9 +380,10 @@ Submit jawaban pre test. Backend hitung skor untuk tentukan placement.
 ```
 
 **Logika backend:**
-- Hitung berapa soal yang dijawab benar
-- Soal disusun berdasarkan chapter level (soal chapter 1, soal chapter 2, dst)
-- Placement ditentukan: siswa mulai dari chapter pertama yang soalnya dijawab salah
+- Kelompokkan jawaban berdasarkan chapter asal soal
+- Hitung persentase benar per chapter
+- Placement: siswa mulai dari **chapter pertama** yang persentase benarnya di bawah threshold (misal < 70%)
+- Jika semua chapter benar → siswa mulai dari chapter terakhir
 - Chapter yang dilewati → status COMPLETED, XP diberikan (sum XP dari video + quiz chapter tersebut)
 - Pre test hanya bisa dikerjakan **1 kali** per bab per siswa
 
@@ -402,14 +409,16 @@ Cek status post test untuk bab.
 
 ### GET /api/v1/posttest/bab/{babId}/questions
 
-Ambil soal post test untuk bab.
+Ambil soal post test untuk bab. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
+
+**Logika backend:** Sama seperti Pre Test — ambil soal dari chapter sesuai distribusi config.
 
 **Response 200:**
 ```json
 [
   {
     "id": "string",
-    "patternId": "string",
+    "chapterId": "string (chapter asal soal ini)",
     "text": "string",
     "options": [
       { "id": "string", "text": "string", "order": "number" }
@@ -439,20 +448,25 @@ Submit jawaban post test.
 {
   "status": "PASSED | FAILED",
   "score": "number (0-100)",
-  "passingGrade": "number (0-100)",
+  "passingGrade": "number (0-100, dari config admin)",
   "xpEarned": "number",
   "message": "string",
   "nextBabUnlocked": "boolean",
   "nextBabId": "string | null",
-  "remediationChapterIds": ["string"] 
+  "remediationChapterIds": ["string"],
+  "remediationChapterNames": ["string"]
 }
 ```
 
 **Logika backend:**
-- Hitung skor berdasarkan jawaban benar × (100 / total soal)
+- Hitung skor berdasarkan jawaban benar: `(benar / total) * 100`
+- Bandingkan dengan `passingGrade` dari config admin (bukan hardcoded)
 - Jika `skor >= passingGrade` → PASSED, unlock bab berikutnya, berikan XP
-- Jika `skor < passingGrade` → FAILED, kirim `remediationChapterIds` (chapter yang soalnya dijawab salah)
-- `remediationChapterIds`: ID chapter yang terkait soal yang dijawab salah. Siswa harus tonton ulang video chapter ini sampai 100% sebelum bisa retake
+- Jika `skor < passingGrade` → FAILED:
+  - Identifikasi chapter yang soalnya dijawab salah (via `chapterId` di soal)
+  - Kirim `remediationChapterIds` + `remediationChapterNames` ke frontend
+  - Siswa harus tonton ulang video chapter-chapter ini sampai 100% sebelum retake
+- XP = sum(xpPerQuestion) untuk soal yang dijawab benar
 
 ---
 
@@ -683,38 +697,85 @@ Update soal.
 
 ---
 
-## 10. Admin — Quiz Config
+## 10. Admin — Quiz Config (Pre Test & Post Test)
 
-### GET /api/v1/admin/quiz/config/{targetId}?type={quizType}
+### GET /api/v1/admin/quiz/config/{babId}?type={quizType}
 
-Ambil konfigurasi quiz/test.
+Ambil konfigurasi Pre Test atau Post Test untuk suatu bab.
+
+**Query Params:**
+- `type`: `PRE_TEST | POST_TEST` (required)
 
 **Response 200:**
 ```json
 {
   "id": "string",
-  "targetId": "string (chapterId atau babId)",
-  "quizType": "CHAPTER_QUIZ | PRE_TEST | POST_TEST",
-  "passingGrade": "number (0-100, default 70)",
-  "questionsPerSession": "number (jumlah soal yang tampil per sesi)",
-  "totalPotentialXP": "number (calculated: sum of all question XP)"
+  "babId": "string",
+  "quizType": "PRE_TEST | POST_TEST",
+  "passingGrade": "number (0-100, default 70, hanya untuk POST_TEST)",
+  "distribution": [
+    {
+      "chapterId": "string",
+      "chapterName": "string",
+      "availableQuestions": "number (total soal di Bank Soal chapter ini)",
+      "questionsToTake": "number (berapa soal yang diambil untuk test)"
+    }
+  ],
+  "totalQuestionsPerSession": "number (sum of all questionsToTake)"
 }
 ```
 
 ---
 
-### PUT /api/v1/admin/quiz/config/{targetId}
+### PUT /api/v1/admin/quiz/config/{babId}
 
-Update konfigurasi quiz/test.
+Simpan/update konfigurasi Pre Test atau Post Test.
 
 **Request Body:**
 ```json
 {
-  "quizType": "CHAPTER_QUIZ | PRE_TEST | POST_TEST",
+  "quizType": "PRE_TEST | POST_TEST",
   "passingGrade": "number (0-100, tidak berlaku untuk PRE_TEST)",
-  "questionsPerSession": "number (1-50)"
+  "distribution": [
+    {
+      "chapterId": "string",
+      "questionsToTake": "number (0 sampai availableQuestions)"
+    }
+  ]
 }
 ```
+
+**Response 200:**
+```json
+{ "message": "Konfigurasi berhasil disimpan" }
+```
+
+**Logika backend:**
+- Validasi: `questionsToTake` tidak boleh melebihi jumlah soal yang tersedia di chapter tersebut
+- Validasi: total soal minimal 1
+- Untuk PRE_TEST: abaikan field `passingGrade`
+
+---
+
+### Cara Backend Mengambil Soal untuk Pre/Post Test
+
+Ketika siswa mengerjakan Pre Test atau Post Test:
+
+1. Backend baca config distribusi untuk bab tersebut
+2. Untuk setiap entry di `distribution`:
+   - Ambil `questionsToTake` soal secara acak dari Bank Soal chapter yang bersangkutan
+   - Soal diambil dari semua topik (QuestionPattern) yang ada di chapter tersebut
+3. Gabungkan semua soal → kirim ke frontend (tanpa correctOptionId)
+4. Saat siswa submit → backend cek jawaban benar per chapter untuk menentukan:
+   - **Pre Test**: placement (chapter pertama yang soalnya salah)
+   - **Post Test**: skor dan lulus/gagal berdasarkan passingGrade
+
+---
+
+**Catatan Penting:**
+- Pre Test dan Post Test **TIDAK punya Bank Soal sendiri**
+- Soalnya diambil dari Bank Soal per chapter (yang dibuat admin via tab "Kuis Chapter")
+- Jika chapter belum punya soal, Pre/Post Test tidak bisa dijalankan untuk chapter tersebut
 
 ---
 
@@ -881,18 +942,26 @@ IN_PROGRESS → COMPLETED (Post Test lulus)
 
 ### Pre Test Placement Logic
 
-- Soal Pre Test dikaitkan dengan level chapter (via topik/pattern)
-- Backend analisa jawaban benar per level chapter
-- Siswa ditempatkan mulai dari chapter pertama yang **belum dipahami** (soal salah)
+- Soal Pre Test diambil dari Bank Soal per chapter (sesuai config distribusi admin)
+- Setiap soal terkait dengan 1 chapter (via chapterId)
+- Backend kelompokkan jawaban per chapter, hitung persentase benar per chapter
+- Siswa ditempatkan mulai dari chapter pertama yang **persentase benarnya < threshold**
 - Chapter sebelumnya otomatis COMPLETED + XP diberikan
 
 ### Remediation (Post Test Gagal)
 
-- Backend identifikasi chapter mana yang soalnya dijawab salah
-- Kirim `remediationChapterIds` ke frontend
+- Backend identifikasi chapter mana yang soalnya dijawab salah (via chapterId di soal)
+- Kirim `remediationChapterIds` + `remediationChapterNames` ke frontend
 - Siswa harus tonton ulang video chapter tersebut sampai 100%
 - Frontend cek via GET /video/chapter/{id}/info → `watchedPercentage >= 100`
 - Setelah semua remediation video ditonton → siswa bisa retake Post Test
+
+### Konsep Bank Soal
+
+- Bank Soal dibuat per **chapter** (via tab "Kuis Chapter" di admin)
+- Pre Test dan Post Test **TIDAK punya soal sendiri** — mengambil dari Bank Soal chapter
+- Admin hanya mengatur **distribusi** (berapa soal dari tiap chapter) dan **KKM** (Post Test)
+- Saat quiz/test dijalankan, backend mengambil N soal acak per chapter sesuai config
 
 ### XP Calculation
 
