@@ -164,7 +164,7 @@ export function QuestionForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditMode ? "Edit Soal" : "Tambah Soal"}
@@ -313,34 +313,36 @@ export function QuestionForm({
             )}
           </div>
 
-          {/* XP per Question — compact inline (hidden for Pre Test) */}
+          {/* XP per Question — compact (hidden for Pre Test) */}
           {showXpField && (
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
-              <div className="flex items-center gap-2 shrink-0">
-                <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-yellow-100">
-                  <span className="text-xs">⚡</span>
-                </span>
-                <label htmlFor="xpPerQuestion" className="text-sm font-medium text-foreground whitespace-nowrap">
-                  XP Reward
-                </label>
-              </div>
-              <div className="flex items-center gap-2 flex-1">
-                <input
-                  id="xpPerQuestion"
-                  type="number"
-                  min={0}
-                  max={1000}
-                  value={xpPerQuestion}
-                  onChange={(e) => setXpPerQuestion(Math.max(0, Math.min(1000, parseInt(e.target.value) || 0)))}
-                  className="h-9 w-24 rounded-md border border-input bg-background px-3 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-1"
-                  placeholder="0"
-                  aria-invalid={!!errors.xpPerQuestion}
-                  aria-describedby={errors.xpPerQuestion ? "xp-error" : undefined}
-                />
-                <span className="text-xs text-muted-foreground">poin per jawaban benar</span>
+            <div className="rounded-lg border border-border bg-muted/30 px-3 py-3 sm:px-4">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-yellow-100">
+                    <span className="text-xs">⚡</span>
+                  </span>
+                  <label htmlFor="xpPerQuestion" className="text-sm font-medium text-foreground whitespace-nowrap">
+                    XP Reward
+                  </label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="xpPerQuestion"
+                    type="number"
+                    min={0}
+                    max={1000}
+                    value={xpPerQuestion}
+                    onChange={(e) => setXpPerQuestion(Math.max(0, Math.min(1000, parseInt(e.target.value) || 0)))}
+                    className="h-9 w-20 rounded-md border border-input bg-background px-2 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-1"
+                    placeholder="0"
+                    aria-invalid={!!errors.xpPerQuestion}
+                    aria-describedby={errors.xpPerQuestion ? "xp-error" : undefined}
+                  />
+                  <span className="text-xs text-muted-foreground">per jawaban benar</span>
+                </div>
               </div>
               {errors.xpPerQuestion && (
-                <p id="xp-error" className="text-xs text-red-600">
+                <p id="xp-error" className="text-xs text-red-600 mt-1">
                   {errors.xpPerQuestion}
                 </p>
               )}

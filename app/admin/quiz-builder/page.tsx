@@ -162,7 +162,7 @@ export default function QuizBuilderIndexPage() {
       </div>
 
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb navigasi Bank Soal">
+      <nav className="flex flex-wrap items-center gap-1 text-sm" aria-label="Breadcrumb navigasi Bank Soal">
         <button
           onClick={() => { setLevel('materi'); setSelectedMateri(null); setSelectedBab(null); }}
           className={`rounded px-1.5 py-0.5 transition-colors ${
@@ -176,7 +176,7 @@ export default function QuizBuilderIndexPage() {
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <button
               onClick={() => { setLevel('bab'); setSelectedBab(null); }}
-              className={`rounded px-1.5 py-0.5 transition-colors ${
+              className={`rounded px-1.5 py-0.5 transition-colors truncate max-w-[120px] sm:max-w-none ${
                 level === 'bab' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
               }`}
             >
@@ -187,7 +187,7 @@ export default function QuizBuilderIndexPage() {
         {selectedBab && quizType === 'CHAPTER_QUIZ' && (
           <>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span className="font-semibold text-foreground px-1.5 py-0.5">
+            <span className="font-semibold text-foreground px-1.5 py-0.5 truncate max-w-[120px] sm:max-w-none">
               {selectedBab.name}
             </span>
           </>

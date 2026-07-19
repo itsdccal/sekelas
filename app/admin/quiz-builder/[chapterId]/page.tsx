@@ -38,16 +38,17 @@ export default function QuizBuilderPage() {
   return (
     <div className="space-y-4">
       {/* Page header with back navigation */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => router.push('/admin/quiz-builder')}
           aria-label="Kembali ke Bank Soal"
+          className="shrink-0"
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-2xl font-semibold text-foreground">
+        <h1 className="text-lg sm:text-2xl font-semibold text-foreground truncate">
           {pageTitle}
         </h1>
       </div>

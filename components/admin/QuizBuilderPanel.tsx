@@ -303,19 +303,19 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
   return (
     <div className="space-y-5">
       {/* Header with back button */}
-      <div className="flex items-center gap-4 pb-4 border-b border-border">
-        <Button variant="outline" size="sm" onClick={onBack}>
+      <div className="flex flex-col gap-3 pb-4 border-b border-border sm:flex-row sm:items-center sm:gap-4">
+        <Button variant="outline" size="sm" onClick={onBack} className="self-start">
           ← Kembali
         </Button>
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-semibold">{pattern.patternCode}</h3>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className="text-sm sm:text-base font-semibold truncate">{pattern.patternCode}</h3>
             <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
               {questions.length} soal
             </span>
           </div>
           {pattern.description && (
-            <p className="text-sm text-muted-foreground mt-0.5">{pattern.description}</p>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 truncate">{pattern.description}</p>
           )}
         </div>
       </div>
@@ -359,11 +359,11 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
           {questions.map((question, idx) => (
             <div
               key={question.id}
-              className="rounded-lg border border-border bg-white p-4 shadow-sm hover:shadow-md transition-shadow"
+              className="rounded-lg border border-border bg-white p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2 sm:gap-3">
                 {/* Question number badge */}
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0 mt-0.5">
+                <span className="flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0 mt-0.5">
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -377,13 +377,38 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
                       <span className="truncate">{question.options[0].text}</span>
                       {question.options.length > 1 && (
                         <span className="text-muted-foreground/60 shrink-0">
-                          (+{question.options.length - 1} opsi lain)
+                          (+{question.options.length - 1})
                         </span>
                       )}
                     </p>
                   )}
+                  {/* Action buttons — below text on mobile */}
+                  <div className="flex items-center gap-2 mt-2 sm:hidden">
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="h-7 text-xs flex-1"
+                      onClick={() => {
+                        setEditingQuestion(question);
+                        setIsQuestionFormOpen(true);
+                      }}
+                      aria-label={`Edit soal ${idx + 1}`}
+                    >
+                      Ubah
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => setDeleteTarget(question)}
+                      aria-label={`Hapus soal ${idx + 1}`}
+                    >
+                      <Trash2 className="h-3 w-3" aria-hidden="true" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                {/* Desktop action buttons */}
+                <div className="hidden sm:flex items-center gap-2 shrink-0">
                   <Button
                     variant="default"
                     size="sm"
@@ -506,14 +531,14 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
   return (
     <div className="space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between pb-4 border-b border-border">
+      <div className="flex flex-col gap-3 pb-4 border-b border-border sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Topik Soal</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h2 className="text-base sm:text-lg font-semibold">Topik Soal</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
             Setiap topik berisi variasi soal yang akan diacak saat kuis
           </p>
         </div>
-        <Button onClick={() => setIsPatternFormOpen(true)} className="shadow-sm">
+        <Button onClick={() => setIsPatternFormOpen(true)} className="shadow-sm w-full sm:w-auto">
           <Plus className="h-4 w-4" aria-hidden="true" />
           Buat Topik Baru
         </Button>
