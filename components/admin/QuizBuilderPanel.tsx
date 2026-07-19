@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { QuestionForm } from "./QuestionForm";
 import { adminApi } from "@/lib/api";
-import { validatePatternCode } from "@/lib/utils/validation";
 import type { QuestionPattern, Question } from "@/lib/types";
 
 // --- Props ---
@@ -32,14 +31,37 @@ interface PatternFormDialogProps {
   onSubmit: (data: { patternCode: string; description: string }) => Promise<void>;
 }
 
+/**
+ * Auto-generates a unique pattern code from the topic name.
+ * e.g. "Persamaan Linear" → "persamaan-linear"
+ * If duplicate, appends -2, -3, etc.
+ */
+function generatePatternCode(name: string, existingCodes: string[]): string {
+  const base = name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, '-')
+    .slice(0, 40);
+
+  if (!base) return `topik-${Date.now()}`;
+
+  let code = base;
+  let counter = 2;
+  while (existingCodes.includes(code)) {
+    code = `${base}-${counter}`;
+    counter++;
+  }
+  return code;
+}
+
 function PatternFormDialog({
   open,
   onOpenChange,
   existingCodes,
   onSubmit,
 }: PatternFormDialogProps) {
-  const [patternCode, setPatternCode] = useState("");
-  const [description, setDescription] = useState("");
+  const [topicName, setTopicName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -48,30 +70,31 @@ function PatternFormDialog({
     e.preventDefault();
     setApiError(null);
 
-    // Validate patternCode
-    const codeValidation = validatePatternCode(patternCode, existingCodes);
-    // Validate description (max 200 chars)
-    const descErrors: Record<string, string> = {};
-    if (description.length > 200) {
-      descErrors.description = "Deskripsi maksimal 200 karakter";
+    // Validate topic name
+    const newErrors: Record<string, string> = {};
+    const trimmedName = topicName.trim();
+    if (!trimmedName) {
+      newErrors.topicName = "Nama topik wajib diisi";
+    } else if (trimmedName.length > 100) {
+      newErrors.topicName = "Nama topik maksimal 100 karakter";
     }
 
-    const allErrors = { ...codeValidation.errors, ...descErrors };
-    setErrors(allErrors);
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
-    if (Object.keys(allErrors).length > 0) return;
+    // Auto-generate pattern code from topic name
+    const patternCode = generatePatternCode(trimmedName, existingCodes);
 
     setIsSubmitting(true);
     try {
-      await onSubmit({ patternCode, description });
+      await onSubmit({ patternCode, description: trimmedName });
       // Reset form only on success
-      setPatternCode("");
-      setDescription("");
+      setTopicName("");
       setErrors({});
       onOpenChange(false);
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Gagal menyimpan pola soal";
+        err instanceof Error ? err.message : "Gagal menyimpan topik soal";
       setApiError(message);
     } finally {
       setIsSubmitting(false);
@@ -81,8 +104,7 @@ function PatternFormDialog({
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setPatternCode("");
-      setDescription("");
+      setTopicName("");
       setErrors({});
       setApiError(null);
     }
@@ -92,9 +114,9 @@ function PatternFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Buat Pola Baru</DialogTitle>
+          <DialogTitle>Buat Topik Baru</DialogTitle>
           <DialogDescription>
-            Buat pola soal (QuestionPattern) untuk chapter ini.
+            Buat kelompok topik soal. Setiap topik berisi beberapa variasi soal yang akan diacak saat siswa mengerjakan kuis.
           </DialogDescription>
         </DialogHeader>
 
@@ -109,55 +131,29 @@ function PatternFormDialog({
             </div>
           )}
 
-          {/* Pattern Code */}
+          {/* Topic Name */}
           <div className="space-y-1.5">
-            <label htmlFor="patternCode" className="text-sm font-medium">
-              Kode Pola <span className="text-red-500">*</span>
+            <label htmlFor="topicName" className="text-sm font-medium">
+              Nama Topik <span className="text-red-500">*</span>
             </label>
             <input
-              id="patternCode"
+              id="topicName"
               type="text"
-              value={patternCode}
-              onChange={(e) => setPatternCode(e.target.value)}
-              maxLength={50}
+              value={topicName}
+              onChange={(e) => setTopicName(e.target.value)}
+              maxLength={100}
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-              placeholder="Contoh: POLA-01"
-              aria-invalid={!!errors.code}
-              aria-describedby={errors.code ? "patternCode-error" : undefined}
+              placeholder="Contoh: Persamaan Linear Satu Variabel"
+              aria-invalid={!!errors.topicName}
+              aria-describedby={errors.topicName ? "topicName-error" : undefined}
             />
-            {errors.code && (
-              <p id="patternCode-error" className="text-xs text-red-600">
-                {errors.code}
+            {errors.topicName && (
+              <p id="topicName-error" className="text-xs text-red-600">
+                {errors.topicName}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              {patternCode.length}/50 karakter
-            </p>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-1.5">
-            <label htmlFor="patternDescription" className="text-sm font-medium">
-              Deskripsi
-            </label>
-            <textarea
-              id="patternDescription"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              maxLength={200}
-              rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 resize-none"
-              placeholder="Deskripsi pola soal (opsional)"
-              aria-invalid={!!errors.description}
-              aria-describedby={errors.description ? "description-error" : undefined}
-            />
-            {errors.description && (
-              <p id="description-error" className="text-xs text-red-600">
-                {errors.description}
-              </p>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {description.length}/200 karakter
+              Sistem akan mengambil 1 soal acak dari topik ini saat kuis berlangsung.
             </p>
           </div>
 
@@ -266,7 +262,8 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
   const handleCreateQuestion = async (data: {
     text: string;
     options: { text: string; order: number }[];
-    correctOptionIndex: number;
+    correctOptionIndex: number | null;
+    xpPerQuestion: number;
   }) => {
     await adminApi.createQuestion({
       patternId: pattern.id,
@@ -279,7 +276,8 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
   const handleUpdateQuestion = async (data: {
     text: string;
     options: { text: string; order: number }[];
-    correctOptionIndex: number;
+    correctOptionIndex: number | null;
+    xpPerQuestion: number;
   }) => {
     if (!editingQuestion) return;
     await adminApi.updateQuestion(editingQuestion.id, data);
@@ -510,14 +508,14 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-border">
         <div>
-          <h2 className="text-lg font-semibold">Pola Soal</h2>
+          <h2 className="text-lg font-semibold">Topik Soal</h2>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Kelola pola dan bank soal untuk chapter ini
+            Setiap topik berisi variasi soal yang akan diacak saat kuis
           </p>
         </div>
         <Button onClick={() => setIsPatternFormOpen(true)} className="shadow-sm">
           <Plus className="h-4 w-4" aria-hidden="true" />
-          Buat Pola Baru
+          Buat Topik Baru
         </Button>
       </div>
 
@@ -534,7 +532,7 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
 
       {/* Loading state */}
       {isLoading ? (
-        <div className="space-y-3" role="status" aria-label="Memuat pola soal...">
+        <div className="space-y-3" role="status" aria-label="Memuat topik soal...">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-20 rounded-lg bg-muted animate-pulse" />
           ))}
@@ -542,9 +540,9 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
       ) : patterns.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed border-border p-10 text-center">
           <ClipboardList className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-sm font-medium text-muted-foreground">Belum ada pola soal</p>
+          <p className="text-sm font-medium text-muted-foreground">Belum ada topik soal</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Klik tombol &quot;Buat Pola Baru&quot; untuk membuat pola soal pertama.
+            Klik tombol &quot;Buat Topik Baru&quot; untuk membuat topik soal pertama.
           </p>
         </div>
       ) : (
@@ -556,7 +554,7 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
               onClick={() => setSelectedPattern(pattern)}
               role="button"
               tabIndex={0}
-              aria-label={`Lihat soal pola ${pattern.patternCode}`}
+              aria-label={`Lihat soal topik ${pattern.description || pattern.patternCode}`}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -567,18 +565,13 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2.5 flex-wrap">
-                    <span className="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-xs font-mono font-medium text-gray-700">
-                      {pattern.patternCode}
+                    <span className="text-sm font-medium text-foreground">
+                      {pattern.description || pattern.patternCode}
                     </span>
                     <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-medium text-primary-700">
                       {pattern.questionCount} soal
                     </span>
                   </div>
-                  {pattern.description && (
-                    <p className="text-sm text-muted-foreground mt-1.5 truncate">
-                      {pattern.description}
-                    </p>
-                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
@@ -588,7 +581,7 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
                       e.stopPropagation();
                       setDeleteTarget(pattern);
                     }}
-                    aria-label={`Hapus pola ${pattern.patternCode}`}
+                    aria-label={`Hapus topik ${pattern.description || pattern.patternCode}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                   </Button>
@@ -617,8 +610,8 @@ export function QuizBuilderPanel({ chapterId }: QuizBuilderPanelProps) {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title="Hapus Pola Soal"
-        description={`Apakah Anda yakin ingin menghapus pola "${deleteTarget?.patternCode ?? ""}"? Seluruh soal di dalamnya juga akan terhapus.`}
+        title="Hapus Topik Soal"
+        description={`Apakah Anda yakin ingin menghapus topik "${deleteTarget?.description || deleteTarget?.patternCode || ""}"? Seluruh soal di dalamnya juga akan terhapus.`}
         onConfirm={handleDeletePattern}
         isDeleting={isDeleting}
       />

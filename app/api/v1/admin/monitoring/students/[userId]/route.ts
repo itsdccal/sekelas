@@ -2,7 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Mock admin student detail endpoint for development.
- * Returns detailed progress for a specific student.
+ * Returns detailed progress for a specific student with full hierarchy
+ * (Materi → Bab → Chapter) matching the StudentProgress type.
+ *
+ * This mock data supports testing override functionality — multiple chapters
+ * have statuses other than COMPLETED (LOCKED, UNLOCKED, REMEDIATION_REQUIRED,
+ * READY_FOR_RETAKE) which can be targeted for override.
  */
 export async function GET(
   request: NextRequest,
@@ -13,138 +18,440 @@ export async function GET(
   const studentDetails: Record<string, object> = {
     'student-001': {
       userId: 'student-001',
-      name: 'Budi Santoso',
-      email: 'budi@sekelas.id',
-      kelas: '10A',
-      joinedAt: '2024-01-05T08:00:00Z',
-      lastActive: '2024-01-20T08:30:00Z',
-      totalXP: 1250,
       completedChapters: 7,
       totalChapters: 24,
-      progressPercentage: 29,
-      averageScore: 82,
-      totalQuizAttempts: 9,
-      totalVideoWatchTime: 185, // minutes
-      streakDays: 5,
+      totalXP: 1250,
       materiProgress: [
         {
           materiId: 'materi-1',
           materiName: 'Matematika Dasar',
-          completionPercentage: 60,
-          averageScore: 85,
-          chaptersCompleted: 5,
-          totalChapters: 9,
+          completionPercentage: 56,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 60,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 2, videoWatchAttempts: 2 },
+              ],
+            },
+            {
+              babId: 'bab-2',
+              babName: 'Geometri',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 40,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 2, videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 3, videoWatchAttempts: 3 },
+              ],
+            },
+            {
+              babId: 'bab-3',
+              babName: 'Statistika',
+              status: 'LOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
         },
         {
           materiId: 'materi-2',
           materiName: 'Fisika Mekanika',
-          completionPercentage: 25,
-          averageScore: 78,
-          chaptersCompleted: 2,
-          totalChapters: 5,
+          completionPercentage: 40,
+          babs: [
+            {
+              babId: 'bab-4',
+              babName: 'Hukum Newton',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 50,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'UNLOCKED', watchedPercentage: 30, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+              ],
+            },
+            {
+              babId: 'bab-5',
+              babName: 'Gerak dan Energi',
+              status: 'LOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-13', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-14', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
         },
         {
           materiId: 'materi-3',
           materiName: 'Biologi Sel',
           completionPercentage: 0,
-          averageScore: null,
-          chaptersCompleted: 0,
-          totalChapters: 5,
+          babs: [
+            {
+              babId: 'bab-6',
+              babName: 'Struktur Sel',
+              status: 'LOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-15', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-16', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-17', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
         },
       ],
-      recentActivity: [
-        { type: 'VIDEO_WATCHED', chapterId: 'ch-3', chapterTitle: 'Sistem Persamaan Linear', timestamp: '2024-01-20T08:30:00Z', details: '50% watched' },
-        { type: 'QUIZ_PASSED', chapterId: 'ch-2', chapterTitle: 'Persamaan Linear Dua Variabel', timestamp: '2024-01-19T10:15:00Z', details: 'Score: 90' },
-        { type: 'QUIZ_FAILED', chapterId: 'ch-6', chapterTitle: 'Bangun Ruang', timestamp: '2024-01-18T14:00:00Z', details: 'Score: 45 (Attempt 3)' },
-        { type: 'XP_EARNED', chapterId: 'ch-11', chapterTitle: 'Hukum Newton II', timestamp: '2024-01-17T09:30:00Z', details: '+100 XP' },
+    },
+    'student-003': {
+      userId: 'student-003',
+      completedChapters: 3,
+      totalChapters: 24,
+      totalXP: 450,
+      materiProgress: [
+        {
+          materiId: 'materi-1',
+          materiName: 'Matematika Dasar',
+          completionPercentage: 33,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 30,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, videoWatchAttempts: 2 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, videoWatchAttempts: 2 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 50, lastScore: 40, quizAttempts: 4, videoWatchAttempts: 3 },
+              ],
+            },
+            {
+              babId: 'bab-2',
+              babName: 'Geometri',
+              status: 'LOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-4', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-5', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-6', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
+        },
+        {
+          materiId: 'materi-2',
+          materiName: 'Fisika Mekanika',
+          completionPercentage: 20,
+          babs: [
+            {
+              babId: 'bab-4',
+              babName: 'Hukum Newton',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 20,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 60, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
+        },
       ],
-      badges: [
-        { id: 'b1', name: 'Badge Pemula', earnedAt: '2024-01-10T10:00:00Z' },
-      ],
-      overrideHistory: [],
     },
     'student-004': {
       userId: 'student-004',
-      name: 'Putri Anggraini',
-      email: 'putri@sekelas.id',
-      kelas: '10B',
-      joinedAt: '2024-01-03T08:00:00Z',
-      lastActive: '2024-01-20T10:00:00Z',
-      totalXP: 2850,
       completedChapters: 18,
       totalChapters: 24,
-      progressPercentage: 75,
-      averageScore: 91,
-      totalQuizAttempts: 19,
-      totalVideoWatchTime: 420,
-      streakDays: 12,
+      totalXP: 2850,
       materiProgress: [
         {
           materiId: 'materi-1',
           materiName: 'Matematika Dasar',
           completionPercentage: 100,
-          averageScore: 93,
-          chaptersCompleted: 9,
-          totalChapters: 9,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'COMPLETED',
+              preTestCompleted: true,
+              postTestCompleted: true,
+              preTestScore: 80,
+              postTestScore: 92,
+              chapters: [
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 95, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
+              ],
+            },
+            {
+              babId: 'bab-2',
+              babName: 'Geometri',
+              status: 'COMPLETED',
+              preTestCompleted: true,
+              postTestCompleted: true,
+              preTestScore: 70,
+              postTestScore: 85,
+              chapters: [
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 87, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 2, videoWatchAttempts: 1 },
+              ],
+            },
+            {
+              babId: 'bab-3',
+              babName: 'Statistika',
+              status: 'COMPLETED',
+              preTestCompleted: true,
+              postTestCompleted: true,
+              preTestScore: 75,
+              postTestScore: 90,
+              chapters: [
+                { chapterId: 'ch-7', status: 'COMPLETED', watchedPercentage: 100, lastScore: 93, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-8', status: 'COMPLETED', watchedPercentage: 100, lastScore: 91, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-9', status: 'COMPLETED', watchedPercentage: 100, lastScore: 94, quizAttempts: 1, videoWatchAttempts: 1 },
+              ],
+            },
+          ],
         },
         {
           materiId: 'materi-2',
           materiName: 'Fisika Mekanika',
           completionPercentage: 80,
-          averageScore: 88,
-          chaptersCompleted: 4,
-          totalChapters: 5,
+          babs: [
+            {
+              babId: 'bab-4',
+              babName: 'Hukum Newton',
+              status: 'COMPLETED',
+              preTestCompleted: true,
+              postTestCompleted: true,
+              preTestScore: 60,
+              postTestScore: 88,
+              chapters: [
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
+              ],
+            },
+            {
+              babId: 'bab-5',
+              babName: 'Gerak dan Energi',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 55,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-13', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-14', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 55, quizAttempts: 2, videoWatchAttempts: 2 },
+              ],
+            },
+          ],
         },
         {
           materiId: 'materi-3',
           materiName: 'Biologi Sel',
           completionPercentage: 50,
-          averageScore: 86,
-          chaptersCompleted: 5,
-          totalChapters: 10,
+          babs: [
+            {
+              babId: 'bab-6',
+              babName: 'Struktur Sel',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 45,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-15', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-16', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-17', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-18', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-19', status: 'COMPLETED', watchedPercentage: 100, lastScore: 79, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-20', status: 'UNLOCKED', watchedPercentage: 40, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+                { chapterId: 'ch-21', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-22', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-23', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-24', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
         },
       ],
-      recentActivity: [
-        { type: 'QUIZ_PASSED', chapterId: 'ch-14', chapterTitle: 'Gerak Jatuh Bebas', timestamp: '2024-01-20T10:00:00Z', details: 'Score: 95' },
-        { type: 'VIDEO_WATCHED', chapterId: 'ch-15', chapterTitle: 'Membran Sel', timestamp: '2024-01-20T09:00:00Z', details: '100% watched' },
+    },
+    'student-005': {
+      userId: 'student-005',
+      completedChapters: 0,
+      totalChapters: 24,
+      totalXP: 50,
+      materiProgress: [
+        {
+          materiId: 'materi-1',
+          materiName: 'Matematika Dasar',
+          completionPercentage: 0,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'UNLOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-1', status: 'UNLOCKED', watchedPercentage: 15, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-3', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
+        },
       ],
-      badges: [
-        { id: 'b1', name: 'Badge Pemula', earnedAt: '2024-01-06T10:00:00Z' },
-        { id: 'b2', name: 'Badge Penjelajah', earnedAt: '2024-01-15T14:00:00Z' },
+    },
+    'student-014': {
+      userId: 'student-014',
+      completedChapters: 2,
+      totalChapters: 24,
+      totalXP: 280,
+      materiProgress: [
+        {
+          materiId: 'materi-1',
+          materiName: 'Matematika Dasar',
+          completionPercentage: 22,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 25,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, videoWatchAttempts: 3 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, videoWatchAttempts: 2 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 20, lastScore: 35, quizAttempts: 5, videoWatchAttempts: 4 },
+              ],
+            },
+          ],
+        },
       ],
-      overrideHistory: [],
     },
   };
 
   const student = studentDetails[userId];
 
   if (!student) {
-    // Return a generic student for any unknown userId
+    // Return generic student data for any unknown userId — useful for testing override
     return NextResponse.json({
       userId,
-      name: 'Siswa Demo',
-      email: `${userId}@sekelas.id`,
-      kelas: '10A',
-      joinedAt: '2024-01-05T08:00:00Z',
-      lastActive: '2024-01-19T08:30:00Z',
-      totalXP: 800,
       completedChapters: 5,
       totalChapters: 24,
-      progressPercentage: 21,
-      averageScore: 75,
-      totalQuizAttempts: 6,
-      totalVideoWatchTime: 120,
-      streakDays: 2,
+      totalXP: 800,
       materiProgress: [
-        { materiId: 'materi-1', materiName: 'Matematika Dasar', completionPercentage: 33, averageScore: 75, chaptersCompleted: 3, totalChapters: 9 },
-        { materiId: 'materi-2', materiName: 'Fisika Mekanika', completionPercentage: 20, averageScore: 72, chaptersCompleted: 1, totalChapters: 5 },
-        { materiId: 'materi-3', materiName: 'Biologi Sel', completionPercentage: 10, averageScore: 78, chaptersCompleted: 1, totalChapters: 10 },
+        {
+          materiId: 'materi-1',
+          materiName: 'Matematika Dasar',
+          completionPercentage: 33,
+          babs: [
+            {
+              babId: 'bab-1',
+              babName: 'Aljabar Dasar',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 50,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 3, videoWatchAttempts: 2 },
+              ],
+            },
+            {
+              babId: 'bab-2',
+              babName: 'Geometri',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 40,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 76, quizAttempts: 2, videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 2, videoWatchAttempts: 2 },
+              ],
+            },
+            {
+              babId: 'bab-3',
+              babName: 'Statistika',
+              status: 'LOCKED',
+              preTestCompleted: false,
+              postTestCompleted: false,
+              preTestScore: null,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
+        },
+        {
+          materiId: 'materi-2',
+          materiName: 'Fisika Mekanika',
+          completionPercentage: 20,
+          babs: [
+            {
+              babId: 'bab-4',
+              babName: 'Hukum Newton',
+              status: 'IN_PROGRESS',
+              preTestCompleted: true,
+              postTestCompleted: false,
+              preTestScore: 35,
+              postTestScore: null,
+              chapters: [
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 50, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+              ],
+            },
+          ],
+        },
       ],
-      recentActivity: [
-        { type: 'VIDEO_WATCHED', chapterId: 'ch-5', chapterTitle: 'Bangun Datar', timestamp: '2024-01-19T08:30:00Z', details: '100% watched' },
-      ],
-      badges: [],
-      overrideHistory: [],
     });
   }
 

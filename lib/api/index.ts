@@ -6,5 +6,7 @@ export * as authApi from './auth';
 export * as curriculumApi from './curriculum';
 export * as videoApi from './video';
 export * as quizApi from './quiz';
+export * as pretestApi from './pretest';
+export * as posttestApi from './posttest';
 export * as adminApi from './admin';
 export * as gamificationApi from './gamification';

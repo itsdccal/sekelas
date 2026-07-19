@@ -8,6 +8,7 @@ export type {
 
 export type {
   ChapterStatus,
+  BabStatus,
   ChapterProgress,
   StudentProgress,
   MateriProgress,
@@ -15,23 +16,35 @@ export type {
 } from './progress';
 
 export type {
+  QuizType,
   QuestionPattern,
   Question,
   QuestionOption,
   QuizSubmission,
   QuizResult,
+  PreTestSubmission,
+  PreTestResult,
+  PostTestSubmission,
+  PostTestResult,
+  QuizConfig,
 } from './quiz';
 
 export type {
   Badge,
   Milestone,
+  AdminMilestone,
+  CreateMilestoneRequest,
+  UpdateMilestoneRequest,
   XPEvent,
   GamificationState,
 } from './gamification';
 
 export type {
   AuditLogEntry,
+  OverrideAction,
   OverrideRequest,
   StudentMonitoringRow,
   VideoUploadResponse,
 } from './admin';
+
+export { OVERRIDE_ACTION_LABELS } from './admin';

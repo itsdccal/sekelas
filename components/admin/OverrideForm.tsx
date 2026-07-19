@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,11 +11,10 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import { validateOverrideReason } from '@/lib/utils/validation';
-import { adminApi } from '@/lib/api';
-import type { ChapterStatus, AuditLogEntry } from '@/lib/types';
+import { validateOverrideReason, validateOverrideScore } from '@/lib/utils/validation';
+import type { ChapterStatus, OverrideAction, AuditLogEntry } from '@/lib/types';
 import { isOverrideAllowed } from '@/lib/utils/chapterStatus';
-import { Shield, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 // --- OverrideForm Props ---
 
@@ -23,11 +22,11 @@ export interface OverrideFormProps {
   student: { id: string; name: string };
   chapter: { id: string; name: string };
   currentStatus: ChapterStatus;
-  onConfirm: (reason: string) => Promise<void>;
+  onConfirm: (data: { action: OverrideAction; reason: string; score?: number }) => Promise<void>;
   onCancel: () => void;
 }
 
-// --- OverrideForm Dialog Component ---
+// --- OverrideForm Dialog Component ("Penyesuaian Nilai") ---
 
 export function OverrideForm({
   student,
@@ -37,12 +36,20 @@ export function OverrideForm({
   onCancel,
 }: OverrideFormProps) {
   const [reason, setReason] = useState('');
+  const [score, setScore] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validation = useMemo(() => validateOverrideReason(reason), [reason]);
   const isDisabled = currentStatus === 'COMPLETED';
-  const canSubmit = validation.valid && !isSubmitting && !isDisabled;
+
+  const reasonValidation = useMemo(() => validateOverrideReason(reason), [reason]);
+  const scoreValidation = useMemo(() => validateOverrideScore(score, true), [score]);
+
+  const canSubmit =
+    reasonValidation.valid &&
+    scoreValidation.valid &&
+    !isSubmitting &&
+    !isDisabled;
 
   const handleSubmit = useCallback(async () => {
     if (!canSubmit) return;
@@ -51,30 +58,31 @@ export function OverrideForm({
     setError(null);
 
     try {
-      await onConfirm(reason);
+      await onConfirm({
+        action: 'FORCE_COMPLETE',
+        reason,
+        score: Number(score),
+      });
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Gagal melakukan override. Silakan coba lagi.'
+          : 'Gagal melakukan penyesuaian. Silakan coba lagi.'
       );
     } finally {
       setIsSubmitting(false);
     }
-  }, [canSubmit, onConfirm, reason]);
+  }, [canSubmit, onConfirm, reason, score]);
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onCancel(); }}>
       <DialogContent aria-labelledby="override-dialog-title">
         <DialogHeader>
           <DialogTitle id="override-dialog-title">
-            <span className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary-600" aria-hidden="true" />
-              Override Mastery Gate
-            </span>
+            Penyesuaian Nilai
           </DialogTitle>
           <DialogDescription>
-            Override status Chapter menjadi COMPLETED untuk siswa ini.
+            Luluskan Chapter ini untuk siswa dengan skor yang ditentukan.
           </DialogDescription>
         </DialogHeader>
 
@@ -98,9 +106,43 @@ export function OverrideForm({
           {/* Disabled warning for COMPLETED status */}
           {isDisabled && (
             <p className="text-sm text-muted-foreground bg-muted rounded-md p-2">
-              Chapter ini sudah berstatus COMPLETED. Override tidak diperlukan.
+              Chapter ini sudah berstatus COMPLETED. Penyesuaian tidak diperlukan.
             </p>
           )}
+
+          {/* Score field */}
+          <div className="space-y-1.5">
+            <label
+              htmlFor="override-score"
+              className="text-sm font-medium text-foreground"
+            >
+              Skor yang diberikan <span className="text-destructive">*</span>
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                id="override-score"
+                type="number"
+                min={0}
+                max={100}
+                value={score}
+                onChange={(e) => setScore(e.target.value)}
+                disabled={isDisabled || isSubmitting}
+                placeholder="0–100"
+                className="h-10 w-24 rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
+                aria-describedby="score-hint score-error"
+                aria-invalid={score !== '' && !scoreValidation.valid}
+              />
+              <span className="text-sm text-muted-foreground">%</span>
+            </div>
+            {score !== '' && scoreValidation.errors.score && (
+              <p id="score-error" className="text-xs text-destructive" role="alert">
+                {scoreValidation.errors.score}
+              </p>
+            )}
+            <p id="score-hint" className="text-xs text-muted-foreground">
+              Nilai yang akan dicatat sebagai skor kuis siswa
+            </p>
+          </div>
 
           {/* Reason field */}
           <div className="space-y-1.5">
@@ -108,25 +150,25 @@ export function OverrideForm({
               htmlFor="override-reason"
               className="text-sm font-medium text-foreground"
             >
-              Alasan Override <span className="text-destructive">*</span>
+              Alasan <span className="text-destructive">*</span>
             </label>
             <textarea
               id="override-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               disabled={isDisabled || isSubmitting}
-              placeholder="Jelaskan alasan override (minimal 10 karakter)..."
-              rows={4}
+              placeholder="Jelaskan alasan penyesuaian (minimal 10 karakter)..."
+              rows={3}
               maxLength={500}
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50 resize-none"
               aria-describedby="reason-hint reason-error"
-              aria-invalid={reason.length > 0 && !validation.valid}
+              aria-invalid={reason.length > 0 && !reasonValidation.valid}
             />
             <div className="flex items-center justify-between">
               <div>
-                {reason.length > 0 && validation.errors.reason && (
+                {reason.length > 0 && reasonValidation.errors.reason && (
                   <p id="reason-error" className="text-xs text-destructive" role="alert">
-                    {validation.errors.reason}
+                    {reasonValidation.errors.reason}
                   </p>
                 )}
               </div>
@@ -155,7 +197,7 @@ export function OverrideForm({
           <Button
             onClick={handleSubmit}
             disabled={!canSubmit}
-            aria-label="Konfirmasi override"
+            aria-label="Konfirmasi penyesuaian"
           >
             {isSubmitting ? (
               <>
@@ -163,7 +205,7 @@ export function OverrideForm({
                 Memproses...
               </>
             ) : (
-              'Konfirmasi Override'
+              'Konfirmasi Penyesuaian'
             )}
           </Button>
         </DialogFooter>
@@ -197,7 +239,7 @@ export function AuditLogTable({
 
   if (isLoading) {
     return (
-      <div className="space-y-3" role="status" aria-label="Memuat audit log...">
+      <div className="space-y-3" role="status" aria-label="Memuat riwayat penyesuaian...">
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="flex gap-4 animate-pulse">
             {Array.from({ length: 5 }).map((_, j) => (
@@ -237,6 +279,9 @@ export function AuditLogTable({
               Chapter
             </th>
             <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
+              Skor
+            </th>
+            <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
               Alasan
             </th>
             <th className="px-4 py-3 text-left font-medium text-foreground" scope="col">
@@ -248,10 +293,10 @@ export function AuditLogTable({
           {sortedEntries.length === 0 ? (
             <tr>
               <td
-                colSpan={5}
+                colSpan={6}
                 className="px-4 py-8 text-center text-muted-foreground"
               >
-                Belum ada riwayat override.
+                Belum ada riwayat penyesuaian.
               </td>
             </tr>
           ) : (
@@ -260,6 +305,9 @@ export function AuditLogTable({
                 <td className="px-4 py-3">{entry.adminName}</td>
                 <td className="px-4 py-3">{entry.studentName}</td>
                 <td className="px-4 py-3">{entry.chapterName}</td>
+                <td className="px-4 py-3 font-medium">
+                  {entry.score != null ? `${entry.score}%` : '—'}
+                </td>
                 <td className="px-4 py-3 max-w-[200px] truncate" title={entry.reason}>
                   {entry.reason}
                 </td>
@@ -293,116 +341,4 @@ function formatTimestamp(isoString: string): string {
   } catch {
     return isoString;
   }
-}
-
-// --- Combined Override Section Component ---
-// This is a higher-level wrapper used by the override page to manage state.
-
-export interface OverrideSectionProps {
-  student: { id: string; name: string } | null;
-  chapter: { id: string; name: string } | null;
-  currentStatus: ChapterStatus | null;
-  onOverrideSuccess?: (userId: string, chapterId: string) => void;
-}
-
-export function OverrideSection({
-  student,
-  chapter,
-  currentStatus,
-  onOverrideSuccess,
-}: OverrideSectionProps) {
-  const [showForm, setShowForm] = useState(false);
-  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
-  const [auditLoading, setAuditLoading] = useState(true);
-  const [auditError, setAuditError] = useState<string | null>(null);
-
-  const fetchAuditLog = useCallback(async () => {
-    setAuditLoading(true);
-    setAuditError(null);
-    try {
-      const data = await adminApi.getAuditLog();
-      setAuditLog(data);
-    } catch {
-      setAuditError('Gagal memuat audit log. Silakan coba lagi.');
-    } finally {
-      setAuditLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchAuditLog();
-  }, [fetchAuditLog]);
-
-  const handleConfirm = useCallback(
-    async (reason: string) => {
-      if (!student || !chapter) return;
-
-      await adminApi.overrideChapter({
-        userId: student.id,
-        chapterId: chapter.id,
-        reason,
-      });
-
-      // Notify parent to update status without reload
-      onOverrideSuccess?.(student.id, chapter.id);
-
-      // Refresh audit log
-      await fetchAuditLog();
-
-      // Close the form dialog
-      setShowForm(false);
-    },
-    [student, chapter, onOverrideSuccess, fetchAuditLog]
-  );
-
-  const overrideAllowed = currentStatus ? isOverrideAllowed(currentStatus) : false;
-
-  return (
-    <div className="space-y-6">
-      {/* Override Button */}
-      {student && chapter && currentStatus && (
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => setShowForm(true)}
-            disabled={!overrideAllowed}
-            aria-label={
-              overrideAllowed
-                ? `Override status Chapter ${chapter.name} untuk ${student.name}`
-                : 'Override tidak tersedia untuk status COMPLETED'
-            }
-          >
-            <Shield className="h-4 w-4" aria-hidden="true" />
-            Override
-          </Button>
-          {!overrideAllowed && (
-            <span className="text-sm text-muted-foreground">
-              Status sudah COMPLETED
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* Override Form Dialog */}
-      {showForm && student && chapter && currentStatus && (
-        <OverrideForm
-          student={student}
-          chapter={chapter}
-          currentStatus={currentStatus}
-          onConfirm={handleConfirm}
-          onCancel={() => setShowForm(false)}
-        />
-      )}
-
-      {/* Audit Log */}
-      <div className="space-y-3">
-        <h3 className="text-lg font-semibold">Riwayat Override</h3>
-        <AuditLogTable
-          entries={auditLog}
-          isLoading={auditLoading}
-          error={auditError}
-          onRetry={fetchAuditLog}
-        />
-      </div>
-    </div>
-  );
 }

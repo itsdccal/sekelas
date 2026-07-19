@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { useGamificationStore } from '@/stores';
 import { formatXP } from '@/lib/utils';
-import { Trophy } from 'lucide-react';
+import { Trophy, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /** Color palette for achievement cards — inspired by BahasaKu Figma design */
 const CARD_COLORS = [
@@ -52,6 +53,47 @@ export default function BadgesPage() {
           Kumpulkan badge dengan menyelesaikan materi dan kuis
         </p>
       </div>
+
+      {/* Dev-only test buttons — remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="rounded-lg border border-dashed border-yellow-400 bg-yellow-50 p-3">
+          <p className="mb-2 text-xs font-semibold text-yellow-700">⚡ Dev Testing</p>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                useGamificationStore.getState().showBadgePopup({
+                  id: 'test-popup',
+                  name: 'Penjelajah',
+                  description: 'Selamat! Kamu telah mengumpulkan 2500 XP!',
+                  imageUrl: '/badges/ambitious-17cb0d.png',
+                  isEarned: true,
+                  earnedAt: new Date().toISOString(),
+                });
+              }}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Test Badge Popup
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                useGamificationStore.getState().addXPEvent({
+                  id: `xp-test-${Date.now()}`,
+                  amount: 50,
+                  source: 'QUIZ_PASS',
+                  timestamp: new Date().toISOString(),
+                });
+              }}
+            >
+              <Zap className="h-3.5 w-3.5" />
+              Test +50 XP Notif
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Total Achievement Card — inspired by Figma "Card - Total Achievement" */}
       <div className="relative overflow-hidden rounded-lg border border-border bg-white p-5 shadow-sm">

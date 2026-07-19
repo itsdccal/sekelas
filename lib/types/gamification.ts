@@ -14,6 +14,34 @@ export interface Milestone {
   badgeId: string;
 }
 
+/** Admin milestone type — combines milestone + badge for management */
+export interface AdminMilestone {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  xpThreshold: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMilestoneRequest {
+  name: string;
+  description: string;
+  imageUrl: string;
+  xpThreshold: number;
+  isActive?: boolean;
+}
+
+export interface UpdateMilestoneRequest {
+  name?: string;
+  description?: string;
+  imageUrl?: string;
+  xpThreshold?: number;
+  isActive?: boolean;
+}
+
 export interface XPEvent {
   id: string;
   amount: number;

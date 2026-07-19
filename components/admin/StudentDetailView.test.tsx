@@ -29,6 +29,11 @@ const mockProgress: StudentProgress = {
         {
           babId: 'bab-1',
           babName: 'Aljabar',
+          status: 'IN_PROGRESS',
+          preTestCompleted: true,
+          postTestCompleted: false,
+          preTestScore: 45,
+          postTestScore: null,
           chapters: [
             {
               chapterId: 'ch-1',
@@ -51,6 +56,11 @@ const mockProgress: StudentProgress = {
         {
           babId: 'bab-2',
           babName: 'Geometri',
+          status: 'LOCKED',
+          preTestCompleted: false,
+          postTestCompleted: false,
+          preTestScore: null,
+          postTestScore: null,
           chapters: [
             {
               chapterId: 'ch-3',

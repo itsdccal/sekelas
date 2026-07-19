@@ -10,6 +10,9 @@ import type {
   VideoUploadResponse,
   QuestionPattern,
   Question,
+  AdminMilestone,
+  CreateMilestoneRequest,
+  UpdateMilestoneRequest,
 } from '@/lib/types';
 import type { StudentProgress } from '@/lib/types';
 
@@ -100,7 +103,8 @@ export async function createQuestion(data: {
   patternId: string;
   text: string;
   options: { text: string; order: number }[];
-  correctOptionIndex: number;
+  correctOptionIndex: number | null;
+  xpPerQuestion?: number;
 }): Promise<Question> {
   const response = await apiClient.post<Question>('/api/v1/admin/quiz/questions', data);
   return response.data;
@@ -109,7 +113,8 @@ export async function createQuestion(data: {
 export async function updateQuestion(questionId: string, data: {
   text?: string;
   options?: { text: string; order: number }[];
-  correctOptionIndex?: number;
+  correctOptionIndex?: number | null;
+  xpPerQuestion?: number;
 }): Promise<Question> {
   const response = await apiClient.put<Question>(`/api/v1/admin/quiz/questions/${questionId}`, data);
   return response.data;
@@ -184,4 +189,27 @@ export async function uploadVideo(
     }
   );
   return response.data;
+}
+
+// --- Milestone / Badge Management ---
+
+export async function getMilestones(): Promise<AdminMilestone[]> {
+  return withRetry(async () => {
+    const response = await apiClient.get<AdminMilestone[]>('/api/v1/admin/milestones');
+    return response.data;
+  });
+}
+
+export async function createMilestone(data: CreateMilestoneRequest): Promise<AdminMilestone> {
+  const response = await apiClient.post<AdminMilestone>('/api/v1/admin/milestones', data);
+  return response.data;
+}
+
+export async function updateMilestone(milestoneId: string, data: UpdateMilestoneRequest): Promise<AdminMilestone> {
+  const response = await apiClient.put<AdminMilestone>(`/api/v1/admin/milestones/${milestoneId}`, data);
+  return response.data;
+}
+
+export async function deleteMilestone(milestoneId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/milestones/${milestoneId}`);
 }

@@ -2,26 +2,49 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { PenTool, ArrowRight, BookOpen, Layers, FileText, Info } from 'lucide-react';
+import { PenTool, ArrowLeft, ArrowRight, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { curriculumApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
-import type { Materi, Bab, Chapter } from '@/lib/types';
+import type { Materi, Bab, Chapter, QuizType } from '@/lib/types';
+
+type DrillLevel = 'materi' | 'bab' | 'chapter';
+
+const QUIZ_TYPE_LABELS: Record<QuizType, string> = {
+  CHAPTER_QUIZ: 'Kuis Chapter',
+  PRE_TEST: 'Pre Test',
+  POST_TEST: 'Post Test',
+};
 
 /**
- * Quiz Builder index page.
- * Allows admin to select a Chapter to manage its quiz patterns/questions.
+ * Bank Soal index page.
+ * Quiz type tabs: Kuis Chapter, Pre Test, Post Test.
+ * - Kuis Chapter: Materi → Bab → Chapter → quiz builder
+ * - Pre Test: Materi → Bab → pre test builder (bab level)
+ * - Post Test: Materi → Bab → post test builder (bab level)
+ *
+ * Requirements: 21.1, 21.7
  */
 export default function QuizBuilderIndexPage() {
   const router = useRouter();
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
+  const [quizType, setQuizType] = useState<QuizType>('CHAPTER_QUIZ');
+  const [level, setLevel] = useState<DrillLevel>('materi');
   const [materiList, setMateriList] = useState<Materi[]>([]);
-  const [selectedMateri, setSelectedMateri] = useState<string | null>(null);
+  const [selectedMateri, setSelectedMateri] = useState<Materi | null>(null);
   const [babList, setBabList] = useState<Bab[]>([]);
-  const [selectedBab, setSelectedBab] = useState<string | null>(null);
+  const [selectedBab, setSelectedBab] = useState<Bab | null>(null);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Reset drill-down when quiz type changes
+  const handleQuizTypeChange = useCallback((type: QuizType) => {
+    setQuizType(type);
+    setLevel('materi');
+    setSelectedMateri(null);
+    setSelectedBab(null);
+  }, []);
 
   // Fetch materi list
   useEffect(() => {
@@ -29,7 +52,8 @@ export default function QuizBuilderIndexPage() {
     setIsLoading(true);
     curriculumApi.getMateriList(selectedSemesterId)
       .then(data => {
-        setMateriList(Array.isArray(data) ? data : []);
+        const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
+        setMateriList(sorted);
         setIsLoading(false);
       })
       .catch(() => setIsLoading(false));
@@ -37,28 +61,69 @@ export default function QuizBuilderIndexPage() {
 
   // Fetch bab when materi selected
   useEffect(() => {
-    if (!selectedMateri) { setBabList([]); return; }
-    curriculumApi.getBabList(selectedMateri)
-      .then(data => setBabList(Array.isArray(data) ? data : []))
-      .catch(() => setBabList([]));
-  }, [selectedMateri]);
+    if (level !== 'bab' || !selectedMateri) return;
+    setIsLoading(true);
+    curriculumApi.getBabList(selectedMateri.id)
+      .then(data => {
+        const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
+        setBabList(sorted);
+        setIsLoading(false);
+      })
+      .catch(() => { setBabList([]); setIsLoading(false); });
+  }, [level, selectedMateri]);
 
-  // Fetch chapters when bab selected
+  // Fetch chapters when bab selected (only for CHAPTER_QUIZ)
   useEffect(() => {
-    if (!selectedBab) { setChapterList([]); return; }
-    curriculumApi.getChapterList(selectedBab)
-      .then(data => setChapterList(Array.isArray(data) ? data : []))
-      .catch(() => setChapterList([]));
-  }, [selectedBab]);
+    if (quizType !== 'CHAPTER_QUIZ') return;
+    if (level !== 'chapter' || !selectedBab) return;
+    setIsLoading(true);
+    curriculumApi.getChapterList(selectedBab.id)
+      .then(data => {
+        const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
+        setChapterList(sorted);
+        setIsLoading(false);
+      })
+      .catch(() => { setChapterList([]); setIsLoading(false); });
+  }, [level, selectedBab, quizType]);
 
-  const handleSelectChapter = (chapterId: string) => {
+  const handleSelectMateri = useCallback((materi: Materi) => {
+    setSelectedMateri(materi);
+    setSelectedBab(null);
+    setLevel('bab');
+  }, []);
+
+  const handleSelectBab = useCallback((bab: Bab) => {
+    if (quizType === 'CHAPTER_QUIZ') {
+      // Drill down to chapter level
+      setSelectedBab(bab);
+      setLevel('chapter');
+    } else {
+      // For Pre Test and Post Test, navigate to bab-level quiz builder
+      router.push(`/admin/quiz-builder/${bab.id}?type=${quizType.toLowerCase()}`);
+    }
+  }, [quizType, router]);
+
+  const handleSelectChapter = useCallback((chapterId: string) => {
     router.push(`/admin/quiz-builder/${chapterId}`);
-  };
+  }, [router]);
+
+  const handleBack = useCallback(() => {
+    if (level === 'chapter') {
+      setSelectedBab(null);
+      setLevel('bab');
+    } else if (level === 'bab') {
+      setSelectedMateri(null);
+      setLevel('materi');
+    }
+  }, [level]);
+
+  // Determine max drill level based on quiz type
+  const maxLevel: DrillLevel = quizType === 'CHAPTER_QUIZ' ? 'chapter' : 'bab';
 
   if (!selectedSemesterId) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold">Pembangun Kuis</h1>
+        <h1 className="text-2xl font-semibold">Bank Soal</h1>
         <p className="text-muted-foreground">Pilih semester terlebih dahulu pada header.</p>
       </div>
     );
@@ -70,118 +135,148 @@ export default function QuizBuilderIndexPage() {
       <div className="space-y-1">
         <h1 className="flex items-center gap-2 text-2xl font-semibold">
           <PenTool className="h-6 w-6 text-primary-600" />
-          Pembangun Kuis
+          Bank Soal
         </h1>
         <p className="text-sm text-muted-foreground">
-          Pilih Chapter untuk mengelola pola soal dan pertanyaan kuis.
+          Kelola pola soal dan pertanyaan untuk Kuis Chapter, Pre Test, dan Post Test.
         </p>
       </div>
 
-      {/* Info Banner */}
-      <div className="flex items-start gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4">
-        <Info className="h-5 w-5 text-primary-600 mt-0.5 shrink-0" />
-        <p className="text-sm text-primary-800">
-          Pembangun Kuis dapat digunakan untuk membuat bank soal Kuis Chapter, Pre Test, dan Post Test.
-        </p>
+      {/* Quiz Type Tabs */}
+      <div className="flex gap-1 rounded-lg border border-border bg-muted/50 p-1" role="tablist" aria-label="Tipe soal">
+        {(['CHAPTER_QUIZ', 'PRE_TEST', 'POST_TEST'] as QuizType[]).map((type) => (
+          <button
+            key={type}
+            role="tab"
+            aria-selected={quizType === type}
+            onClick={() => handleQuizTypeChange(type)}
+            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              quizType === type
+                ? 'bg-white text-primary-700 shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {QUIZ_TYPE_LABELS[type]}
+          </button>
+        ))}
       </div>
 
+      {/* Breadcrumb */}
+      <nav className="flex items-center gap-1 text-sm" aria-label="Breadcrumb navigasi Bank Soal">
+        <button
+          onClick={() => { setLevel('materi'); setSelectedMateri(null); setSelectedBab(null); }}
+          className={`rounded px-1.5 py-0.5 transition-colors ${
+            level === 'materi' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
+          }`}
+        >
+          {QUIZ_TYPE_LABELS[quizType]}
+        </button>
+        {selectedMateri && (
+          <>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <button
+              onClick={() => { setLevel('bab'); setSelectedBab(null); }}
+              className={`rounded px-1.5 py-0.5 transition-colors ${
+                level === 'bab' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
+              }`}
+            >
+              {selectedMateri.name}
+            </button>
+          </>
+        )}
+        {selectedBab && quizType === 'CHAPTER_QUIZ' && (
+          <>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <span className="font-semibold text-foreground px-1.5 py-0.5">
+              {selectedBab.name}
+            </span>
+          </>
+        )}
+      </nav>
+
+      {/* Back button */}
+      {level !== 'materi' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          className="gap-1.5 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Kembali
+        </Button>
+      )}
+
+      {/* Drill-down list panel */}
       {isLoading ? (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-12 animate-pulse rounded bg-muted" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-14 animate-pulse rounded-lg bg-muted" />)}
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Step 1: Pick Materi */}
-          <div className="rounded-xl border border-border bg-gradient-to-b from-green-50/60 to-white p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold shrink-0">
-                1
-              </span>
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-primary-600" />
-                <span className="text-sm font-semibold text-foreground">Pilih Materi</span>
-              </div>
-            </div>
-            <div className="space-y-1 rounded-lg border border-border bg-white p-2 max-h-60 overflow-y-auto">
-              {materiList.map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => { setSelectedMateri(m.id); setSelectedBab(null); }}
-                  className={`w-full text-left rounded-md px-3 py-2 text-sm transition-colors ${
-                    selectedMateri === m.id ? 'bg-primary-100 text-primary-800 font-medium ring-1 ring-primary-300' : 'hover:bg-muted'
-                  }`}
-                >
-                  {m.name}
-                </button>
-              ))}
-              {materiList.length === 0 && (
-                <p className="px-3 py-4 text-sm text-muted-foreground text-center">Belum ada materi</p>
+        <div className="space-y-2">
+          {level === 'materi' && (
+            <>
+              {materiList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada materi</p>
+              ) : (
+                materiList.map(m => (
+                  <button
+                    key={m.id}
+                    onClick={() => handleSelectMateri(m)}
+                    className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3 text-left transition-colors hover:border-primary-200 hover:bg-primary-50/50 group"
+                  >
+                    <span className="text-sm font-medium text-foreground">{m.name}</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary-600 transition-colors" />
+                  </button>
+                ))
               )}
-            </div>
-          </div>
+            </>
+          )}
 
-          {/* Step 2: Pick Bab */}
-          <div className="rounded-xl border border-border bg-gradient-to-b from-emerald-50/60 to-white p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold shrink-0">
-                2
-              </span>
-              <div className="flex items-center gap-2">
-                <Layers className="h-4 w-4 text-primary-600" />
-                <span className="text-sm font-semibold text-foreground">Pilih Bab</span>
-              </div>
-            </div>
-            <div className="space-y-1 rounded-lg border border-border bg-white p-2 max-h-60 overflow-y-auto">
-              {babList.map(b => (
-                <button
-                  key={b.id}
-                  onClick={() => setSelectedBab(b.id)}
-                  className={`w-full text-left rounded-md px-3 py-2 text-sm transition-colors ${
-                    selectedBab === b.id ? 'bg-primary-100 text-primary-800 font-medium ring-1 ring-primary-300' : 'hover:bg-muted'
-                  }`}
-                >
-                  {b.name}
-                </button>
-              ))}
-              {!selectedMateri && (
-                <p className="px-3 py-4 text-sm text-muted-foreground text-center">Pilih materi terlebih dahulu</p>
+          {level === 'bab' && (
+            <>
+              {babList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada bab dalam materi ini</p>
+              ) : (
+                babList.map(b => (
+                  <button
+                    key={b.id}
+                    onClick={() => handleSelectBab(b)}
+                    className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3 text-left transition-colors hover:border-primary-200 hover:bg-primary-50/50 group"
+                  >
+                    <div className="text-left">
+                      <span className="text-sm font-medium text-foreground">{b.name}</span>
+                      {quizType !== 'CHAPTER_QUIZ' && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Kelola soal {QUIZ_TYPE_LABELS[quizType]} untuk bab ini
+                        </p>
+                      )}
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary-600 transition-colors" />
+                  </button>
+                ))
               )}
-              {selectedMateri && babList.length === 0 && (
-                <p className="px-3 py-4 text-sm text-muted-foreground text-center">Belum ada bab</p>
-              )}
-            </div>
-          </div>
+            </>
+          )}
 
-          {/* Step 3: Pick Chapter */}
-          <div className="rounded-xl border border-border bg-gradient-to-b from-teal-50/60 to-white p-4 space-y-3">
-            <div className="flex items-center gap-3">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold shrink-0">
-                3
-              </span>
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-primary-600" />
-                <span className="text-sm font-semibold text-foreground">Pilih Chapter</span>
-              </div>
-            </div>
-            <div className="space-y-1 rounded-lg border border-border bg-white p-2 max-h-60 overflow-y-auto">
-              {chapterList.map(ch => (
-                <button
-                  key={ch.id}
-                  onClick={() => handleSelectChapter(ch.id)}
-                  className="w-full flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-primary-50 hover:text-primary-700 transition-colors group"
-                >
-                  <span>{ch.name}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary-600 transition-colors" />
-                </button>
-              ))}
-              {!selectedBab && (
-                <p className="px-3 py-4 text-sm text-muted-foreground text-center">Pilih bab terlebih dahulu</p>
+          {level === 'chapter' && quizType === 'CHAPTER_QUIZ' && (
+            <>
+              {chapterList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada chapter dalam bab ini</p>
+              ) : (
+                chapterList.map(ch => (
+                  <button
+                    key={ch.id}
+                    onClick={() => handleSelectChapter(ch.id)}
+                    className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3 text-left transition-colors hover:border-primary-200 hover:bg-primary-50/50 group"
+                  >
+                    <span className="text-sm font-medium text-foreground">{ch.name}</span>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary-600 transition-colors" />
+                  </button>
+                ))
               )}
-              {selectedBab && chapterList.length === 0 && (
-                <p className="px-3 py-4 text-sm text-muted-foreground text-center">Belum ada chapter</p>
-              )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
