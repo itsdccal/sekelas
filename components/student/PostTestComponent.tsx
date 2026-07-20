@@ -145,10 +145,6 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
       isSubmitting={isSubmitting}
       timer={timer}
       error={error}
-      headerInfo="Post Test mengevaluasi pemahaman kamu terhadap seluruh materi di Bab ini. Kamu harus mencapai batas kelulusan untuk membuka Bab berikutnya."
-      headerBorderClass="border-amber-200"
-      headerBgClass="bg-amber-50"
-      headerTextClass="text-amber-800"
     />
   );
 }

@@ -146,10 +146,6 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
       isSubmitting={isSubmitting}
       timer={timer}
       error={error}
-      headerInfo="Pre Test ini mengukur tingkat pemahaman kamu. Jawab sesuai kemampuanmu saat ini — hasilnya menentukan dari chapter mana kamu mulai belajar."
-      headerBorderClass="border-primary-200"
-      headerBgClass="bg-primary-50"
-      headerTextClass="text-primary-800"
     />
   );
 }
