@@ -6,7 +6,7 @@ import { posttestApi } from '@/lib/api';
 import type { Question, PostTestResult } from '@/lib/types';
 
 interface PostTestComponentProps {
-  babId: string;
+  materiId: string;
   onComplete: (result: PostTestResult) => void;
 }
 
@@ -17,7 +17,7 @@ interface PostTestComponentProps {
  *
  * Requirements: 19.2, 19.3, 19.7, 19.8
  */
-export function PostTestComponent({ babId, onComplete }: PostTestComponentProps) {
+export function PostTestComponent({ materiId, onComplete }: PostTestComponentProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,7 +29,7 @@ export function PostTestComponent({ babId, onComplete }: PostTestComponentProps)
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    posttestApi.getPostTestQuestions(babId)
+    posttestApi.getPostTestQuestions(materiId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -38,7 +38,7 @@ export function PostTestComponent({ babId, onComplete }: PostTestComponentProps)
         setError('Gagal memuat soal Post Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [babId]);
+  }, [materiId]);
 
   const handleOptionSelect = useCallback(
     (optionId: string) => {
@@ -62,7 +62,7 @@ export function PostTestComponent({ babId, onComplete }: PostTestComponentProps)
     setError(null);
     try {
       const submission = {
-        babId,
+        materiId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
           questionId,
           selectedOptionId,
@@ -74,12 +74,12 @@ export function PostTestComponent({ babId, onComplete }: PostTestComponentProps)
       setError('Gagal mengirim jawaban. Silakan coba lagi.');
       setIsSubmitting(false);
     }
-  }, [babId, answers, onComplete]);
+  }, [materiId, answers, onComplete]);
 
   const handleRetry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    posttestApi.getPostTestQuestions(babId)
+    posttestApi.getPostTestQuestions(materiId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -88,7 +88,7 @@ export function PostTestComponent({ babId, onComplete }: PostTestComponentProps)
         setError('Gagal memuat soal Post Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [babId]);
+  }, [materiId]);
 
   // Navigation away confirmation
   useEffect(() => {

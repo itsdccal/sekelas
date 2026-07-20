@@ -1,63 +1,45 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * Mock Pre Test submission endpoint.
- * Evaluates answers to determine placement (which Chapter to start from).
- * Pre Test does NOT have pass/fail — it determines starting level.
- */
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { babId, answers } = body;
+  const { materiId, answers } = body;
 
-  if (!babId || !answers || !Array.isArray(answers)) {
+  if (!materiId || !answers || !Array.isArray(answers)) {
     return NextResponse.json(
-      { message: 'Missing required fields: babId, answers' },
+      { message: 'Missing required fields: materiId, answers' },
       { status: 400 }
     );
   }
 
-  // Simulate processing delay
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // Mock placement logic:
-  // More answers given = potentially higher placement
-  // For demo: if student answered 4+ questions, place at chapter 2
-  // Otherwise start from chapter 0
+  // Mock placement logic based on answer count
   const answeredCount = answers.length;
-  let startChapterIndex = 0;
-  let totalChaptersSkipped = 0;
+  let startBabIndex = 0;
+  let totalBabsSkipped = 0;
   let xpEarned = 0;
 
   if (answeredCount >= 5) {
-    // "Advanced" — place at chapter 3 (skip 3 chapters)
-    startChapterIndex = 3;
-    totalChaptersSkipped = 3;
-    xpEarned = 450; // 150 XP per skipped chapter
+    startBabIndex = 2;
+    totalBabsSkipped = 2;
+    xpEarned = 600;
   } else if (answeredCount >= 3) {
-    // "Intermediate" — place at chapter 1 (skip 1 chapter)
-    startChapterIndex = 1;
-    totalChaptersSkipped = 1;
-    xpEarned = 150;
+    startBabIndex = 1;
+    totalBabsSkipped = 1;
+    xpEarned = 300;
   }
-  // else: "Beginner" — start from chapter 0, no XP
 
-  const chapterNames = [
-    'Persamaan Linear Satu Variabel',
-    'Persamaan Linear Dua Variabel',
-    'Sistem Persamaan Linear',
-    'Pertidaksamaan Linear',
-  ];
-
-  const startChapterName = chapterNames[startChapterIndex] || 'Chapter Pertama';
+  const babNames = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika'];
+  const startBabName = babNames[startBabIndex] || 'Bab Pertama';
 
   return NextResponse.json({
-    babId,
-    startChapterIndex,
-    startChapterName,
-    totalChaptersSkipped,
+    materiId,
+    startBabIndex,
+    startBabName,
+    totalBabsSkipped,
     xpEarned,
-    message: totalChaptersSkipped > 0
-      ? `Berdasarkan hasil Pre Test, kamu memulai dari "${startChapterName}". Kamu melewati ${totalChaptersSkipped} chapter dan mendapat ${xpEarned} XP!`
-      : `Kamu akan memulai dari awal: "${startChapterName}". Selamat belajar!`,
+    message: totalBabsSkipped > 0
+      ? `Berdasarkan hasil Pre Test, kamu memulai dari "${startBabName}". Kamu melewati ${totalBabsSkipped} bab dan mendapat ${xpEarned} XP!`
+      : `Kamu akan memulai dari awal: "${startBabName}". Selamat belajar!`,
   });
 }

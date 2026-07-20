@@ -32,6 +32,8 @@ export interface MateriProgress {
   materiId: string;
   materiName: string;
   completionPercentage: number; // 0 - 100 integer
+  preTestCompleted: boolean;
+  postTestCompleted: boolean;
   babs: BabProgress[];
 }
 
@@ -39,9 +41,5 @@ export interface BabProgress {
   babId: string;
   babName: string;
   status: BabStatus;
-  preTestCompleted: boolean;
-  postTestCompleted: boolean;
-  preTestScore: number | null;
-  postTestScore: number | null;
   chapters: ChapterProgress[];
 }

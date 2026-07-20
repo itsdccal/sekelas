@@ -94,57 +94,32 @@ function PageSkeleton() {
 // ─── Pre/Post Test Chart ───
 
 function PrePostTestChart({ babs }: { babs: BabProgress[] }) {
-  const chartData = babs
-    .filter((bab) => bab.preTestScore !== null)
-    .map((bab) => ({
-      name: bab.babName.length > 12 ? bab.babName.substring(0, 12) + '…' : bab.babName,
-      fullName: bab.babName,
-      'Pre Test': bab.preTestScore ?? 0,
-      'Post Test': bab.postTestScore ?? 0,
-    }));
+  const completedBabs = babs.filter(b => b.status === 'COMPLETED').length;
 
-  if (chartData.length === 0) {
+  if (babs.length === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
-        <p className="text-sm text-muted-foreground">Belum ada data Pre/Post Test</p>
+        <p className="text-sm text-muted-foreground">Belum ada data</p>
       </div>
     );
   }
 
   return (
-    <div className="h-52 w-full sm:h-64">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis
-            dataKey="name"
-            tick={{ fontSize: 11, fill: '#64748b' }}
-            axisLine={{ stroke: '#e2e8f0' }}
-            interval={0}
-          />
-          <YAxis
-            domain={[0, 100]}
-            tick={{ fontSize: 11, fill: '#64748b' }}
-            axisLine={{ stroke: '#e2e8f0' }}
-            width={35}
-          />
-          <Tooltip
-            contentStyle={{
-              borderRadius: '8px',
-              border: '1px solid #e2e8f0',
-              fontSize: '12px',
-            }}
-            formatter={(value: number, name: string) => [`${value}`, name]}
-            labelFormatter={(_, payload) => {
-              const item = payload?.[0]?.payload;
-              return item?.fullName ?? '';
-            }}
-          />
-          <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
-          <Bar dataKey="Pre Test" fill="#f59e0b" radius={[3, 3, 0, 0]} />
-          <Bar dataKey="Post Test" fill="#16a34a" radius={[3, 3, 0, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
+    <div className="space-y-3 p-4">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-muted-foreground">Progres Bab</span>
+        <span className="font-medium">{completedBabs}/{babs.length} bab selesai</span>
+      </div>
+      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+        <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${(completedBabs / babs.length) * 100}%` }} />
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {babs.map((bab) => (
+          <div key={bab.babId} className={`rounded-md px-3 py-2 text-xs ${bab.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+            {bab.babName}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -209,12 +184,7 @@ function BabSection({ bab }: { bab: BabProgress }) {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-foreground truncate">{bab.babName}</p>
           <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-            {bab.preTestScore !== null && (
-              <span>Pre: <strong className="text-amber-600">{bab.preTestScore}</strong></span>
-            )}
-            {bab.postTestScore !== null && (
-              <span>Post: <strong className="text-green-600">{bab.postTestScore}</strong></span>
-            )}
+            <span>{bab.chapters.filter((c) => c.status === 'COMPLETED').length} chapter selesai</span>
           </div>
         </div>
         <span className="text-xs font-medium text-muted-foreground shrink-0">

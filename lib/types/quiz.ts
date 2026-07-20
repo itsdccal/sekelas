@@ -41,26 +41,26 @@ export interface QuizResult {
   xpEarned?: number;
 }
 
-// --- Pre Test Types ---
+// --- Pre Test Types (level Materi) ---
 
 export interface PreTestSubmission {
-  babId: string;
+  materiId: string;
   answers: { questionId: string; selectedOptionId: string }[];
 }
 
 export interface PreTestResult {
-  babId: string;
-  startChapterIndex: number; // Chapter index dimana siswa mulai (0-based)
-  startChapterName: string;
-  totalChaptersSkipped: number;
-  xpEarned: number; // XP dari Chapter yang dilewati (dihitung backend)
+  materiId: string;
+  startBabIndex: number; // Bab index dimana siswa mulai (0-based)
+  startBabName: string;
+  totalBabsSkipped: number;
+  xpEarned: number; // XP dari Bab yang dilewati (dihitung backend)
   message: string;
 }
 
-// --- Post Test Types ---
+// --- Post Test Types (level Materi) ---
 
 export interface PostTestSubmission {
-  babId: string;
+  materiId: string;
   answers: { questionId: string; selectedOptionId: string }[];
 }
 
@@ -70,9 +70,8 @@ export interface PostTestResult {
   passingGrade: number;
   xpEarned: number;
   message: string;
-  nextBabUnlocked: boolean; // apakah Bab berikutnya terbuka
-  nextBabId?: string; // ID Bab yang baru terbuka (jika ada)
-  remediationChapterIds?: string[]; // Chapter yang perlu ditonton ulang jika gagal
+  remediationBabIds?: string[];
+  remediationBabNames?: string[];
 }
 
 // --- Quiz Config (admin) ---

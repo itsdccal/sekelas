@@ -9,7 +9,7 @@ import type { Chapter, QuestionPattern } from "@/lib/types";
 // --- Props ---
 
 export interface BabTestBuilderPanelProps {
-  babId: string;
+  babId: string; // Can be babId or materiId depending on quizType
   quizType: 'PRE_TEST' | 'POST_TEST';
 }
 

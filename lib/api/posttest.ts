@@ -3,13 +3,13 @@ import { withRetry } from './retry';
 import type { Question, PostTestSubmission, PostTestResult } from '@/lib/types';
 
 /**
- * Load Post Test questions for a Bab.
+ * Load Post Test questions for a Materi.
  * Retries on server/connection errors.
  */
-export async function getPostTestQuestions(babId: string): Promise<Question[]> {
+export async function getPostTestQuestions(materiId: string): Promise<Question[]> {
   return withRetry(async () => {
     const response = await apiClient.get<Question[]>(
-      `/api/v1/posttest/bab/${babId}/questions`
+      `/api/v1/posttest/materi/${materiId}/questions`
     );
     return response.data;
   });
@@ -17,7 +17,6 @@ export async function getPostTestQuestions(babId: string): Promise<Question[]> {
 
 /**
  * Submit Post Test answers for scoring.
- * Does NOT auto-retry — answers are preserved client-side on failure.
  */
 export async function submitPostTest(submission: PostTestSubmission): Promise<PostTestResult> {
   const response = await apiClient.post<PostTestResult>('/api/v1/posttest/submit', submission);
@@ -25,10 +24,9 @@ export async function submitPostTest(submission: PostTestSubmission): Promise<Po
 }
 
 /**
- * Check Post Test status for a Bab.
- * Returns whether Post Test is available, completed, and the score.
+ * Check Post Test status for a Materi.
  */
-export async function getPostTestStatus(babId: string): Promise<{
+export async function getPostTestStatus(materiId: string): Promise<{
   available: boolean;
   completed: boolean;
   lastScore: number | null;
@@ -40,7 +38,7 @@ export async function getPostTestStatus(babId: string): Promise<{
       completed: boolean;
       lastScore: number | null;
       passed: boolean;
-    }>(`/api/v1/posttest/bab/${babId}/status`);
+    }>(`/api/v1/posttest/materi/${materiId}/status`);
     return response.data;
   });
 }

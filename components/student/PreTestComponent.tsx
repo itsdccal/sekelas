@@ -6,18 +6,18 @@ import { pretestApi } from '@/lib/api';
 import type { Question, PreTestResult } from '@/lib/types';
 
 interface PreTestComponentProps {
-  babId: string;
+  materiId: string;
   onComplete: (result: PreTestResult) => void;
 }
 
 /**
- * Pre Test Component — measures student understanding level.
- * No right/wrong indicators. Shows one question at a time.
- * After submit, returns placement result.
+ * Pre Test Component — measures student understanding level at Materi level.
+ * No right/wrong indicators shown to student.
+ * After submit, returns placement result (which Bab to start from).
  *
  * Requirements: 17.1, 17.2, 17.3, 17.5, 17.7, 17.8
  */
-export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
+export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -29,7 +29,7 @@ export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    pretestApi.getPreTestQuestions(babId)
+    pretestApi.getPreTestQuestions(materiId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -38,7 +38,7 @@ export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
         setError('Gagal memuat soal Pre Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [babId]);
+  }, [materiId]);
 
   const handleOptionSelect = useCallback(
     (optionId: string) => {
@@ -62,7 +62,7 @@ export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
     setError(null);
     try {
       const submission = {
-        babId,
+        materiId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
           questionId,
           selectedOptionId,
@@ -74,12 +74,12 @@ export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
       setError('Gagal mengirim jawaban. Silakan coba lagi.');
       setIsSubmitting(false);
     }
-  }, [babId, answers, onComplete]);
+  }, [materiId, answers, onComplete]);
 
   const handleRetry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    pretestApi.getPreTestQuestions(babId)
+    pretestApi.getPreTestQuestions(materiId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -88,7 +88,7 @@ export function PreTestComponent({ babId, onComplete }: PreTestComponentProps) {
         setError('Gagal memuat soal Pre Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [babId]);
+  }, [materiId]);
 
   const totalQuestions = questions.length;
   const answeredCount = Object.keys(answers).length;

@@ -86,18 +86,21 @@ export default function QuizBuilderIndexPage() {
   }, [level, selectedBab, quizType]);
 
   const handleSelectMateri = useCallback((materi: Materi) => {
-    setSelectedMateri(materi);
-    setSelectedBab(null);
-    setLevel('bab');
-  }, []);
+    if (quizType === 'PRE_TEST' || quizType === 'POST_TEST') {
+      // Pre Test and Post Test are at materi level
+      router.push(`/admin/quiz-builder/${materi.id}?type=${quizType.toLowerCase()}`);
+    } else {
+      setSelectedMateri(materi);
+      setSelectedBab(null);
+      setLevel('bab');
+    }
+  }, [quizType, router]);
 
   const handleSelectBab = useCallback((bab: Bab) => {
     if (quizType === 'CHAPTER_QUIZ') {
-      // Drill down to chapter level
       setSelectedBab(bab);
       setLevel('chapter');
     } else {
-      // For Pre Test and Post Test, navigate to bab-level quiz builder
       router.push(`/admin/quiz-builder/${bab.id}?type=${quizType.toLowerCase()}`);
     }
   }, [quizType, router]);
