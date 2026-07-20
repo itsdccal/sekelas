@@ -17,12 +17,13 @@ export interface QuestionPattern {
 export interface Question {
   id: string;
   patternId: string;
-  text: string; // max 1000 chars
+  text: string; // max 1000 chars, supports LaTeX notation with $..$ or $$..$$
   questionType?: QuestionType; // tipe soal (default: MULTIPLE_CHOICE)
   options: QuestionOption[]; // only for MULTIPLE_CHOICE
   correctOptionId?: string; // only for MULTIPLE_CHOICE (admin only)
   xpPerQuestion?: number; // 0-1000, only for CHAPTER_QUIZ and POST_TEST
   materiLabel?: string; // label materi asal (for Pre/Post Test UTBK-style)
+  imageUrl?: string; // URL gambar soal (optional)
 }
 
 export interface QuestionOption {
