@@ -45,11 +45,8 @@ export default function PostTestPage() {
   }
 
   return (
-    <div className="flex flex-col items-center py-8 px-4">
-      <div className="w-full max-w-2xl space-y-4">
-        <h1 className="text-xl font-semibold text-center text-foreground">Post Test</h1>
-        <PostTestComponent materiId={materiId} onComplete={handleComplete} />
-      </div>
+    <div className="flex flex-col">
+      <PostTestComponent materiId={materiId} onComplete={handleComplete} />
     </div>
   );
 }

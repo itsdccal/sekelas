@@ -1,6 +1,9 @@
 'use client';
 
+import { useMemo } from 'react';
 import Image from 'next/image';
+import katex from 'katex';
+import 'katex/dist/katex.min.css';
 import type { Question } from '@/lib/types';
 
 interface QuestionRendererProps {
@@ -10,39 +13,47 @@ interface QuestionRendererProps {
 }
 
 /**
- * Renders question text with LaTeX support.
- * LaTeX wrapped in $..$ (inline) or $$...$$ (block) is rendered in a styled span.
- * In production, integrate KaTeX or MathJax for proper rendering.
+ * Renders text with LaTeX support using KaTeX.
+ * $$...$$ = block math, $..$ = inline math.
  */
-function QuestionText({ text }: { text: string }) {
-  // Simple LaTeX detection — wrap in code-styled spans for now
-  // Replace $$...$$ with block math, $..$ with inline math
-  const rendered = text
-    .replace(/\$\$(.*?)\$\$/g, '<span class="block my-2 text-center font-mono bg-gray-50 rounded px-3 py-2 text-sm">$1</span>')
-    .replace(/\$(.*?)\$/g, '<span class="font-mono bg-gray-50 rounded px-1.5 py-0.5 text-sm">$1</span>');
+function renderLatex(text: string): string {
+  // Block math: $$...$$
+  let result = text.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
+    try {
+      return katex.renderToString(math.trim(), { displayMode: true, throwOnError: false });
+    } catch { return `<code>${math}</code>`; }
+  });
 
-  return (
-    <p
-      className="text-sm sm:text-base font-medium leading-relaxed"
-      dangerouslySetInnerHTML={{ __html: rendered }}
-    />
-  );
+  // Inline math: $...$
+  result = result.replace(/\$(.*?)\$/g, (_, math) => {
+    try {
+      return katex.renderToString(math.trim(), { displayMode: false, throwOnError: false });
+    } catch { return `<code>${math}</code>`; }
+  });
+
+  return result;
+}
+
+function MathText({ text, className }: { text: string; className?: string }) {
+  const html = useMemo(() => renderLatex(text), [text]);
+  return <span className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /**
  * Multi-type question renderer.
  * Supports MULTIPLE_CHOICE, ESSAY, SHORT_ANSWER.
- * Supports images and LaTeX in question text.
+ * Supports images and LaTeX (KaTeX).
  */
 export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendererProps) {
   const questionType = question.questionType || 'MULTIPLE_CHOICE';
 
-  // Shared question card (text + optional image)
   const QuestionCard = (
     <div className="rounded-lg border border-border bg-card p-4 sm:p-5 space-y-3">
-      <QuestionText text={question.text} />
+      <div className="text-sm sm:text-base font-medium leading-relaxed">
+        <MathText text={question.text} />
+      </div>
       {question.imageUrl && (
-        <div className="relative w-full max-w-md mx-auto rounded-lg overflow-hidden border border-border">
+        <div className="relative w-full max-w-md rounded-lg overflow-hidden border border-border">
           <Image
             src={question.imageUrl}
             alt="Gambar soal"
@@ -56,34 +67,20 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
     </div>
   );
 
-  if (questionType === 'ESSAY') {
-    return (
-      <div className="space-y-3">
-        {QuestionCard}
-        <textarea
-          value={answer || ''}
-          onChange={(e) => onAnswer(e.target.value)}
-          placeholder="Tulis jawaban esai kamu di sini (minimal 50 karakter)..."
-          className="w-full min-h-[140px] rounded-lg border border-border bg-background p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-primary-600"
-        />
-        <p className={`text-xs ${(answer?.length || 0) >= 50 ? 'text-green-600' : 'text-muted-foreground'}`}>
-          {answer?.length || 0}/50 karakter minimum
-        </p>
-      </div>
-    );
-  }
-
   if (questionType === 'SHORT_ANSWER') {
     return (
       <div className="space-y-3">
         {QuestionCard}
-        <input
-          type="text"
-          value={answer || ''}
-          onChange={(e) => onAnswer(e.target.value)}
-          placeholder="Tulis jawaban singkat..."
-          className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
-        />
+        <div className="space-y-1.5">
+          <label className="text-xs font-medium text-muted-foreground">Jawaban Isian</label>
+          <input
+            type="text"
+            value={answer || ''}
+            onChange={(e) => onAnswer(e.target.value)}
+            placeholder="Tulis jawaban kamu..."
+            className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+          />
+        </div>
       </div>
     );
   }
@@ -115,7 +112,9 @@ export function QuestionRenderer({ question, answer, onAnswer }: QuestionRendere
                 onChange={() => onAnswer(option.id)}
                 className="h-4 w-4 text-primary-600 focus:ring-primary-600"
               />
-              <span className="text-sm">{option.text}</span>
+              <span className="text-sm">
+                <MathText text={option.text} />
+              </span>
             </label>
           );
         })}

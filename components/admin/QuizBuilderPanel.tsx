@@ -261,6 +261,8 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
 
   const handleCreateQuestion = async (data: {
     text: string;
+    questionType: string;
+    imageUrl: string;
     options: { text: string; order: number }[];
     correctOptionIndex: number | null;
     xpPerQuestion: number;
@@ -275,6 +277,8 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
 
   const handleUpdateQuestion = async (data: {
     text: string;
+    questionType: string;
+    imageUrl: string;
     options: { text: string; order: number }[];
     correctOptionIndex: number | null;
     xpPerQuestion: number;

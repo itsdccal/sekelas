@@ -2,7 +2,7 @@ import type { ChapterStatus } from './progress';
 
 export type QuizType = 'PRE_TEST' | 'POST_TEST' | 'CHAPTER_QUIZ';
 
-export type QuestionType = 'MULTIPLE_CHOICE' | 'ESSAY' | 'SHORT_ANSWER';
+export type QuestionType = 'MULTIPLE_CHOICE' | 'SHORT_ANSWER';
 
 export interface QuestionPattern {
   id: string;

@@ -187,36 +187,34 @@ function MilestoneFormContent({
         </p>
       </div>
 
-      {/* Image URL Field */}
+      {/* Image Upload Field */}
       <div className="space-y-1.5">
-        <label htmlFor="milestone-image" className="text-sm font-medium text-foreground">
-          URL Gambar Badge <span className="text-red-500">*</span>
+        <label className="text-sm font-medium text-foreground">
+          Gambar Badge <span className="text-red-500">*</span>
         </label>
-        <input
-          id="milestone-image"
-          type="text"
-          value={imageUrl}
-          onChange={(e) => setImageUrl(e.target.value)}
-          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-          placeholder="/badges/nama-badge.png"
-          aria-invalid={!!errors.imageUrl}
-          aria-describedby={errors.imageUrl ? "milestone-image-error" : undefined}
-        />
-        {errors.imageUrl && (
-          <p id="milestone-image-error" className="text-xs text-red-600">{errors.imageUrl}</p>
-        )}
-        {imageUrl && (
-          <div className="mt-2 flex items-center gap-2">
-            <img
-              src={imageUrl}
-              alt="Preview badge"
-              className="h-10 w-10 rounded-md object-cover border border-border"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
+        {imageUrl ? (
+          <div className="flex items-center gap-3">
+            <img src={imageUrl} alt="Preview badge" className="h-12 w-12 rounded-md object-cover border border-border" />
+            <button type="button" onClick={() => setImageUrl("")} className="text-xs text-red-600 hover:text-red-700">Hapus</button>
+          </div>
+        ) : (
+          <label className="flex flex-col items-center justify-center w-full h-20 rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:border-primary-300 hover:bg-primary-50/30 transition-colors">
+            <span className="text-xs text-gray-500">Klik untuk upload gambar badge</span>
+            <span className="text-[10px] text-gray-400">PNG, JPG, SVG (max 2MB)</span>
+            <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { setErrors(prev => ({...prev, imageUrl: 'Ukuran file maksimal 2MB'})); return; }
+                // In production: upload to storage endpoint, get URL back
+                const url = URL.createObjectURL(file);
+                setImageUrl(url);
               }}
             />
-            <span className="text-xs text-muted-foreground">Preview</span>
-          </div>
+          </label>
+        )}
+        {errors.imageUrl && (
+          <p id="milestone-image-error" className="text-xs text-red-600">{errors.imageUrl}</p>
         )}
       </div>
 

@@ -108,10 +108,10 @@ function QuestionListView({ pattern, quizType, onBack, onRefresh }: {
 
   useEffect(() => { fetchQ(); }, [fetchQ]);
 
-  const handleCreate = async (data: { text: string; options: { text: string; order: number }[]; correctOptionIndex: number | null; xpPerQuestion: number }) => {
+  const handleCreate = async (data: { text: string; questionType: string; imageUrl: string; options: { text: string; order: number }[]; correctOptionIndex: number | null; xpPerQuestion: number }) => {
     await adminApi.createQuestion({ patternId: pattern.id, ...data }); await fetchQ(); onRefresh();
   };
-  const handleUpdate = async (data: { text: string; options: { text: string; order: number }[]; correctOptionIndex: number | null; xpPerQuestion: number }) => {
+  const handleUpdate = async (data: { text: string; questionType: string; imageUrl: string; options: { text: string; order: number }[]; correctOptionIndex: number | null; xpPerQuestion: number }) => {
     if (!editing) return; await adminApi.updateQuestion(editing.id, data); await fetchQ(); setEditing(null);
   };
 

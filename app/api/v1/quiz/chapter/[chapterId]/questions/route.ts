@@ -2,162 +2,143 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Mock quiz questions endpoint for development.
- * Returns 5 questions per chapter with 4 options each.
- * Uses Indonesian math/science questions.
+ * Returns 5 questions with LaTeX, images, and mixed types.
  */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ chapterId: string }> }
 ) {
   const { chapterId } = await params;
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
-  // Different question sets based on chapter theme
   const mathQuestions = [
     {
       id: 'q-1',
-      questionText: 'Jika 2x + 5 = 15, maka nilai x adalah...',
+      patternId: 'pattern-1',
+      text: 'Tentukan nilai $x$ dari persamaan $2x + 5 = 15$',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-1a', text: '3', orderIndex: 0 },
-        { id: 'opt-1b', text: '5', orderIndex: 1 },
-        { id: 'opt-1c', text: '7', orderIndex: 2 },
-        { id: 'opt-1d', text: '10', orderIndex: 3 },
+        { id: 'opt-1a', text: '$x = 3$', order: 0 },
+        { id: 'opt-1b', text: '$x = 5$', order: 1 },
+        { id: 'opt-1c', text: '$x = 7$', order: 2 },
+        { id: 'opt-1d', text: '$x = 10$', order: 3 },
       ],
-      orderIndex: 0,
       correctOptionId: 'opt-1b',
     },
     {
       id: 'q-2',
-      questionText: 'Hasil dari 3² + 4² adalah...',
+      patternId: 'pattern-1',
+      text: 'Hasil dari $3^2 + 4^2$ adalah...',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-2a', text: '7', orderIndex: 0 },
-        { id: 'opt-2b', text: '14', orderIndex: 1 },
-        { id: 'opt-2c', text: '25', orderIndex: 2 },
-        { id: 'opt-2d', text: '49', orderIndex: 3 },
+        { id: 'opt-2a', text: '$7$', order: 0 },
+        { id: 'opt-2b', text: '$14$', order: 1 },
+        { id: 'opt-2c', text: '$25$', order: 2 },
+        { id: 'opt-2d', text: '$49$', order: 3 },
       ],
-      orderIndex: 1,
       correctOptionId: 'opt-2c',
     },
     {
       id: 'q-3',
-      questionText: 'Penyelesaian dari persamaan x² - 9 = 0 adalah...',
+      patternId: 'pattern-1',
+      text: 'Perhatikan grafik berikut. Tentukan persamaan garis yang digambarkan.',
+      questionType: 'MULTIPLE_CHOICE',
+      imageUrl: 'https://placehold.co/400x200/e2e8f0/64748b?text=Grafik+Garis+y%3D2x%2B1',
       options: [
-        { id: 'opt-3a', text: 'x = 3', orderIndex: 0 },
-        { id: 'opt-3b', text: 'x = -3', orderIndex: 1 },
-        { id: 'opt-3c', text: 'x = 3 atau x = -3', orderIndex: 2 },
-        { id: 'opt-3d', text: 'x = 9', orderIndex: 3 },
+        { id: 'opt-3a', text: '$y = x + 1$', order: 0 },
+        { id: 'opt-3b', text: '$y = 2x + 1$', order: 1 },
+        { id: 'opt-3c', text: '$y = 2x - 1$', order: 2 },
+        { id: 'opt-3d', text: '$y = x - 1$', order: 3 },
       ],
-      orderIndex: 2,
-      correctOptionId: 'opt-3c',
+      correctOptionId: 'opt-3b',
     },
     {
       id: 'q-4',
-      questionText: 'Jika y = 2x - 1 dan x = 4, maka y = ...',
+      patternId: 'pattern-1',
+      text: 'Jika $f(x) = 3x - 2$, maka nilai $f(4)$ adalah...',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-4a', text: '5', orderIndex: 0 },
-        { id: 'opt-4b', text: '7', orderIndex: 1 },
-        { id: 'opt-4c', text: '8', orderIndex: 2 },
-        { id: 'opt-4d', text: '9', orderIndex: 3 },
+        { id: 'opt-4a', text: '$8$', order: 0 },
+        { id: 'opt-4b', text: '$10$', order: 1 },
+        { id: 'opt-4c', text: '$12$', order: 2 },
+        { id: 'opt-4d', text: '$14$', order: 3 },
       ],
-      orderIndex: 3,
       correctOptionId: 'opt-4b',
     },
     {
       id: 'q-5',
-      questionText: 'Gradien garis yang melalui titik (1,2) dan (3,8) adalah...',
-      options: [
-        { id: 'opt-5a', text: '2', orderIndex: 0 },
-        { id: 'opt-5b', text: '3', orderIndex: 1 },
-        { id: 'opt-5c', text: '4', orderIndex: 2 },
-        { id: 'opt-5d', text: '6', orderIndex: 3 },
-      ],
-      orderIndex: 4,
-      correctOptionId: 'opt-5b',
+      patternId: 'pattern-1',
+      text: 'Berapakah hasil dari $\\frac{6x + 12}{6}$ jika $x = 3$?',
+      questionType: 'SHORT_ANSWER',
+      options: [],
     },
   ];
 
   const physicsQuestions = [
     {
       id: 'q-p1',
-      questionText: 'Sebuah benda bermassa 5 kg diberi gaya 20 N. Percepatan benda tersebut adalah...',
+      patternId: 'pattern-1',
+      text: 'Sebuah benda bermassa $5$ kg diberi gaya $F = 20$ N. Berdasarkan Hukum Newton II ($F = ma$), percepatan benda tersebut adalah...',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-p1a', text: '2 m/s²', orderIndex: 0 },
-        { id: 'opt-p1b', text: '4 m/s²', orderIndex: 1 },
-        { id: 'opt-p1c', text: '10 m/s²', orderIndex: 2 },
-        { id: 'opt-p1d', text: '100 m/s²', orderIndex: 3 },
+        { id: 'opt-p1a', text: '$2 \\ m/s^2$', order: 0 },
+        { id: 'opt-p1b', text: '$4 \\ m/s^2$', order: 1 },
+        { id: 'opt-p1c', text: '$10 \\ m/s^2$', order: 2 },
+        { id: 'opt-p1d', text: '$100 \\ m/s^2$', order: 3 },
       ],
-      orderIndex: 0,
       correctOptionId: 'opt-p1b',
     },
     {
       id: 'q-p2',
-      questionText: 'Hukum Newton I dikenal juga sebagai hukum...',
+      patternId: 'pattern-1',
+      text: 'Perhatikan diagram gaya berikut. Tentukan resultan gaya yang bekerja pada benda.',
+      questionType: 'MULTIPLE_CHOICE',
+      imageUrl: 'https://placehold.co/400x200/e2e8f0/64748b?text=Diagram+Gaya+F1%3D10N+F2%3D5N',
       options: [
-        { id: 'opt-p2a', text: 'Kelembaman', orderIndex: 0 },
-        { id: 'opt-p2b', text: 'Aksi-Reaksi', orderIndex: 1 },
-        { id: 'opt-p2c', text: 'Gravitasi', orderIndex: 2 },
-        { id: 'opt-p2d', text: 'Kekekalan Energi', orderIndex: 3 },
+        { id: 'opt-p2a', text: '$5$ N ke kanan', order: 0 },
+        { id: 'opt-p2b', text: '$15$ N ke kanan', order: 1 },
+        { id: 'opt-p2c', text: '$5$ N ke kiri', order: 2 },
+        { id: 'opt-p2d', text: '$10$ N ke kanan', order: 3 },
       ],
-      orderIndex: 1,
       correctOptionId: 'opt-p2a',
     },
     {
       id: 'q-p3',
-      questionText: 'Satuan SI untuk gaya adalah...',
+      patternId: 'pattern-1',
+      text: 'Satuan SI untuk gaya adalah...',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-p3a', text: 'Joule', orderIndex: 0 },
-        { id: 'opt-p3b', text: 'Watt', orderIndex: 1 },
-        { id: 'opt-p3c', text: 'Newton', orderIndex: 2 },
-        { id: 'opt-p3d', text: 'Pascal', orderIndex: 3 },
+        { id: 'opt-p3a', text: 'Joule', order: 0 },
+        { id: 'opt-p3b', text: 'Watt', order: 1 },
+        { id: 'opt-p3c', text: 'Newton', order: 2 },
+        { id: 'opt-p3d', text: 'Pascal', order: 3 },
       ],
-      orderIndex: 2,
       correctOptionId: 'opt-p3c',
     },
     {
       id: 'q-p4',
-      questionText: 'Sebuah mobil bergerak dengan kecepatan awal 0 m/s dan percepatan 2 m/s². Kecepatan setelah 5 detik adalah...',
+      patternId: 'pattern-1',
+      text: 'Sebuah mobil bergerak dengan $v_0 = 0$ dan $a = 2 \\ m/s^2$. Kecepatan setelah $t = 5$ detik adalah...',
+      questionType: 'MULTIPLE_CHOICE',
       options: [
-        { id: 'opt-p4a', text: '5 m/s', orderIndex: 0 },
-        { id: 'opt-p4b', text: '10 m/s', orderIndex: 1 },
-        { id: 'opt-p4c', text: '15 m/s', orderIndex: 2 },
-        { id: 'opt-p4d', text: '25 m/s', orderIndex: 3 },
+        { id: 'opt-p4a', text: '$5 \\ m/s$', order: 0 },
+        { id: 'opt-p4b', text: '$10 \\ m/s$', order: 1 },
+        { id: 'opt-p4c', text: '$15 \\ m/s$', order: 2 },
+        { id: 'opt-p4d', text: '$25 \\ m/s$', order: 3 },
       ],
-      orderIndex: 3,
       correctOptionId: 'opt-p4b',
     },
     {
       id: 'q-p5',
-      questionText: 'Benda jatuh bebas dari ketinggian 20 m. Waktu yang dibutuhkan untuk sampai ke tanah adalah... (g = 10 m/s²)',
-      options: [
-        { id: 'opt-p5a', text: '1 s', orderIndex: 0 },
-        { id: 'opt-p5b', text: '2 s', orderIndex: 1 },
-        { id: 'opt-p5c', text: '4 s', orderIndex: 2 },
-        { id: 'opt-p5d', text: '5 s', orderIndex: 3 },
-      ],
-      orderIndex: 4,
-      correctOptionId: 'opt-p5b',
+      patternId: 'pattern-1',
+      text: 'Sebutkan bunyi Hukum Newton I!',
+      questionType: 'SHORT_ANSWER',
+      options: [],
     },
   ];
 
-  // Return physics questions for physics chapters, math for others
   const physicsChapters = ['ch-10', 'ch-11', 'ch-12', 'ch-13', 'ch-14'];
-  const rawQuestions = physicsChapters.includes(chapterId) ? physicsQuestions : mathQuestions;
+  const questions = physicsChapters.includes(chapterId) ? physicsQuestions : mathQuestions;
 
-  // Map ke format yang diharapkan frontend (Question type)
-  const questions = rawQuestions.map(q => ({
-    id: q.id,
-    patternId: 'pattern-1',
-    text: q.questionText,
-    options: q.options.map(opt => ({
-      id: opt.id,
-      text: opt.text,
-      order: opt.orderIndex,
-    })),
-    correctOptionId: q.correctOptionId,
-  }));
-
-  // Simulate small delay
-  await new Promise((resolve) => setTimeout(resolve, 200));
-
-  // Return array langsung (frontend expect Question[])
   return NextResponse.json(questions);
 }

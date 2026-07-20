@@ -209,8 +209,8 @@ function ReviewItem({ item, index }: { item: QuizReviewItem; index: number }) {
             </div>
           )}
 
-          {/* For ESSAY / SHORT_ANSWER: show text answer */}
-          {(item.questionType === 'ESSAY' || item.questionType === 'SHORT_ANSWER') && (
+          {/* For SHORT_ANSWER: show text answer */}
+          {item.questionType === 'SHORT_ANSWER' && (
             <div className="mt-2 text-xs">
               {item.textAnswer && (
                 <p className="text-muted-foreground italic">

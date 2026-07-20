@@ -41,11 +41,8 @@ export default function PreTestPage() {
 
   if (pageState === 'test') {
     return (
-      <div className="flex flex-col items-center py-8 px-4">
-        <div className="w-full max-w-2xl space-y-4">
-          <h1 className="text-xl font-semibold text-center text-foreground">Pre Test</h1>
-          <PreTestComponent materiId={materiId} onComplete={handleComplete} />
-        </div>
+      <div className="flex flex-col">
+        <PreTestComponent materiId={materiId} onComplete={handleComplete} />
       </div>
     );
   }

@@ -102,6 +102,8 @@ export async function getQuestions(patternId: string): Promise<Question[]> {
 export async function createQuestion(data: {
   patternId: string;
   text: string;
+  questionType?: string;
+  imageUrl?: string;
   options: { text: string; order: number }[];
   correctOptionIndex: number | null;
   xpPerQuestion?: number;
@@ -112,6 +114,8 @@ export async function createQuestion(data: {
 
 export async function updateQuestion(questionId: string, data: {
   text?: string;
+  questionType?: string;
+  imageUrl?: string;
   options?: { text: string; order: number }[];
   correctOptionIndex?: number | null;
   xpPerQuestion?: number;
