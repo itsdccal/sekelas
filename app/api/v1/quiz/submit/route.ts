@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 /**
  * Mock quiz submission endpoint for development.
  * Calculates score based on answers. For demo, passes if > 3 correct.
+ * Returns reviewDetails when PASSED (for quiz review feature).
+ * Returns PENDING_REVIEW if any essay/short_answer questions detected.
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -18,6 +20,20 @@ export async function POST(request: NextRequest) {
   // Simulate grading delay
   await new Promise((resolve) => setTimeout(resolve, 500));
 
+  // Mock question data for review
+  const questionTexts: Record<string, string> = {
+    'q-1': 'Apa yang dimaksud dengan variabel dalam pemrograman?',
+    'q-2': 'Manakah tipe data yang digunakan untuk menyimpan bilangan desimal?',
+    'q-3': 'Apa output dari console.log(typeof null)?',
+    'q-4': 'Manakah yang merupakan operator perbandingan ketat?',
+    'q-5': 'Fungsi apa yang digunakan untuk mengonversi string ke integer?',
+    'q-p1': 'Apa perbedaan antara let dan const?',
+    'q-p2': 'Manakah yang merupakan method array?',
+    'q-p3': 'Apa output dari 2 + "2" di JavaScript?',
+    'q-p4': 'Manakah yang termasuk higher-order function?',
+    'q-p5': 'Apa yang dilakukan operator spread (...)?',
+  };
+
   // Correct answers map
   const correctAnswers: Record<string, string> = {
     'q-1': 'opt-1b',
@@ -32,36 +48,72 @@ export async function POST(request: NextRequest) {
     'q-p5': 'opt-p5b',
   };
 
-  // Count correct answers
+  // Detect if any answers are text-based (essay/short_answer)
+  const hasTextAnswers = answers.some(
+    (answer: { questionId: string; selectedOptionId?: string; textAnswer?: string }) =>
+      answer.textAnswer !== undefined && answer.textAnswer !== null
+  );
+
+  // Count correct answers (only for multiple choice)
   let correctCount = 0;
-  const results = answers.map((answer: { questionId: string; selectedOptionId: string }) => {
-    const isCorrect = correctAnswers[answer.questionId] === answer.selectedOptionId;
-    if (isCorrect) correctCount++;
-    return {
-      questionId: answer.questionId,
-      selectedOptionId: answer.selectedOptionId,
-      correctOptionId: correctAnswers[answer.questionId] || answer.selectedOptionId,
-      isCorrect,
-    };
-  });
+  const reviewDetails = answers.map(
+    (answer: { questionId: string; selectedOptionId?: string; textAnswer?: string }) => {
+      const isTextAnswer = !!answer.textAnswer;
+      const isCorrect = isTextAnswer
+        ? null // pending review for text answers
+        : correctAnswers[answer.questionId] === answer.selectedOptionId;
 
+      if (isCorrect === true) correctCount++;
+
+      return {
+        questionId: answer.questionId,
+        questionText: questionTexts[answer.questionId] || `Soal ${answer.questionId}`,
+        questionType: isTextAnswer ? ('ESSAY' as const) : ('MULTIPLE_CHOICE' as const),
+        isCorrect,
+        selectedOptionId: answer.selectedOptionId || undefined,
+        correctOptionId: correctAnswers[answer.questionId] || undefined,
+        textAnswer: answer.textAnswer || undefined,
+      };
+    }
+  );
+
+  const mcQuestions = answers.filter(
+    (a: { textAnswer?: string }) => !a.textAnswer
+  ).length;
   const totalQuestions = answers.length;
-  const score = Math.round((correctCount / totalQuestions) * 100);
+  const score = mcQuestions > 0 ? Math.round((correctCount / mcQuestions) * 100) : 0;
 
-  // Pass if more than 3 correct (for demo reliability) or score >= 70
-  const passed = correctCount > 3 || score >= 70;
-  const finalScore = passed ? Math.max(score, 80) : Math.min(score, 50);
+  // Determine status
+  let status: 'PASSED' | 'FAILED' | 'PENDING_REVIEW';
+  if (hasTextAnswers) {
+    // If there are text-based answers, mark as pending review
+    status = score >= 70 ? 'PENDING_REVIEW' : 'FAILED';
+  } else {
+    // Pass if more than 3 correct (for demo reliability) or score >= 70
+    const passed = correctCount > 3 || score >= 70;
+    status = passed ? 'PASSED' : 'FAILED';
+  }
 
-  const xpEarned = passed ? 150 : 0;
+  const finalScore = status === 'PASSED' ? Math.max(score, 80) : status === 'PENDING_REVIEW' ? score : Math.min(score, 50);
+  const xpEarned = status === 'PASSED' ? 150 : 0;
+
+  const messages: Record<string, string> = {
+    PASSED: 'Selamat! Kamu berhasil lulus kuis ini.',
+    FAILED: 'Maaf, kamu belum berhasil. Silakan tonton ulang video dan coba lagi.',
+    PENDING_REVIEW: 'Jawaban esai/singkat kamu sedang ditinjau. Hasil akhir akan diperbarui setelah review selesai.',
+  };
 
   // Return format sesuai frontend QuizResult type
   return NextResponse.json({
-    status: passed ? 'PASSED' : 'FAILED',
+    status,
     score: finalScore,
     passingGrade: 70,
-    nextStatus: passed ? 'COMPLETED' : 'REMEDIATION_REQUIRED',
-    message: passed
-      ? 'Selamat! Kamu berhasil lulus kuis ini.'
-      : 'Maaf, kamu belum berhasil. Silakan tonton ulang video dan coba lagi.',
+    nextStatus: status === 'PASSED' ? 'COMPLETED' : status === 'PENDING_REVIEW' ? 'UNLOCKED' : 'REMEDIATION_REQUIRED',
+    message: messages[status],
+    xpEarned,
+    // Include reviewDetails when PASSED (for quiz review section)
+    ...(status === 'PASSED' && { reviewDetails }),
+    // Also include for PENDING_REVIEW so student sees what was submitted
+    ...(status === 'PENDING_REVIEW' && { reviewDetails }),
   });
 }

@@ -253,6 +253,20 @@ Progress keseluruhan siswa (untuk dashboard dan raport).
 
 ## 4. Quiz Chapter
 
+### Tipe Soal (Question Types)
+
+Sistem mendukung 3 tipe soal:
+
+| Tipe | Deskripsi | Format Jawaban |
+|------|-----------|----------------|
+| `MULTIPLE_CHOICE` | Pilihan ganda (default) | `selectedOptionId`: ID opsi yang dipilih |
+| `ESSAY` | Esai panjang (min 50 karakter) | `textAnswer`: teks jawaban esai |
+| `SHORT_ANSWER` | Jawaban singkat (1 baris) | `textAnswer`: teks jawaban singkat |
+
+> **Catatan:** Jika `questionType` tidak diset, soal diperlakukan sebagai `MULTIPLE_CHOICE`.
+
+---
+
 ### GET /api/v1/quiz/chapter/{chapterId}/questions
 
 Ambil soal quiz untuk chapter. Backend mengambil 1 soal acak dari setiap topik (QuestionPattern).
@@ -264,46 +278,77 @@ Ambil soal quiz untuk chapter. Backend mengambil 1 soal acak dari setiap topik (
     "id": "string",
     "patternId": "string",
     "text": "string",
+    "questionType": "MULTIPLE_CHOICE | ESSAY | SHORT_ANSWER (optional, default MC)",
     "options": [
       { "id": "string", "text": "string", "order": "number" }
-    ]
+    ],
+    "materiLabel": "string | null (label materi asal untuk UTBK-style)"
   }
 ]
 ```
 
-> **Catatan:** `correctOptionId` TIDAK dikirim ke student. Hanya backend yang tahu jawaban benar.
+> **Catatan:** `correctOptionId` TIDAK dikirim ke student. Field `options` kosong untuk tipe ESSAY/SHORT_ANSWER.
 
 ---
 
 ### POST /api/v1/quiz/submit
 
-Submit jawaban quiz chapter.
+Submit jawaban quiz chapter. Format jawaban berbeda per tipe soal.
 
 **Request Body:**
 ```json
 {
   "chapterId": "string",
   "answers": [
-    { "questionId": "string", "selectedOptionId": "string" }
+    {
+      "questionId": "string",
+      "selectedOptionId": "string (untuk MULTIPLE_CHOICE)",
+      "textAnswer": "string (untuk ESSAY dan SHORT_ANSWER)"
+    }
   ]
 }
 ```
 
+> **Catatan:** Kirim `selectedOptionId` untuk soal pilihan ganda, `textAnswer` untuk soal esai/singkat. Tidak perlu kirim keduanya.
+
 **Response 200:**
 ```json
 {
-  "status": "PASSED | FAILED",
-  "score": "number (0-100)",
+  "status": "PASSED | FAILED | PENDING_REVIEW",
+  "score": "number (0-100, hanya dari soal yang bisa dinilai otomatis)",
   "passingGrade": "number (0-100)",
-  "nextStatus": "COMPLETED | REMEDIATION_REQUIRED",
+  "nextStatus": "COMPLETED | REMEDIATION_REQUIRED | UNLOCKED",
   "message": "string",
-  "xpEarned": "number"
+  "xpEarned": "number",
+  "reviewDetails": [
+    {
+      "questionId": "string",
+      "questionText": "string",
+      "questionType": "MULTIPLE_CHOICE | ESSAY | SHORT_ANSWER",
+      "isCorrect": "boolean | null (null = pending review)",
+      "selectedOptionId": "string | null",
+      "correctOptionId": "string | null",
+      "textAnswer": "string | null"
+    }
+  ]
 }
 ```
 
+**Status logic:**
+- `PASSED`: Semua soal auto-graded benar ≥ passingGrade, dan **tidak ada** soal essay/short_answer
+- `FAILED`: Skor < passingGrade
+- `PENDING_REVIEW`: Skor MC ≥ passingGrade TAPI ada soal essay/short_answer yang perlu dinilai manual oleh pengajar
+
+**Field `reviewDetails`:**
+- Dikirim ketika status = `PASSED` atau `PENDING_REVIEW`
+- `isCorrect: true` = jawaban benar (MC)
+- `isCorrect: false` = jawaban salah (MC)
+- `isCorrect: null` = menunggu review manual (ESSAY/SHORT_ANSWER)
+
 **Logika backend:**
-- Hitung skor: `(jawaban benar / total soal) * 100`
-- Jika `skor >= passingGrade` → PASSED, status chapter = COMPLETED, berikan XP
+- Hitung skor MC: `(jawaban MC benar / total soal MC) * 100`
+- Jika ada soal essay/short_answer dan skor MC ≥ passingGrade → `PENDING_REVIEW`
+- Jika hanya MC dan `skor >= passingGrade` → PASSED, status chapter = COMPLETED, berikan XP
 - Jika `skor < passingGrade` → FAILED, status chapter = REMEDIATION_REQUIRED
 - XP = jumlah soal benar × xpPerQuestion (dari config)
 
