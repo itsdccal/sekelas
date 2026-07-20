@@ -7,28 +7,34 @@ export async function GET(
   const { materiId } = await params;
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const questions = [
-    { id: 'post-q1', text: 'Penyelesaian dari persamaan 2x + 4 = 10 adalah...', options: [
-      { id: 'post-opt-1a', text: 'x = 2', order: 0 }, { id: 'post-opt-1b', text: 'x = 3', order: 1 },
-      { id: 'post-opt-1c', text: 'x = 4', order: 2 }, { id: 'post-opt-1d', text: 'x = 5', order: 3 },
-    ]},
-    { id: 'post-q2', text: 'Sistem persamaan linear 2x + y = 7 dan x - y = 2, maka nilai y adalah...', options: [
-      { id: 'post-opt-2a', text: '1', order: 0 }, { id: 'post-opt-2b', text: '2', order: 1 },
-      { id: 'post-opt-2c', text: '3', order: 2 }, { id: 'post-opt-2d', text: '4', order: 3 },
-    ]},
-    { id: 'post-q3', text: 'Himpunan penyelesaian dari 2x - 1 >= 5 adalah...', options: [
-      { id: 'post-opt-3a', text: 'x >= 2', order: 0 }, { id: 'post-opt-3b', text: 'x >= 3', order: 1 },
-      { id: 'post-opt-3c', text: 'x > 3', order: 2 }, { id: 'post-opt-3d', text: 'x <= 3', order: 3 },
-    ]},
-    { id: 'post-q4', text: 'Gradien garis yang melalui titik (0, 3) dan (2, 7) adalah...', options: [
-      { id: 'post-opt-4a', text: '1', order: 0 }, { id: 'post-opt-4b', text: '2', order: 1 },
-      { id: 'post-opt-4c', text: '3', order: 2 }, { id: 'post-opt-4d', text: '4', order: 3 },
-    ]},
-    { id: 'post-q5', text: 'Jika f(x) = 3x - 2, maka f(4) = ...', options: [
-      { id: 'post-opt-5a', text: '8', order: 0 }, { id: 'post-opt-5b', text: '10', order: 1 },
-      { id: 'post-opt-5c', text: '12', order: 2 }, { id: 'post-opt-5d', text: '14', order: 3 },
-    ]},
-  ];
+  // Generate 20 questions for Post Test
+  const babLabels = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika', 'Statistika'];
+  const questions = Array.from({ length: 20 }, (_, i) => {
+    const babIndex = Math.floor(i / 5);
+    const isEssay = i === 9 || i === 19; // soal 10 dan 20 = esai
+    const isShortAnswer = i === 4 || i === 14; // soal 5 dan 15 = isian
+
+    let questionType: 'MULTIPLE_CHOICE' | 'ESSAY' | 'SHORT_ANSWER' = 'MULTIPLE_CHOICE';
+    if (isEssay) questionType = 'ESSAY';
+    else if (isShortAnswer) questionType = 'SHORT_ANSWER';
+
+    return {
+      id: `post-q${i + 1}`,
+      text: isEssay
+        ? `Jelaskan dengan kata-kata sendiri tentang konsep ${babLabels[babIndex] || 'Umum'} yang sudah kamu pelajari.`
+        : isShortAnswer
+        ? `Berapakah hasil dari perhitungan berikut terkait ${babLabels[babIndex] || 'Umum'}?`
+        : `Soal Post Test nomor ${i + 1} — ${babLabels[babIndex] || 'Umum'}. Pilih jawaban yang benar.`,
+      questionType,
+      materiLabel: babLabels[babIndex] || 'Umum',
+      options: questionType === 'MULTIPLE_CHOICE' ? [
+        { id: `post-opt-${i + 1}a`, text: `Pilihan A soal ${i + 1}`, order: 0 },
+        { id: `post-opt-${i + 1}b`, text: `Pilihan B soal ${i + 1}`, order: 1 },
+        { id: `post-opt-${i + 1}c`, text: `Pilihan C soal ${i + 1}`, order: 2 },
+        { id: `post-opt-${i + 1}d`, text: `Pilihan D soal ${i + 1}`, order: 3 },
+      ] : [],
+    };
+  });
 
   return NextResponse.json(questions);
 }

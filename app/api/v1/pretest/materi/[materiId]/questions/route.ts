@@ -7,28 +7,23 @@ export async function GET(
   const { materiId } = await params;
   await new Promise((resolve) => setTimeout(resolve, 300));
 
-  const questions = [
-    { id: 'pre-q1', text: 'Manakah yang merupakan bentuk persamaan linear satu variabel?', options: [
-      { id: 'pre-opt-1a', text: '2x + 3 = 7', order: 0 }, { id: 'pre-opt-1b', text: 'x² + 2x = 0', order: 1 },
-      { id: 'pre-opt-1c', text: 'sin(x) = 0.5', order: 2 }, { id: 'pre-opt-1d', text: 'log(x) = 2', order: 3 },
-    ]},
-    { id: 'pre-q2', text: 'Jika 3x - 6 = 0, maka x = ...', options: [
-      { id: 'pre-opt-2a', text: '1', order: 0 }, { id: 'pre-opt-2b', text: '2', order: 1 },
-      { id: 'pre-opt-2c', text: '3', order: 2 }, { id: 'pre-opt-2d', text: '6', order: 3 },
-    ]},
-    { id: 'pre-q3', text: 'Himpunan penyelesaian dari x + 5 > 8 adalah...', options: [
-      { id: 'pre-opt-3a', text: 'x > 3', order: 0 }, { id: 'pre-opt-3b', text: 'x > 2', order: 1 },
-      { id: 'pre-opt-3c', text: 'x < 3', order: 2 }, { id: 'pre-opt-3d', text: 'x > 13', order: 3 },
-    ]},
-    { id: 'pre-q4', text: 'Sistem persamaan x + y = 5 dan x - y = 1, nilai x adalah...', options: [
-      { id: 'pre-opt-4a', text: '2', order: 0 }, { id: 'pre-opt-4b', text: '3', order: 1 },
-      { id: 'pre-opt-4c', text: '4', order: 2 }, { id: 'pre-opt-4d', text: '5', order: 3 },
-    ]},
-    { id: 'pre-q5', text: 'Gradien garis y = 2x + 1 adalah...', options: [
-      { id: 'pre-opt-5a', text: '1', order: 0 }, { id: 'pre-opt-5b', text: '2', order: 1 },
-      { id: 'pre-opt-5c', text: '3', order: 2 }, { id: 'pre-opt-5d', text: '-1', order: 3 },
-    ]},
-  ];
+  // Generate 20 questions for Pre Test
+  const babLabels = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika', 'Statistika'];
+  const questions = Array.from({ length: 20 }, (_, i) => {
+    const babIndex = Math.floor(i / 5); // 5 soal per bab
+    return {
+      id: `pre-q${i + 1}`,
+      text: `Soal Pre Test nomor ${i + 1} — Tentang ${babLabels[babIndex] || 'Umum'}. Manakah jawaban yang paling tepat?`,
+      questionType: 'MULTIPLE_CHOICE',
+      materiLabel: babLabels[babIndex] || 'Umum',
+      options: [
+        { id: `pre-opt-${i + 1}a`, text: `Pilihan A soal ${i + 1}`, order: 0 },
+        { id: `pre-opt-${i + 1}b`, text: `Pilihan B soal ${i + 1}`, order: 1 },
+        { id: `pre-opt-${i + 1}c`, text: `Pilihan C soal ${i + 1}`, order: 2 },
+        { id: `pre-opt-${i + 1}d`, text: `Pilihan D soal ${i + 1}`, order: 3 },
+      ],
+    };
+  });
 
   return NextResponse.json(questions);
 }
