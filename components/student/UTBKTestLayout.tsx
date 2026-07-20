@@ -71,7 +71,7 @@ export function UTBKTestLayout({
   );
 
   return (
-    <div className="flex flex-col h-[calc(100vh-7rem)] w-full">
+    <div className="flex flex-col h-[calc(100vh-4.5rem)] w-full">
       {/* TOP BAR */}
       <div className="shrink-0 flex items-center justify-between px-3 sm:px-4 py-2 border-b border-border bg-white">
         <div className="flex items-center gap-2">
@@ -91,7 +91,7 @@ export function UTBKTestLayout({
       {/* MAIN CONTENT */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left: Question (scrollable) */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-5">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-4">
           {currentQuestion.materiLabel && (
             <span className="sm:hidden inline-flex items-center rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-medium text-primary-700 mb-2">
               {currentQuestion.materiLabel}
@@ -133,9 +133,9 @@ export function UTBKTestLayout({
           </Button>
 
           {/* Mobile: drawer trigger */}
-          <button onClick={() => setDrawerOpen(!drawerOpen)} className="lg:hidden flex items-center gap-1 text-xs font-medium text-muted-foreground px-3 py-1.5 rounded-full border border-border bg-gray-50">
+          <button onClick={() => setDrawerOpen(!drawerOpen)} className="lg:hidden flex items-center gap-1.5 text-xs font-semibold text-primary-700 px-3 py-1.5 rounded-full border-2 border-primary-200 bg-primary-50">
             Soal {currentIndex + 1}/{totalQuestions}
-            {drawerOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronUp className="h-3 w-3" />}
+            {drawerOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronUp className="h-3.5 w-3.5" />}
           </button>
 
           {/* Desktop: submit inline */}
@@ -155,7 +155,12 @@ export function UTBKTestLayout({
         {/* Mobile drawer */}
         {drawerOpen && (
           <div className="lg:hidden border-t border-border bg-white px-3 py-3 animate-in slide-in-from-bottom-2">
-            <p className="text-xs font-semibold text-muted-foreground mb-2">Nomor Soal</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-muted-foreground">Nomor Soal</p>
+              <button onClick={() => setDrawerOpen(false)} className="text-xs font-medium text-primary-600 px-2 py-1 rounded hover:bg-primary-50">
+                Tutup ✕
+              </button>
+            </div>
             {NumberGrid}
           </div>
         )}
