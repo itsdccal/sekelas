@@ -17,11 +17,14 @@ export type {
 
 export type {
   QuizType,
+  QuestionType,
   QuestionPattern,
   Question,
   QuestionOption,
   QuizSubmission,
+  QuizAnswer,
   QuizResult,
+  QuizReviewItem,
   PreTestSubmission,
   PreTestResult,
   PostTestSubmission,

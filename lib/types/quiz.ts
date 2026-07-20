@@ -2,6 +2,8 @@ import type { ChapterStatus } from './progress';
 
 export type QuizType = 'PRE_TEST' | 'POST_TEST' | 'CHAPTER_QUIZ';
 
+export type QuestionType = 'MULTIPLE_CHOICE' | 'ESSAY' | 'SHORT_ANSWER';
+
 export interface QuestionPattern {
   id: string;
   chapterId?: string; // for CHAPTER_QUIZ
@@ -16,9 +18,11 @@ export interface Question {
   id: string;
   patternId: string;
   text: string; // max 1000 chars
-  options: QuestionOption[];
-  correctOptionId?: string; // only for CHAPTER_QUIZ and POST_TEST (admin only)
+  questionType?: QuestionType; // tipe soal (default: MULTIPLE_CHOICE)
+  options: QuestionOption[]; // only for MULTIPLE_CHOICE
+  correctOptionId?: string; // only for MULTIPLE_CHOICE (admin only)
   xpPerQuestion?: number; // 0-1000, only for CHAPTER_QUIZ and POST_TEST
+  materiLabel?: string; // label materi asal (for Pre/Post Test UTBK-style)
 }
 
 export interface QuestionOption {
@@ -29,16 +33,33 @@ export interface QuestionOption {
 
 export interface QuizSubmission {
   chapterId: string;
-  answers: { questionId: string; selectedOptionId: string }[];
+  answers: QuizAnswer[];
+}
+
+export interface QuizAnswer {
+  questionId: string;
+  selectedOptionId?: string; // for MULTIPLE_CHOICE
+  textAnswer?: string; // for ESSAY and SHORT_ANSWER
 }
 
 export interface QuizResult {
-  status: 'PASSED' | 'FAILED';
-  score: number; // 0-100 percentage
+  status: 'PASSED' | 'FAILED' | 'PENDING_REVIEW';
+  score: number; // 0-100 percentage (only for auto-graded questions)
   passingGrade: number;
   nextStatus: ChapterStatus;
   message: string;
   xpEarned?: number;
+  reviewDetails?: QuizReviewItem[]; // only when PASSED, shows correct/incorrect per question
+}
+
+export interface QuizReviewItem {
+  questionId: string;
+  questionText: string;
+  questionType: QuestionType;
+  isCorrect: boolean | null; // null = pending review (essay/short answer)
+  selectedOptionId?: string;
+  correctOptionId?: string;
+  textAnswer?: string;
 }
 
 // --- Pre Test Types (level Materi) ---
