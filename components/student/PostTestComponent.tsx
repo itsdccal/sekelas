@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { posttestApi } from '@/lib/api';
+import { TimerDisplay } from '@/components/student/TimerDisplay';
+import { useTimer } from '@/lib/hooks/useTimer';
 import type { Question, PostTestResult } from '@/lib/types';
 
 interface PostTestComponentProps {
@@ -24,6 +26,19 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Timer: 20 minutes for post test
+  const handleTimeUp = useCallback(() => {
+    if (questions.length > 0 && Object.keys(answers).length > 0) {
+      const submission = {
+        materiId,
+        answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId })),
+      };
+      posttestApi.submitPostTest(submission).then(onComplete).catch(() => {});
+    }
+  }, [questions.length, answers, materiId, onComplete]);
+
+  const timer = useTimer(20, handleTimeUp, !isLoading && questions.length > 0);
 
   // Load questions on mount
   useEffect(() => {
@@ -150,14 +165,17 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
         </p>
       </div>
 
-      {/* Progress */}
+      {/* Progress + Timer */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
           Soal {currentIndex + 1} dari {totalQuestions}
         </span>
-        <span className="text-sm font-medium" aria-live="polite" aria-atomic="true">
-          {answeredCount}/{totalQuestions} terjawab
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium" aria-live="polite" aria-atomic="true">
+            {answeredCount}/{totalQuestions} terjawab
+          </span>
+          <TimerDisplay formatted={timer.formatted} isWarning={timer.isWarning} />
+        </div>
       </div>
 
       {/* Question */}

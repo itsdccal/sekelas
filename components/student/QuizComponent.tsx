@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useQuizStore } from '@/stores';
 import { Button } from '@/components/ui/button';
+import { TimerDisplay } from '@/components/student/TimerDisplay';
+import { useTimer } from '@/lib/hooks/useTimer';
 import type { QuizResult } from '@/lib/types';
 
 interface QuizComponentProps {
@@ -24,6 +26,16 @@ export function QuizComponent({ chapterId, onComplete }: QuizComponentProps) {
   } = useQuizStore();
 
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Timer: 5 minutes for quiz chapter
+  const handleTimeUp = useCallback(() => {
+    // Auto-submit when time runs out
+    if (questions.length > 0) {
+      submitQuiz(chapterId).then(onComplete).catch(() => {});
+    }
+  }, [questions.length, submitQuiz, chapterId, onComplete]);
+
+  const timer = useTimer(5, handleTimeUp, !isLoading && questions.length > 0);
 
   // Load questions on mount
   useEffect(() => {
@@ -117,18 +129,17 @@ export function QuizComponent({ chapterId, onComplete }: QuizComponentProps) {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
-      {/* Answer counter */}
+      {/* Answer counter + Timer */}
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">
           Soal {currentIndex + 1} dari {totalQuestions}
         </span>
-        <span
-          className="text-sm font-medium"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {answeredCount}/{totalQuestions} terjawab
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium" aria-live="polite" aria-atomic="true">
+            {answeredCount}/{totalQuestions} terjawab
+          </span>
+          <TimerDisplay formatted={timer.formatted} isWarning={timer.isWarning} />
+        </div>
       </div>
 
       {/* Question text */}
