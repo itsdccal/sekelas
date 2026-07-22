@@ -32,6 +32,15 @@ export async function GET(
       { id: 'pattern-6', name: 'Newton I Konsep', description: 'Soal konseptual hukum inersia', chapterId: 'ch-10', questionCount: 5, createdAt: '2024-01-13T08:00:00Z', updatedAt: '2024-01-16T10:00:00Z' },
       { id: 'pattern-7', name: 'Newton I Hitungan', description: 'Soal hitungan sederhana hukum Newton I', chapterId: 'ch-10', questionCount: 3, createdAt: '2024-01-13T08:00:00Z', updatedAt: '2024-01-14T09:00:00Z' },
     ],
+    // Pre Test mock data (materiId as key)
+    'materi-1': [
+      { id: 'pattern-pre-1', name: 'Aljabar Dasar', description: 'Soal pre test aljabar untuk penempatan level', chapterId: 'materi-1', questionCount: 4, createdAt: '2024-01-05T08:00:00Z', updatedAt: '2024-01-06T10:00:00Z' },
+      { id: 'pattern-pre-2', name: 'Geometri Dasar', description: 'Soal pre test geometri bangun datar dan ruang', chapterId: 'materi-1', questionCount: 3, createdAt: '2024-01-05T08:00:00Z', updatedAt: '2024-01-06T10:00:00Z' },
+    ],
+    'materi-2': [
+      { id: 'pattern-pre-3', name: 'Kinematika', description: 'Soal pre test gerak lurus dan gerak parabola', chapterId: 'materi-2', questionCount: 3, createdAt: '2024-01-06T08:00:00Z', updatedAt: '2024-01-07T10:00:00Z' },
+      { id: 'pattern-pre-4', name: 'Dinamika', description: 'Soal pre test gaya dan hukum Newton', chapterId: 'materi-2', questionCount: 3, createdAt: '2024-01-06T08:00:00Z', updatedAt: '2024-01-07T10:00:00Z' },
+    ],
   };
 
   const patterns = (patternsByChapter[chapterId] || []).map(p => ({
