@@ -266,6 +266,7 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
     options: { text: string; order: number }[];
     correctOptionIndex: number | null;
     xpPerQuestion: number;
+    weight: number;
   }) => {
     await adminApi.createQuestion({
       patternId: pattern.id,
@@ -282,6 +283,7 @@ function QuestionListView({ pattern, onBack, onRefreshPatterns }: QuestionListVi
     options: { text: string; order: number }[];
     correctOptionIndex: number | null;
     xpPerQuestion: number;
+    weight: number;
   }) => {
     if (!editingQuestion) return;
     await adminApi.updateQuestion(editingQuestion.id, data);

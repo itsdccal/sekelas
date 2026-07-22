@@ -717,7 +717,8 @@ Buat soal baru.
     { "text": "string (max 500)", "order": "number" }
   ],
   "correctOptionIndex": "number (0-based index dari options array)",
-  "xpPerQuestion": "number (0-1000, default 0)"
+  "xpPerQuestion": "number (0-1000, default 0)",
+  "weight": "number (1-10, bobot soal terhadap skor total, default 1)"
 }
 ```
 
@@ -733,7 +734,8 @@ Update soal.
   "text": "string",
   "options": [{ "text": "string", "order": "number" }],
   "correctOptionIndex": "number",
-  "xpPerQuestion": "number"
+  "xpPerQuestion": "number",
+  "weight": "number (1-10)"
 }
 ```
 
@@ -1171,6 +1173,24 @@ IN_PROGRESS → COMPLETED (Post Test lulus)
 - Quiz/Post Test: XP = sum(xpPerQuestion) untuk soal yang dijawab benar
 - Pre Test skip: XP = total XP dari semua chapter yang dilewati
 - Video completion: bisa berikan XP tambahan (configurable)
+
+### Score Calculation (Bobot Nilai)
+
+Skor kuis/post test dihitung berdasarkan bobot (weight) per soal:
+
+```
+Skor = (sum of weight soal yang benar / sum of weight seluruh soal) × 100%
+```
+
+**Contoh:**
+- Soal 1 (weight: 1) → benar
+- Soal 2 (weight: 3) → salah
+- Soal 3 (weight: 2) → benar
+- Total weight benar = 1 + 2 = 3
+- Total weight semua = 1 + 3 + 2 = 6
+- Skor = (3/6) × 100 = 50%
+
+Jika semua soal memiliki weight = 1 (default), maka skor = persentase soal benar biasa.
 
 ---
 

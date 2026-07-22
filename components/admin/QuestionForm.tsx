@@ -24,6 +24,7 @@ export interface QuestionFormProps {
     options: { text: string; order: number }[];
     correctOptionIndex: number | null;
     xpPerQuestion: number;
+    weight: number;
   }) => Promise<void>;
   initialData?: Question;
   quizType?: QuizType;
@@ -71,6 +72,7 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
   const [options, setOptions] = useState<string[]>(["", "", "", ""]);
   const [correctOptionIndex, setCorrectOptionIndex] = useState<number | null>(null);
   const [xpPerQuestion, setXpPerQuestion] = useState(0);
+  const [weight, setWeight] = useState(1);
   const [showPreview, setShowPreview] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -93,10 +95,11 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
           setCorrectOptionIndex(idx >= 0 ? idx : null);
         } else { setCorrectOptionIndex(null); }
         setXpPerQuestion(initialData.xpPerQuestion ?? 0);
+        setWeight(initialData.weight ?? 1);
       } else {
         setQuestionType('MULTIPLE_CHOICE');
         setText(""); setImageUrl(""); setOptions(["", "", "", ""]);
-        setCorrectOptionIndex(null); setXpPerQuestion(0);
+        setCorrectOptionIndex(null); setXpPerQuestion(0); setWeight(1);
       }
       setShowPreview(false); setErrors({}); setApiError(null);
     }
@@ -131,6 +134,10 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
       newErrors.xpPerQuestion = 'XP harus antara 0–1000';
     }
 
+    if (weight < 1 || weight > 10 || !Number.isInteger(weight)) {
+      newErrors.weight = 'Bobot harus bilangan bulat antara 1–10';
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
 
@@ -143,6 +150,7 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
         options: showOptions ? options.map((t, i) => ({ text: t, order: i + 1 })) : [],
         correctOptionIndex: showCorrectOption ? correctOptionIndex : null,
         xpPerQuestion: showXpField ? xpPerQuestion : 0,
+        weight,
       });
       onOpenChange(false);
     } catch (err: unknown) {
@@ -306,6 +314,19 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
               {errors.xpPerQuestion && <p className="text-xs text-red-600">{errors.xpPerQuestion}</p>}
             </div>
           )}
+
+          {/* Weight / Bobot Nilai */}
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
+            <span className="inline-flex items-center justify-center h-7 w-7 rounded-full bg-blue-100">
+              <span className="text-xs">⚖</span>
+            </span>
+            <label htmlFor="questionWeight" className="text-sm font-medium whitespace-nowrap">Bobot Nilai</label>
+            <input id="questionWeight" type="number" min={1} max={10} value={weight}
+              onChange={(e) => setWeight(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+              className="h-9 w-16 rounded-md border border-input bg-background px-3 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+            <span className="text-xs text-muted-foreground">1–10</span>
+            {errors.weight && <p className="text-xs text-red-600">{errors.weight}</p>}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Batal</Button>

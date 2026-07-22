@@ -110,6 +110,7 @@ export async function createQuestion(data: {
   options: { text: string; order: number }[];
   correctOptionIndex: number | null;
   xpPerQuestion?: number;
+  weight?: number;
 }): Promise<Question> {
   const response = await apiClient.post<Question>('/api/v1/admin/quiz/questions', data);
   return response.data;
@@ -122,6 +123,7 @@ export async function updateQuestion(questionId: string, data: {
   options?: { text: string; order: number }[];
   correctOptionIndex?: number | null;
   xpPerQuestion?: number;
+  weight?: number;
 }): Promise<Question> {
   const response = await apiClient.put<Question>(`/api/v1/admin/quiz/questions/${questionId}`, data);
   return response.data;

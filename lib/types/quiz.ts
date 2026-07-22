@@ -22,6 +22,7 @@ export interface Question {
   options: QuestionOption[]; // only for MULTIPLE_CHOICE
   correctOptionId?: string; // only for MULTIPLE_CHOICE (admin only)
   xpPerQuestion?: number; // 0-1000, only for CHAPTER_QUIZ and POST_TEST
+  weight?: number; // 1-10, weight of question toward total score (default 1)
   materiLabel?: string; // label materi asal (for Pre/Post Test UTBK-style)
   imageUrl?: string; // URL gambar soal (optional)
 }
