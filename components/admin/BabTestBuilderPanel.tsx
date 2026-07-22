@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, ChevronRight, Loader2, ClipboardList, Settings } from "lucide-react";
+import { Plus, ChevronRight, Loader2, ClipboardList, Clock, Target, GripVertical, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription,
@@ -10,82 +10,61 @@ import { QuestionForm } from "./QuestionForm";
 import { adminApi } from "@/lib/api";
 import type { QuestionPattern, Question, QuizType } from "@/lib/types";
 
-// --- Props ---
+// --- Types ---
 
 export interface BabTestBuilderPanelProps {
-  babId: string; // materiId for PRE_TEST/POST_TEST, babId for others
+  babId: string;
   quizType: 'PRE_TEST' | 'POST_TEST';
 }
 
-const TYPE_LABELS: Record<string, string> = {
-  PRE_TEST: 'Pre Test',
-  POST_TEST: 'Post Test',
-};
+const TYPE_LABELS: Record<string, string> = { PRE_TEST: 'Pre Test', POST_TEST: 'Post Test' };
 
-const TYPE_CONFIG: Record<string, { defaultQuestions: number; timerMinutes: number }> = {
-  PRE_TEST: { defaultQuestions: 20, timerMinutes: 20 },
-  POST_TEST: { defaultQuestions: 20, timerMinutes: 20 },
-};
+// --- Subtest Form Dialog ---
 
-type SelectionMode = 'RANDOM' | 'MANUAL';
-
-interface TopicAllocation {
-  patternId: string;
-  count: number;
-}
-
-// --- Topic Form ---
-
-function generatePatternCode(name: string, existingCodes: string[]): string {
-  const base = name.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-').slice(0, 40);
-  if (!base) return `topik-${Date.now()}`;
-  let code = base; let counter = 2;
-  while (existingCodes.includes(code)) { code = `${base}-${counter}`; counter++; }
-  return code;
-}
-
-function TopicFormDialog({ open, onOpenChange, existingCodes, onSubmit }: {
+function SubtestFormDialog({ open, onOpenChange, existingCodes, onSubmit }: {
   open: boolean; onOpenChange: (o: boolean) => void; existingCodes: string[];
   onSubmit: (data: { patternCode: string; description: string }) => Promise<void>;
 }) {
-  const [topicName, setTopicName] = useState("");
+  const [name, setName] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setApiError(null);
-    const trimmed = topicName.trim();
-    const newErrors: Record<string, string> = {};
-    if (!trimmed) newErrors.topicName = "Nama topik wajib diisi";
-    setErrors(newErrors);
-    if (Object.keys(newErrors).length > 0) return;
-
+    const trimmed = name.trim();
+    if (!trimmed) { setErrors({ name: "Nama subtest wajib diisi" }); return; }
+    setErrors({});
     setIsSubmitting(true);
+    const code = trimmed.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '-').slice(0, 40) || `subtest-${Date.now()}`;
+    let finalCode = code; let counter = 2;
+    while (existingCodes.includes(finalCode)) { finalCode = `${code}-${counter}`; counter++; }
     try {
-      await onSubmit({ patternCode: generatePatternCode(trimmed, existingCodes), description: trimmed });
-      setTopicName(""); onOpenChange(false);
+      await onSubmit({ patternCode: finalCode, description: trimmed });
+      setName(""); onOpenChange(false);
     } catch (err: unknown) { setApiError(err instanceof Error ? err.message : "Gagal menyimpan"); }
     finally { setIsSubmitting(false); }
   };
 
-  useEffect(() => { if (open) { setTopicName(""); setErrors({}); setApiError(null); } }, [open]);
+  useEffect(() => { if (open) { setName(""); setErrors({}); setApiError(null); } }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Buat Topik Baru</DialogTitle>
-          <DialogDescription>Setiap topik berisi variasi soal yang diacak saat tes berlangsung.</DialogDescription>
+          <DialogTitle>Buat Subtest Baru</DialogTitle>
+          <DialogDescription>
+            Subtest mengelompokkan soal berdasarkan kategori (contoh: TU, PU, PPU, Literasi, dll).
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           {apiError && <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">{apiError}</div>}
           <div className="space-y-1.5">
-            <label htmlFor="topicName" className="text-sm font-medium">Nama Topik *</label>
-            <input id="topicName" type="text" value={topicName} onChange={(e) => setTopicName(e.target.value)} maxLength={100}
+            <label htmlFor="subtestName" className="text-sm font-medium">Nama Subtest *</label>
+            <input id="subtestName" type="text" value={name} onChange={(e) => setName(e.target.value)} maxLength={100}
               className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
-              placeholder="Contoh: Persamaan Linear Satu Variabel" />
-            {errors.topicName && <p className="text-xs text-red-600">{errors.topicName}</p>}
+              placeholder="Contoh: Tes Potensi Skolastik — Penalaran Umum" />
+            {errors.name && <p className="text-xs text-red-600">{errors.name}</p>}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>Batal</Button>
@@ -97,19 +76,32 @@ function TopicFormDialog({ open, onOpenChange, existingCodes, onSubmit }: {
   );
 }
 
-// --- Question List ---
+// --- Question List (manages questions inside a subtest — no pattern randomization) ---
 
-function QuestionListView({ pattern, quizType, onBack, onRefresh }: {
+function SubtestQuestionList({ pattern, quizType, onBack, onRefresh }: {
   pattern: QuestionPattern; quizType: QuizType; onBack: () => void; onRefresh: () => void;
 }) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editing, setEditing] = useState<Question | null>(null);
+  // Track which questions are "active" (will appear in test)
+  const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
+  // Track per-question weight overrides
+  const [weights, setWeights] = useState<Record<string, number>>({});
 
   const fetchQ = useCallback(async () => {
     setIsLoading(true);
-    try { setQuestions(await adminApi.getQuestions(pattern.id)); } catch {}
+    try {
+      const data = await adminApi.getQuestions(pattern.id);
+      setQuestions(data);
+      // Default: all questions active
+      setActiveIds(new Set(data.map(q => q.id)));
+      // Init weights from question data
+      const w: Record<string, number> = {};
+      data.forEach(q => { w[q.id] = q.weight ?? 1; });
+      setWeights(w);
+    } catch {}
     finally { setIsLoading(false); }
   }, [pattern.id]);
 
@@ -122,36 +114,92 @@ function QuestionListView({ pattern, quizType, onBack, onRefresh }: {
     if (!editing) return; await adminApi.updateQuestion(editing.id, data); await fetchQ(); setEditing(null);
   };
 
+  const toggleActive = (id: string) => {
+    setActiveIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleWeightChange = (id: string, value: number) => {
+    setWeights(prev => ({ ...prev, [id]: value }));
+  };
+
+  const activeCount = activeIds.size;
+  const totalWeight = questions.filter(q => activeIds.has(q.id)).reduce((s, q) => s + (weights[q.id] ?? 1), 0);
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center gap-4 pb-4 border-b">
-        <Button variant="outline" size="sm" onClick={onBack}>← Kembali</Button>
-        <div>
-          <h3 className="text-base font-semibold">{pattern.description || pattern.patternCode}</h3>
-          <span className="text-xs text-muted-foreground">{questions.length} soal</span>
+      {/* Header */}
+      <div className="flex items-center justify-between pb-4 border-b">
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" onClick={onBack}>← Kembali</Button>
+          <div>
+            <h3 className="text-base font-semibold">{pattern.description || pattern.patternCode}</h3>
+            <p className="text-xs text-muted-foreground">
+              {activeCount}/{questions.length} soal aktif • Total bobot: {totalWeight}
+            </p>
+          </div>
         </div>
-      </div>
-      <div className="flex justify-end">
         <Button onClick={() => setIsFormOpen(true)}><Plus className="h-4 w-4" /> Tambah Soal</Button>
       </div>
+
+      {/* Question list */}
       {isLoading ? (
         <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />)}</div>
       ) : questions.length === 0 ? (
-        <div className="rounded-xl border-2 border-dashed p-10 text-center"><p className="text-sm text-muted-foreground">Belum ada soal</p></div>
+        <div className="rounded-xl border-2 border-dashed p-10 text-center">
+          <p className="text-sm text-muted-foreground">Belum ada soal di subtest ini</p>
+        </div>
       ) : (
         <div className="space-y-2">
-          {questions.map((q, idx) => (
-            <div key={q.id} className="rounded-lg border bg-white p-4 flex items-start gap-3">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-xs font-bold shrink-0">{idx + 1}</span>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{q.text}</p>
-                <p className="text-xs text-muted-foreground mt-1">{q.options.length} opsi{q.xpPerQuestion ? ` • ${q.xpPerQuestion} XP` : ''}</p>
+          {questions.map((q, idx) => {
+            const isActive = activeIds.has(q.id);
+            return (
+              <div key={q.id} className={`rounded-lg border p-4 flex items-start gap-3 transition-all ${
+                isActive ? 'bg-white border-border' : 'bg-gray-50 border-gray-200 opacity-60'
+              }`}>
+                {/* Toggle active */}
+                <button type="button" onClick={() => toggleActive(q.id)}
+                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
+                    isActive ? 'border-primary-600 bg-primary-600' : 'border-gray-300 bg-white'
+                  }`}
+                  aria-label={isActive ? 'Nonaktifkan soal' : 'Aktifkan soal'}
+                >
+                  {isActive && (
+                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* Question number */}
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary-100 text-primary-700 text-[11px] font-bold shrink-0">{idx + 1}</span>
+
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{q.text}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{q.options.length} opsi</p>
+                </div>
+
+                {/* Weight control */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className="text-[10px] text-muted-foreground">Bobot</span>
+                  <input type="number" min={1} max={100} value={weights[q.id] ?? 1}
+                    onChange={(e) => handleWeightChange(q.id, Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
+                    disabled={!isActive}
+                    className="h-7 w-12 rounded border border-input px-1 text-xs text-center font-semibold focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-500 disabled:opacity-40" />
+                </div>
+
+                {/* Edit button */}
+                <Button size="sm" variant="ghost" className="shrink-0 h-7 px-2 text-xs" onClick={() => { setEditing(q); setIsFormOpen(true); }}>Ubah</Button>
               </div>
-              <Button size="sm" onClick={() => { setEditing(q); setIsFormOpen(true); }}>Ubah</Button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
       <QuestionForm open={isFormOpen} onOpenChange={(o) => { setIsFormOpen(o); if (!o) setEditing(null); }}
         onSubmit={editing ? handleUpdate : handleCreate} initialData={editing ?? undefined} quizType={quizType} />
     </div>
@@ -164,199 +212,87 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
   const [patterns, setPatterns] = useState<QuestionPattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isTopicFormOpen, setIsTopicFormOpen] = useState(false);
-  const [selectedPattern, setSelectedPattern] = useState<QuestionPattern | null>(null);
+  const [isSubtestFormOpen, setIsSubtestFormOpen] = useState(false);
+  const [selectedSubtest, setSelectedSubtest] = useState<QuestionPattern | null>(null);
+
+  // Config
+  const [timerMinutes, setTimerMinutes] = useState(20);
   const [passingGrade, setPassingGrade] = useState(70);
 
-  // Enhanced config state
-  const [totalQuestionLimit, setTotalQuestionLimit] = useState(TYPE_CONFIG[quizType].defaultQuestions);
-  const [timerMinutes, setTimerMinutes] = useState(TYPE_CONFIG[quizType].timerMinutes);
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>('RANDOM');
-  const [topicAllocations, setTopicAllocations] = useState<TopicAllocation[]>([]);
-  const [showConfigEdit, setShowConfigEdit] = useState(false);
-
   const totalQuestions = patterns.reduce((s, p) => s + p.questionCount, 0);
-  const allocatedTotal = topicAllocations.reduce((s, a) => s + a.count, 0);
 
   const fetchPatterns = useCallback(async () => {
     setIsLoading(true); setError(null);
     try { setPatterns(await adminApi.getPatterns(babId)); }
-    catch { setError("Gagal memuat topik soal"); }
+    catch { setError("Gagal memuat subtest"); }
     finally { setIsLoading(false); }
   }, [babId]);
 
   useEffect(() => { fetchPatterns(); }, [fetchPatterns]);
-
-  // Sync allocations when patterns change
-  useEffect(() => {
-    if (patterns.length > 0 && topicAllocations.length === 0) {
-      // Initialize with proportional distribution
-      const perTopic = Math.floor(totalQuestionLimit / patterns.length);
-      const remainder = totalQuestionLimit - (perTopic * patterns.length);
-      setTopicAllocations(patterns.map((p, i) => ({
-        patternId: p.id,
-        count: Math.min(perTopic + (i < remainder ? 1 : 0), p.questionCount),
-      })));
-    }
-  }, [patterns, topicAllocations.length, totalQuestionLimit]);
-
-  const handleAllocationChange = (patternId: string, value: number) => {
-    setTopicAllocations(prev => prev.map(a =>
-      a.patternId === patternId ? { ...a, count: value } : a
-    ));
-  };
 
   const handleCreate = async (data: { patternCode: string; description: string }) => {
     await adminApi.createPattern({ chapterId: babId, patternCode: data.patternCode, description: data.description });
     await fetchPatterns();
   };
 
-  if (selectedPattern) {
-    return <QuestionListView pattern={selectedPattern} quizType={quizType} onBack={() => setSelectedPattern(null)} onRefresh={fetchPatterns} />;
+  // If a subtest is selected, show its question list
+  if (selectedSubtest) {
+    return <SubtestQuestionList pattern={selectedSubtest} quizType={quizType} onBack={() => setSelectedSubtest(null)} onRefresh={fetchPatterns} />;
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between pb-4 border-b">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Bank Soal {TYPE_LABELS[quizType]}</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Kelola topik dan soal untuk {TYPE_LABELS[quizType]}</p>
+          <h2 className="text-lg font-semibold">{TYPE_LABELS[quizType]}</h2>
+          <p className="text-sm text-muted-foreground">
+            {patterns.length} subtest • {totalQuestions} soal total
+          </p>
         </div>
-        <Button onClick={() => setIsTopicFormOpen(true)}><Plus className="h-4 w-4" /> Buat Topik Baru</Button>
+        <Button onClick={() => setIsSubtestFormOpen(true)}>
+          <Plus className="h-4 w-4" /> Tambah Subtest
+        </Button>
       </div>
 
-      {/* Config Section */}
-      <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Settings className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium">Pengaturan Tes</span>
+      {/* Pengaturan */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="rounded-xl border bg-white p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Clock className="h-4 w-4 text-primary-600" />
+            <span className="text-xs font-medium text-muted-foreground">Waktu Pengerjaan</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setShowConfigEdit(!showConfigEdit)}>
-            {showConfigEdit ? 'Tutup' : 'Edit'}
-          </Button>
+          <div className="flex items-baseline gap-1.5">
+            <input type="number" min={5} max={180} value={timerMinutes}
+              onChange={(e) => setTimerMinutes(Math.max(5, Math.min(180, parseInt(e.target.value) || 20)))}
+              aria-label="Durasi dalam menit"
+              className="h-9 w-16 rounded-lg border border-input px-2 text-center text-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" />
+            <span className="text-sm text-muted-foreground">menit</span>
+          </div>
         </div>
 
-        {!showConfigEdit ? (
-          /* Summary view */
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-xs text-muted-foreground">Durasi</span>
-              <p className="font-medium">{timerMinutes} menit</p>
+        {quizType === 'POST_TEST' ? (
+          <div className="rounded-xl border bg-white p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target className="h-4 w-4 text-primary-600" />
+              <span className="text-xs font-medium text-muted-foreground">KKM (Passing Grade)</span>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Jumlah Soal</span>
-              <p className="font-medium">{totalQuestionLimit} soal</p>
+            <div className="flex items-baseline gap-1.5">
+              <input type="number" min={0} max={100} value={passingGrade}
+                onChange={(e) => setPassingGrade(Math.max(0, Math.min(100, parseInt(e.target.value) || 70)))}
+                aria-label="KKM persen"
+                className="h-9 w-16 rounded-lg border border-input px-2 text-center text-lg font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500" />
+              <span className="text-sm text-muted-foreground">%</span>
             </div>
-            <div>
-              <span className="text-xs text-muted-foreground">Mode Seleksi</span>
-              <p className="font-medium">{selectionMode === 'RANDOM' ? 'Acak' : 'Manual'}</p>
-            </div>
-            {quizType === 'POST_TEST' && (
-              <div>
-                <span className="text-xs text-muted-foreground">KKM</span>
-                <p className="font-medium">{passingGrade}%</p>
-              </div>
-            )}
           </div>
         ) : (
-          /* Edit view */
-          <div className="space-y-4">
-            {/* Row 1: Timer + Total Questions + KKM */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-1.5">
-                <label htmlFor="timerMinutes" className="text-xs font-medium text-muted-foreground">Waktu Pengerjaan (menit)</label>
-                <input id="timerMinutes" type="number" min={5} max={180} value={timerMinutes}
-                  onChange={(e) => setTimerMinutes(Math.max(5, Math.min(180, parseInt(e.target.value) || 20)))}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="totalQuestionLimit" className="text-xs font-medium text-muted-foreground">Jumlah Soal Tampil</label>
-                <input id="totalQuestionLimit" type="number" min={1} max={100} value={totalQuestionLimit}
-                  onChange={(e) => setTotalQuestionLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 20)))}
-                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
-                <p className="text-[10px] text-muted-foreground">{totalQuestions} soal tersedia di bank</p>
-              </div>
-              {quizType === 'POST_TEST' && (
-                <div className="space-y-1.5">
-                  <label htmlFor="passingGrade" className="text-xs font-medium text-muted-foreground">KKM (%)</label>
-                  <input id="passingGrade" type="number" min={0} max={100} value={passingGrade}
-                    onChange={(e) => setPassingGrade(Math.max(0, Math.min(100, parseInt(e.target.value) || 70)))}
-                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
-                </div>
-              )}
-            </div>
-
-            {/* Row 2: Selection Mode */}
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground">Mode Pemilihan Soal</label>
-              <div className="flex gap-2">
-                <button type="button" onClick={() => setSelectionMode('RANDOM')}
-                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-                    selectionMode === 'RANDOM'
-                      ? 'bg-primary-600 text-white border-primary-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-primary-300'
-                  }`}>
-                  🎲 Acak per Topik
-                </button>
-                <button type="button" onClick={() => setSelectionMode('MANUAL')}
-                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
-                    selectionMode === 'MANUAL'
-                      ? 'bg-primary-600 text-white border-primary-600'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-primary-300'
-                  }`}>
-                  📋 Semua Soal Tampil
-                </button>
-              </div>
-              <p className="text-[10px] text-muted-foreground">
-                {selectionMode === 'RANDOM'
-                  ? 'Soal dipilih secara acak dari setiap topik sesuai alokasi di bawah. Tiap siswa bisa dapat soal berbeda.'
-                  : 'Semua soal dari bank soal akan ditampilkan ke siswa (tanpa pengacakan jumlah).'}
-              </p>
-            </div>
-
-            {/* Row 3: Per-topic allocation (only for RANDOM mode) */}
-            {selectionMode === 'RANDOM' && patterns.length > 0 && (
-              <div className="space-y-2 rounded-md border bg-white p-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-medium text-muted-foreground">Alokasi Soal per Topik</label>
-                  <span className={`text-xs font-semibold ${allocatedTotal === totalQuestionLimit ? 'text-green-600' : allocatedTotal > totalQuestionLimit ? 'text-red-600' : 'text-amber-600'}`}>
-                    {allocatedTotal}/{totalQuestionLimit} soal teralokasi
-                  </span>
-                </div>
-                <div className="space-y-2">
-                  {patterns.map((p) => {
-                    const alloc = topicAllocations.find(a => a.patternId === p.id);
-                    const currentCount = alloc?.count ?? 0;
-                    return (
-                      <div key={p.id} className="flex items-center gap-3">
-                        <span className="flex-1 text-sm truncate">{p.description || p.patternCode}</span>
-                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">max {p.questionCount}</span>
-                        <input type="number" min={0} max={p.questionCount} value={currentCount}
-                          onChange={(e) => handleAllocationChange(p.id, Math.max(0, Math.min(p.questionCount, parseInt(e.target.value) || 0)))}
-                          className="h-8 w-16 rounded-md border border-input bg-background px-2 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
-                      </div>
-                    );
-                  })}
-                </div>
-                {allocatedTotal !== totalQuestionLimit && (
-                  <p className="text-[10px] text-amber-600">
-                    ⚠ Total alokasi ({allocatedTotal}) belum sesuai jumlah soal tampil ({totalQuestionLimit})
-                  </p>
-                )}
-              </div>
-            )}
-
-            {quizType === 'PRE_TEST' && (
-              <p className="text-xs text-muted-foreground italic">Pre Test tidak memiliki KKM — hasilnya berupa penempatan bab.</p>
-            )}
+          <div className="rounded-xl border bg-white p-4 flex items-center">
+            <p className="text-xs text-muted-foreground">Pre Test tidak memiliki KKM — hasilnya berupa penempatan bab awal siswa.</p>
           </div>
         )}
       </div>
 
-      {/* Stats */}
-      <p className="text-xs text-muted-foreground">{patterns.length} topik • {totalQuestions} soal tersedia</p>
-
+      {/* Daftar Subtest */}
       {error && <div className="rounded-md bg-red-50 p-3 text-sm text-red-700 border border-red-200">{error}</div>}
 
       {isLoading ? (
@@ -364,24 +300,28 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
       ) : patterns.length === 0 ? (
         <div className="rounded-xl border-2 border-dashed p-10 text-center">
           <ClipboardList className="h-10 w-10 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-sm text-muted-foreground">Belum ada topik soal</p>
+          <p className="text-sm text-muted-foreground mb-1">Belum ada subtest</p>
+          <p className="text-xs text-muted-foreground">Buat subtest untuk mulai menambahkan soal.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {patterns.map((p) => (
-            <button key={p.id} onClick={() => setSelectedPattern(p)}
-              className="flex w-full items-center justify-between rounded-lg border border-l-4 border-l-primary-500 bg-white p-4 text-left hover:shadow-md transition-shadow">
-              <div>
-                <span className="text-sm font-medium">{p.description || p.patternCode}</span>
-                <span className="ml-2 text-xs bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full">{p.questionCount} soal</span>
+        <div className="space-y-2">
+          {patterns.map((p, idx) => (
+            <button key={p.id} onClick={() => setSelectedSubtest(p)}
+              className="group flex w-full items-center gap-4 rounded-xl border bg-white p-4 text-left transition-all hover:shadow-md hover:border-primary-200">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-700 font-bold text-sm shrink-0">
+                {p.questionCount}
               </div>
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium group-hover:text-primary-700 transition-colors">{p.description || p.patternCode}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{p.questionCount} soal</p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary-500 transition-colors shrink-0" />
             </button>
           ))}
         </div>
       )}
 
-      <TopicFormDialog open={isTopicFormOpen} onOpenChange={setIsTopicFormOpen} existingCodes={patterns.map(p => p.patternCode)} onSubmit={handleCreate} />
+      <SubtestFormDialog open={isSubtestFormOpen} onOpenChange={setIsSubtestFormOpen} existingCodes={patterns.map(p => p.patternCode)} onSubmit={handleCreate} />
     </div>
   );
 }

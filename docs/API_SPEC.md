@@ -168,6 +168,7 @@ Info video dan progress untuk chapter tertentu.
   "videoDurationMinutes": "number",
   "lastScore": "number | null",
   "quizAttempts": "number",
+  "scoreHistory": "number[] (array skor per percobaan, index 0 = percobaan pertama)",
   "passingGrade": "number",
   "maxAttempts": "number",
   "nextChapterId": "string | null"
@@ -239,6 +240,7 @@ Progress keseluruhan siswa (untuk dashboard dan raport).
               "watchedPercentage": "number",
               "lastScore": "number | null",
               "quizAttempts": "number",
+              "scoreHistory": "number[] (array skor per percobaan, index 0 = percobaan pertama)",
               "videoWatchAttempts": "number",
               "xpEarned": "number"
             }
@@ -693,11 +695,14 @@ Daftar soal dalam topik.
     "id": "string",
     "patternId": "string",
     "text": "string",
+    "questionType": "MULTIPLE_CHOICE | SHORT_ANSWER",
+    "imageUrl": "string | null",
     "options": [
       { "id": "string", "text": "string", "order": "number" }
     ],
     "correctOptionId": "string",
-    "xpPerQuestion": "number"
+    "xpPerQuestion": "number",
+    "weight": "number (1-100, default 1)"
   }
 ]
 ```
@@ -718,7 +723,7 @@ Buat soal baru.
   ],
   "correctOptionIndex": "number (0-based index dari options array)",
   "xpPerQuestion": "number (0-1000, default 0)",
-  "weight": "number (1-10, bobot soal terhadap skor total, default 1)"
+  "weight": "number (1-100, question weight toward total score, default 1)"
 }
 ```
 
@@ -735,7 +740,7 @@ Update soal.
   "options": [{ "text": "string", "order": "number" }],
   "correctOptionIndex": "number",
   "xpPerQuestion": "number",
-  "weight": "number (1-10)"
+  "weight": "number (1-100)"
 }
 ```
 
@@ -745,11 +750,19 @@ Update soal.
 
 ---
 
-## 10. Admin — Quiz Config (Pre Test & Post Test)
+## 10. Admin — Pre Test & Post Test (Subtest Model)
 
-### GET /api/v1/admin/quiz/config/{babId}?type={quizType}
+Pre Test and Post Test use a **subtest** model (not pattern-based randomization like Chapter Quiz). Each subtest contains questions that are directly shown to students — no randomization.
 
-Ambil konfigurasi Pre Test atau Post Test untuk suatu bab.
+### Terminology
+
+- **Subtest**: A category/group of questions (e.g., Penalaran Umum, Literasi Bahasa Indonesia)
+- Subtests are stored as `QuestionPattern` records with `quizType = PRE_TEST | POST_TEST`
+- Questions inside subtests are shown directly (all active questions appear)
+
+### GET /api/v1/admin/quiz/config/{materiId}?type={quizType}
+
+Get Pre Test or Post Test configuration for a materi.
 
 **Query Params:**
 - `type`: `PRE_TEST | POST_TEST` (required)
@@ -758,36 +771,38 @@ Ambil konfigurasi Pre Test atau Post Test untuk suatu bab.
 ```json
 {
   "id": "string",
-  "babId": "string",
+  "materiId": "string",
   "quizType": "PRE_TEST | POST_TEST",
-  "passingGrade": "number (0-100, default 70, hanya untuk POST_TEST)",
-  "distribution": [
+  "timerMinutes": "number (default 135 for UTBK-style)",
+  "passingGrade": "number (0-100, only for POST_TEST, default 70)",
+  "subtests": [
     {
-      "chapterId": "string",
-      "chapterName": "string",
-      "availableQuestions": "number (total soal di Bank Soal chapter ini)",
-      "questionsToTake": "number (berapa soal yang diambil untuk test)"
+      "patternId": "string",
+      "name": "string",
+      "activeQuestionIds": ["string (question IDs that are enabled)"],
+      "questionWeights": { "questionId": "number (1-100)" }
     }
-  ],
-  "totalQuestionsPerSession": "number (sum of all questionsToTake)"
+  ]
 }
 ```
 
 ---
 
-### PUT /api/v1/admin/quiz/config/{babId}
+### PUT /api/v1/admin/quiz/config/{materiId}
 
-Simpan/update konfigurasi Pre Test atau Post Test.
+Save/update Pre Test or Post Test configuration.
 
 **Request Body:**
 ```json
 {
   "quizType": "PRE_TEST | POST_TEST",
-  "passingGrade": "number (0-100, tidak berlaku untuk PRE_TEST)",
-  "distribution": [
+  "timerMinutes": "number (5-180)",
+  "passingGrade": "number (0-100, ignored for PRE_TEST)",
+  "subtests": [
     {
-      "chapterId": "string",
-      "questionsToTake": "number (0 sampai availableQuestions)"
+      "patternId": "string",
+      "activeQuestionIds": ["string"],
+      "questionWeights": { "questionId": "number (1-100)" }
     }
   ]
 }
@@ -795,35 +810,36 @@ Simpan/update konfigurasi Pre Test atau Post Test.
 
 **Response 200:**
 ```json
-{ "message": "Konfigurasi berhasil disimpan" }
+{ "message": "Configuration saved successfully" }
 ```
 
-**Logika backend:**
-- Validasi: `questionsToTake` tidak boleh melebihi jumlah soal yang tersedia di chapter tersebut
-- Validasi: total soal minimal 1
-- Untuk PRE_TEST: abaikan field `passingGrade`
+**Backend validation:**
+- `timerMinutes` must be between 5 and 180
+- `passingGrade` ignored for PRE_TEST
+- `activeQuestionIds` must reference valid questions within the pattern
+- `questionWeights` values must be 1-100
 
 ---
 
-### Cara Backend Mengambil Soal untuk Pre/Post Test
+### How Backend Serves Pre/Post Test to Students
 
-Ketika siswa mengerjakan Pre Test atau Post Test:
+When a student takes a Pre Test or Post Test:
 
-1. Backend baca config distribusi untuk bab tersebut
-2. Untuk setiap entry di `distribution`:
-   - Ambil `questionsToTake` soal secara acak dari Bank Soal chapter yang bersangkutan
-   - Soal diambil dari semua topik (QuestionPattern) yang ada di chapter tersebut
-3. Gabungkan semua soal → kirim ke frontend (tanpa correctOptionId)
-4. Saat siswa submit → backend cek jawaban benar per chapter untuk menentukan:
-   - **Pre Test**: placement (chapter pertama yang soalnya salah)
-   - **Post Test**: skor dan lulus/gagal berdasarkan passingGrade
+1. Backend reads config for the materi
+2. For each subtest: collect only `activeQuestionIds` (questions admin has enabled)
+3. Apply `questionWeights` for scoring calculation
+4. Send all active questions to frontend grouped by subtest (without correctOptionId)
+5. On submit:
+   - **Pre Test**: determine placement (which bab student starts from)
+   - **Post Test**: calculate weighted score, compare against passingGrade
 
 ---
 
-**Catatan Penting:**
-- Pre Test dan Post Test **TIDAK punya Bank Soal sendiri**
-- Soalnya diambil dari Bank Soal per chapter (yang dibuat admin via tab "Kuis Chapter")
-- Jika chapter belum punya soal, Pre/Post Test tidak bisa dijalankan untuk chapter tersebut
+**Key differences from Chapter Quiz:**
+- Pre/Post Test questions are NOT randomized — all active questions appear
+- Questions are grouped by subtest (PU, PM, LBI, LBE etc.)
+- Admin can toggle individual questions on/off and set per-question weights
+- Test is taken only once (no retry via pattern re-roll)
 
 ---
 
@@ -848,7 +864,8 @@ Daftar siswa dengan progres.
       "name": "string",
       "kelas": "string",
       "totalProgress": "number (0-100%)",
-      "totalXP": "number"
+      "totalXP": "number",
+      "averageScore": "number | null (rata-rata nilai quiz, null jika belum pernah quiz)"
     }
   ],
   "total": "number",
@@ -863,7 +880,51 @@ Daftar siswa dengan progres.
 
 Detail progres satu siswa (sama seperti GET /student/progress tapi untuk admin).
 
-**Response 200:** Sama dengan format di section 3 (Student Progress).
+**Response 200:**
+```json
+{
+  "userId": "string",
+  "completedChapters": "number",
+  "totalChapters": "number",
+  "totalXP": "number",
+  "materiProgress": [
+    {
+      "materiId": "string",
+      "materiName": "string",
+      "completionPercentage": "number (0-100)",
+      "babs": [
+        {
+          "babId": "string",
+          "babName": "string",
+          "status": "LOCKED | UNLOCKED | IN_PROGRESS | COMPLETED",
+          "preTestCompleted": "boolean",
+          "postTestCompleted": "boolean",
+          "preTestScore": "number | null",
+          "postTestScore": "number | null",
+          "chapters": [
+            {
+              "chapterId": "string",
+              "status": "LOCKED | UNLOCKED | COMPLETED | REMEDIATION_REQUIRED | READY_FOR_RETAKE",
+              "watchedPercentage": "number (0-100)",
+              "lastScore": "number | null",
+              "quizAttempts": "number",
+              "scoreHistory": "number[] (array skor per percobaan, index 0 = percobaan pertama)",
+              "videoWatchAttempts": "number"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Catatan `scoreHistory`:**
+- Array berisi nilai setiap kali siswa mengerjakan quiz untuk chapter tersebut
+- `scoreHistory[0]` = nilai percobaan pertama, `scoreHistory[1]` = nilai percobaan kedua, dst.
+- `scoreHistory.length` selalu sama dengan `quizAttempts`
+- Jika siswa belum pernah mengerjakan quiz → `scoreHistory: []`
+- Digunakan untuk fitur export Excel monitoring (menampilkan progres nilai per percobaan)
 
 ---
 
