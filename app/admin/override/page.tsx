@@ -32,16 +32,16 @@ export default function OverridePage() {
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="text-lg sm:text-2xl font-semibold text-foreground">
-          Penyesuaian Nilai
+          Catatan Perubahan
         </h1>
         <p className="text-sm text-muted-foreground">
-          Riwayat penyesuaian nilai Chapter yang telah dilakukan oleh admin.
+          Riwayat penyesuaian status Chapter yang telah dilakukan oleh admin.
         </p>
       </div>
 
       {/* Audit Log */}
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-foreground">Riwayat Penyesuaian</h2>
+        <h2 className="text-lg font-semibold text-foreground">Riwayat</h2>
         <AuditLogTable
           entries={auditLog}
           isLoading={isLoading}

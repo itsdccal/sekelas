@@ -37,11 +37,11 @@ function SuccessNotification({
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 shadow-lg"
+      className="fixed top-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 shadow-sm"
       role="status"
       aria-live="polite"
     >
-      ✓ {message}
+      <span className="text-sm text-green-800">{message}</span>
     </div>
   );
 }
