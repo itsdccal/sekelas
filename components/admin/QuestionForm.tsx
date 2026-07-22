@@ -134,8 +134,8 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
       newErrors.xpPerQuestion = 'XP harus antara 0–1000';
     }
 
-    if (weight < 1 || weight > 10 || !Number.isInteger(weight)) {
-      newErrors.weight = 'Bobot harus bilangan bulat antara 1–10';
+    if (weight < 1 || weight > 100 || !Number.isInteger(weight)) {
+      newErrors.weight = 'Bobot harus bilangan bulat antara 1–100';
     }
 
     setErrors(newErrors);
@@ -321,10 +321,10 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
               <span className="text-xs">⚖</span>
             </span>
             <label htmlFor="questionWeight" className="text-sm font-medium whitespace-nowrap">Bobot Nilai</label>
-            <input id="questionWeight" type="number" min={1} max={10} value={weight}
-              onChange={(e) => setWeight(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-              className="h-9 w-16 rounded-md border border-input bg-background px-3 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
-            <span className="text-xs text-muted-foreground">1–10</span>
+            <input id="questionWeight" type="number" min={1} max={100} value={weight}
+              onChange={(e) => setWeight(Math.max(1, Math.min(100, parseInt(e.target.value) || 1)))}
+              className="h-9 w-20 rounded-md border border-input bg-background px-3 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+            <span className="text-xs text-muted-foreground">1–100</span>
             {errors.weight && <p className="text-xs text-red-600">{errors.weight}</p>}
           </div>
 
