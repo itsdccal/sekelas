@@ -218,15 +218,15 @@ Progress keseluruhan siswa (untuk dashboard dan raport).
   "totalChapters": "number",
   "totalXP": "number",
   "currentStreak": "number",
-  "materiProgress": [
+  "subjectProgress": [
     {
       "subjectId": "string",
-      "materiName": "string",
+      "subjectName": "string",
       "completionPercentage": "number (0-100)",
-      "babs": [
+      "sections": [
         {
           "sectionId": "string",
-          "babName": "string",
+          "sectionName": "string",
           "status": "LOCKED | UNLOCKED | IN_PROGRESS | COMPLETED",
           "preTestCompleted": "boolean",
           "postTestCompleted": "boolean",
@@ -285,7 +285,7 @@ Ambil soal quiz untuk chapter. Backend mengambil 1 soal acak dari setiap topik (
     "options": [
       { "id": "string", "text": "string", "order": "number" }
     ],
-    "materiLabel": "string | null (label Subject asal untuk UTBK-style)"
+    "subjectLabel": "string | null (label Subject asal untuk UTBK-style)"
   }
 ]
 ```
@@ -499,8 +499,8 @@ Submit jawaban post test.
   "passingGrade": "number (0-100, dari config admin)",
   "xpEarned": "number",
   "message": "string",
-  "nextBabUnlocked": "boolean",
-  "nextBabId": "string | null",
+  "nextSectionUnlocked": "boolean",
+  "nextSectionId": "string | null",
   "remediationChapterIds": ["string"],
   "remediationChapterNames": ["string"]
 }
@@ -887,15 +887,15 @@ Detail progres satu siswa (sama seperti GET /student/progress tapi untuk admin).
   "completedChapters": "number",
   "totalChapters": "number",
   "totalXP": "number",
-  "materiProgress": [
+  "subjectProgress": [
     {
       "subjectId": "string",
-      "materiName": "string",
+      "subjectName": "string",
       "completionPercentage": "number (0-100)",
-      "babs": [
+      "sections": [
         {
           "sectionId": "string",
-          "babName": "string",
+          "sectionName": "string",
           "status": "LOCKED | UNLOCKED | IN_PROGRESS | COMPLETED",
           "preTestCompleted": "boolean",
           "postTestCompleted": "boolean",

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Mock admin quiz pattern creation endpoint for development.
- * Accepts both chapterId (for chapter quiz) and babId-as-chapterId (for pre/post test).
+ * Accepts both chapterId (for chapter quiz) and sectionId-as-chapterId (for pre/post test).
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -34,3 +34,4 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(newPattern, { status: 201 });
 }
+

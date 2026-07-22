@@ -39,6 +39,7 @@ const mockProgress: StudentProgress = {
               watchedPercentage: 100,
               lastScore: 85,
               quizAttempts: 1,
+              scoreHistory: [85],
               videoWatchAttempts: 1,
             },
             {
@@ -47,6 +48,7 @@ const mockProgress: StudentProgress = {
               watchedPercentage: 100,
               lastScore: 40,
               quizAttempts: 1,
+              scoreHistory: [40],
               videoWatchAttempts: 2,
             },
           ],
@@ -62,6 +64,7 @@ const mockProgress: StudentProgress = {
               watchedPercentage: 0,
               lastScore: null,
               quizAttempts: 0,
+              scoreHistory: [],
               videoWatchAttempts: 0,
             },
           ],

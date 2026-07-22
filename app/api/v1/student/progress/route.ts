@@ -12,15 +12,15 @@ export async function GET() {
     totalChapters: 24,
     totalXP: 1250,
     currentStreak: 5,
-    materiProgress: [
+    subjectProgress: [
       {
-        materiId: 'materi-1',
-        materiName: 'Matematika Dasar',
+        subjectId: 'materi-1',
+        subjectName: 'Matematika Dasar',
         completionPercentage: 60,
-        babs: [
+        sections: [
           {
-            babId: 'bab-1',
-            babName: 'Aljabar Linear',
+            sectionId: 'bab-1',
+            sectionName: 'Aljabar Linear',
             status: 'COMPLETED',
             preTestCompleted: true,
             postTestCompleted: true,
@@ -34,8 +34,8 @@ export async function GET() {
             ],
           },
           {
-            babId: 'bab-2',
-            babName: 'Geometri Dasar',
+            sectionId: 'bab-2',
+            sectionName: 'Geometri Dasar',
             status: 'IN_PROGRESS',
             preTestCompleted: true,
             postTestCompleted: false,
@@ -48,8 +48,8 @@ export async function GET() {
             ],
           },
           {
-            babId: 'bab-3',
-            babName: 'Aritmatika',
+            sectionId: 'bab-3',
+            sectionName: 'Aritmatika',
             status: 'COMPLETED',
             preTestCompleted: true,
             postTestCompleted: true,
@@ -63,13 +63,13 @@ export async function GET() {
         ],
       },
       {
-        materiId: 'materi-2',
-        materiName: 'Fisika Mekanika',
+        subjectId: 'materi-2',
+        subjectName: 'Fisika Mekanika',
         completionPercentage: 25,
-        babs: [
+        sections: [
           {
-            babId: 'bab-4',
-            babName: 'Hukum Newton',
+            sectionId: 'bab-4',
+            sectionName: 'Hukum Newton',
             status: 'IN_PROGRESS',
             preTestCompleted: true,
             postTestCompleted: false,
@@ -82,8 +82,8 @@ export async function GET() {
             ],
           },
           {
-            babId: 'bab-5',
-            babName: 'Gerak Lurus',
+            sectionId: 'bab-5',
+            sectionName: 'Gerak Lurus',
             status: 'LOCKED',
             preTestCompleted: false,
             postTestCompleted: false,
@@ -97,13 +97,13 @@ export async function GET() {
         ],
       },
       {
-        materiId: 'materi-3',
-        materiName: 'Biologi Sel',
+        subjectId: 'materi-3',
+        subjectName: 'Biologi Sel',
         completionPercentage: 0,
-        babs: [
+        sections: [
           {
-            babId: 'bab-6',
-            babName: 'Struktur Sel',
+            sectionId: 'bab-6',
+            sectionName: 'Struktur Sel',
             status: 'LOCKED',
             preTestCompleted: false,
             postTestCompleted: false,

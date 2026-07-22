@@ -19,15 +19,15 @@ export async function GET(
       completedChapters: 7,
       totalChapters: 24,
       totalXP: 1250,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 56,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -40,8 +40,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-2',
-              babName: 'Geometri',
+              sectionId: 'bab-2',
+              sectionName: 'Geometri',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -54,8 +54,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-3',
-              babName: 'Statistika',
+              sectionId: 'bab-3',
+              sectionName: 'Statistika',
               status: 'LOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -70,13 +70,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-2',
-          materiName: 'Fisika Mekanika',
+          subjectId: 'materi-2',
+          subjectName: 'Fisika Mekanika',
           completionPercentage: 40,
-          babs: [
+          sections: [
             {
-              babId: 'bab-4',
-              babName: 'Hukum Newton',
+              sectionId: 'bab-4',
+              sectionName: 'Hukum Newton',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -89,8 +89,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-5',
-              babName: 'Gerak dan Energi',
+              sectionId: 'bab-5',
+              sectionName: 'Gerak dan Energi',
               status: 'LOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -104,13 +104,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-3',
-          materiName: 'Biologi Sel',
+          subjectId: 'materi-3',
+          subjectName: 'Biologi Sel',
           completionPercentage: 0,
-          babs: [
+          sections: [
             {
-              babId: 'bab-6',
-              babName: 'Struktur Sel',
+              sectionId: 'bab-6',
+              sectionName: 'Struktur Sel',
               status: 'LOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -131,15 +131,15 @@ export async function GET(
       completedChapters: 3,
       totalChapters: 24,
       totalXP: 450,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 33,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -152,8 +152,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-2',
-              babName: 'Geometri',
+              sectionId: 'bab-2',
+              sectionName: 'Geometri',
               status: 'LOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -168,13 +168,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-2',
-          materiName: 'Fisika Mekanika',
+          subjectId: 'materi-2',
+          subjectName: 'Fisika Mekanika',
           completionPercentage: 20,
-          babs: [
+          sections: [
             {
-              babId: 'bab-4',
-              babName: 'Hukum Newton',
+              sectionId: 'bab-4',
+              sectionName: 'Hukum Newton',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -195,15 +195,15 @@ export async function GET(
       completedChapters: 18,
       totalChapters: 24,
       totalXP: 2850,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 100,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'COMPLETED',
               preTestCompleted: true,
               postTestCompleted: true,
@@ -216,8 +216,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-2',
-              babName: 'Geometri',
+              sectionId: 'bab-2',
+              sectionName: 'Geometri',
               status: 'COMPLETED',
               preTestCompleted: true,
               postTestCompleted: true,
@@ -230,8 +230,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-3',
-              babName: 'Statistika',
+              sectionId: 'bab-3',
+              sectionName: 'Statistika',
               status: 'COMPLETED',
               preTestCompleted: true,
               postTestCompleted: true,
@@ -246,13 +246,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-2',
-          materiName: 'Fisika Mekanika',
+          subjectId: 'materi-2',
+          subjectName: 'Fisika Mekanika',
           completionPercentage: 80,
-          babs: [
+          sections: [
             {
-              babId: 'bab-4',
-              babName: 'Hukum Newton',
+              sectionId: 'bab-4',
+              sectionName: 'Hukum Newton',
               status: 'COMPLETED',
               preTestCompleted: true,
               postTestCompleted: true,
@@ -265,8 +265,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-5',
-              babName: 'Gerak dan Energi',
+              sectionId: 'bab-5',
+              sectionName: 'Gerak dan Energi',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -280,13 +280,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-3',
-          materiName: 'Biologi Sel',
+          subjectId: 'materi-3',
+          subjectName: 'Biologi Sel',
           completionPercentage: 50,
-          babs: [
+          sections: [
             {
-              babId: 'bab-6',
-              babName: 'Struktur Sel',
+              sectionId: 'bab-6',
+              sectionName: 'Struktur Sel',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -314,15 +314,15 @@ export async function GET(
       completedChapters: 0,
       totalChapters: 24,
       totalXP: 50,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 0,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'UNLOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -343,15 +343,15 @@ export async function GET(
       completedChapters: 2,
       totalChapters: 24,
       totalXP: 280,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 22,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -378,15 +378,15 @@ export async function GET(
       completedChapters: 5,
       totalChapters: 24,
       totalXP: 800,
-      materiProgress: [
+      subjectProgress: [
         {
-          materiId: 'materi-1',
-          materiName: 'Matematika Dasar',
+          subjectId: 'materi-1',
+          subjectName: 'Matematika Dasar',
           completionPercentage: 33,
-          babs: [
+          sections: [
             {
-              babId: 'bab-1',
-              babName: 'Aljabar Dasar',
+              sectionId: 'bab-1',
+              sectionName: 'Aljabar Dasar',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -399,8 +399,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-2',
-              babName: 'Geometri',
+              sectionId: 'bab-2',
+              sectionName: 'Geometri',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,
@@ -413,8 +413,8 @@ export async function GET(
               ],
             },
             {
-              babId: 'bab-3',
-              babName: 'Statistika',
+              sectionId: 'bab-3',
+              sectionName: 'Statistika',
               status: 'LOCKED',
               preTestCompleted: false,
               postTestCompleted: false,
@@ -429,13 +429,13 @@ export async function GET(
           ],
         },
         {
-          materiId: 'materi-2',
-          materiName: 'Fisika Mekanika',
+          subjectId: 'materi-2',
+          subjectName: 'Fisika Mekanika',
           completionPercentage: 20,
-          babs: [
+          sections: [
             {
-              babId: 'bab-4',
-              babName: 'Hukum Newton',
+              sectionId: 'bab-4',
+              sectionName: 'Hukum Newton',
               status: 'IN_PROGRESS',
               preTestCompleted: true,
               postTestCompleted: false,

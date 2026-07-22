@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { materiId, answers } = body;
+  const { subjectId, answers } = body;
 
-  if (!materiId || !answers || !Array.isArray(answers)) {
+  if (!subjectId || !answers || !Array.isArray(answers)) {
     return NextResponse.json(
-      { message: 'Missing required fields: materiId, answers' },
+      { message: 'Missing required fields: subjectId, answers' },
       { status: 400 }
     );
   }
@@ -42,3 +42,4 @@ export async function POST(request: NextRequest) {
     remediationSectionNames: passed ? undefined : ['Geometri Dasar', 'Aritmatika'],
   });
 }
+

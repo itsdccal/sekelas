@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { materiId, answers } = body;
+  const { subjectId, answers } = body;
 
-  if (!materiId || !answers || !Array.isArray(answers)) {
+  if (!subjectId || !answers || !Array.isArray(answers)) {
     return NextResponse.json(
-      { message: 'Missing required fields: materiId, answers' },
+      { message: 'Missing required fields: subjectId, answers' },
       { status: 400 }
     );
   }
@@ -15,31 +15,32 @@ export async function POST(request: NextRequest) {
 
   // Mock placement logic based on answer count
   const answeredCount = answers.length;
-  let startBabIndex = 0;
-  let totalBabsSkipped = 0;
+  let startSectionIndex = 0;
+  let totalSectionsSkipped = 0;
   let xpEarned = 0;
 
   if (answeredCount >= 5) {
-    startBabIndex = 2;
-    totalBabsSkipped = 2;
+    startSectionIndex = 2;
+    totalSectionsSkipped = 2;
     xpEarned = 600;
   } else if (answeredCount >= 3) {
-    startBabIndex = 1;
-    totalBabsSkipped = 1;
+    startSectionIndex = 1;
+    totalSectionsSkipped = 1;
     xpEarned = 300;
   }
 
-  const babNames = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika'];
-  const startBabName = babNames[startBabIndex] || 'Bab Pertama';
+  const sectionNames = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika'];
+  const startsectionName = sectionNames[startSectionIndex] || 'Bab Pertama';
 
   return NextResponse.json({
-    materiId,
-    startBabIndex,
-    startBabName,
-    totalBabsSkipped,
+    subjectId,
+    startSectionIndex,
+    startsectionName,
+    totalSectionsSkipped,
     xpEarned,
-    message: totalBabsSkipped > 0
-      ? `Berdasarkan hasil Pre Test, kamu memulai dari "${startBabName}". Kamu melewati ${totalBabsSkipped} bab dan mendapat ${xpEarned} XP!`
-      : `Kamu akan memulai dari awal: "${startBabName}". Selamat belajar!`,
+    message: totalSectionsSkipped > 0
+      ? `Berdasarkan hasil Pre Test, kamu memulai dari "${startsectionName}". Kamu melewati ${totalSectionsSkipped} bab dan mendapat ${xpEarned} XP!`
+      : `Kamu akan memulai dari awal: "${startsectionName}". Selamat belajar!`,
   });
 }
+

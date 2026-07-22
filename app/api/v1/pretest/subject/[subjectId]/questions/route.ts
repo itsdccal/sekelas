@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ materiId: string }> }
+  { params }: { params: Promise<{ subjectId: string }> }
 ) {
-  const { materiId } = await params;
+  const { subjectId } = await params;
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   const babLabels = ['Aljabar Linear', 'Geometri Dasar', 'Aritmatika', 'Statistika'];

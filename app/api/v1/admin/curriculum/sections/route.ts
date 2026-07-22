@@ -5,11 +5,11 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { name, description, materiId, orderIndex } = body;
+  const { name, description, subjectId, orderIndex } = body;
 
-  if (!name || !materiId) {
+  if (!name || !subjectId) {
     return NextResponse.json(
-      { message: 'Missing required fields: name, materiId' },
+      { message: 'Missing required fields: name, subjectId' },
       { status: 400 }
     );
   }
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     id: `bab-${Date.now()}`,
     name,
     description: description || '',
-    materiId,
+    subjectId,
     orderIndex: orderIndex || 1,
     chapterCount: 0,
     createdAt: new Date().toISOString(),
@@ -30,3 +30,4 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(newBab, { status: 201 });
 }
+
