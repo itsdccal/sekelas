@@ -131,7 +131,13 @@ export default function BabListPage() {
         <Button variant="ghost" size="sm" onClick={() => router.push('/student/kurikulum')}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
-        <h1 className="text-lg font-semibold text-gray-900">Daftar Bab</h1>
+        <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
+          <ol className="flex items-center gap-1">
+            <li><a href="/student/kurikulum" className="hover:text-primary-600">Kurikulum</a></li>
+            <li aria-hidden="true">/</li>
+            <li className="font-medium text-foreground">Daftar Bab</li>
+          </ol>
+        </nav>
       </div>
 
       {babs.length === 0 ? (

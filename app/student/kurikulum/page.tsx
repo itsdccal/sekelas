@@ -109,10 +109,13 @@ export default function KurikulumPage() {
     return (
       <div className="space-y-4">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-white p-10 text-center">
-          <BookOpen className="mb-3 h-10 w-10 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            Belum ada materi tersedia untuk semester ini
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-primary-200 bg-primary-50/50 py-14 text-center">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
+            <BookOpen className="h-7 w-7 text-primary-400" />
+          </div>
+          <p className="mt-4 text-sm font-medium text-foreground">Belum ada materi</p>
+          <p className="mt-1 max-w-xs text-xs text-muted-foreground">
+            Materi untuk semester ini belum tersedia. Hubungi pengajar untuk informasi lebih lanjut.
           </p>
         </div>
       </div>

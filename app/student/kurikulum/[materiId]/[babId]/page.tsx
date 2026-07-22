@@ -97,7 +97,15 @@ export default function ChapterListPage() {
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push(`/student/kurikulum/${materiId}`)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-lg font-bold text-foreground">Daftar Chapter</h1>
+        <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
+          <ol className="flex items-center gap-1">
+            <li><a href="/student/kurikulum" className="hover:text-primary-600">Kurikulum</a></li>
+            <li aria-hidden="true">/</li>
+            <li><a href={`/student/kurikulum/${materiId}`} className="hover:text-primary-600">Bab</a></li>
+            <li aria-hidden="true">/</li>
+            <li className="font-medium text-foreground">Chapter</li>
+          </ol>
+        </nav>
       </div>
 
       {chapters.length > 0 && (

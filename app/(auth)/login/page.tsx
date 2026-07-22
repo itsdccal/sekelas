@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect, type FormEvent } from 'react';
-import { Loader2, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Loader2, Check, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/stores/authStore';
 import { validateLogin } from '@/lib/utils/validation';
 
-// --- Toast Popup Component ---
+// --- Toast Component (minimal, subtle) ---
 function Toast({
   type,
   message,
@@ -18,33 +18,26 @@ function Toast({
   onClose: () => void;
 }) {
   useEffect(() => {
-    const timer = setTimeout(onClose, 3000);
+    const timer = setTimeout(onClose, 4000);
     return () => clearTimeout(timer);
   }, [onClose]);
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 flex items-center gap-3 rounded-lg px-4 py-3 shadow-lg transition-all duration-300 motion-reduce:transition-none ${
+      className={`fixed top-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-lg border px-4 py-2.5 shadow-sm ${
         type === 'success'
-          ? 'bg-green-600 text-white'
-          : 'bg-red-600 text-white'
+          ? 'border-green-200 bg-green-50 text-green-800'
+          : 'border-red-200 bg-red-50 text-red-800'
       }`}
       role="alert"
       aria-live="assertive"
     >
       {type === 'success' ? (
-        <CheckCircle className="h-5 w-5 shrink-0" />
+        <Check className="h-4 w-4 shrink-0" />
       ) : (
-        <XCircle className="h-5 w-5 shrink-0" />
+        <AlertCircle className="h-4 w-4 shrink-0" />
       )}
-      <span className="text-sm font-medium">{message}</span>
-      <button
-        onClick={onClose}
-        className="ml-2 cursor-pointer text-white/80 transition-colors hover:text-white"
-        aria-label="Tutup notifikasi"
-      >
-        ×
-      </button>
+      <span className="text-sm">{message}</span>
     </div>
   );
 }
@@ -57,12 +50,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const [toast, setToast] = useState<{
     type: 'success' | 'error';
     message: string;
   } | null>(null);
 
-  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
     // Client-side validation
@@ -73,6 +67,7 @@ export default function LoginPage() {
     }
 
     setFieldErrors({});
+    setFormError(null);
 
     await login(email, password);
 
@@ -93,13 +88,14 @@ export default function LoginPage() {
         }
       }, 1000);
     } else if (error) {
-      setToast({ type: 'error', message: 'Email atau password salah' });
+      setFormError('Email atau password salah');
+      setToast({ type: 'error', message: 'Login gagal' });
     }
   }
 
   return (
     <>
-      {/* Toast Popup */}
+      {/* Toast */}
       {toast && (
         <Toast
           type={toast.type}
@@ -109,8 +105,7 @@ export default function LoginPage() {
       )}
 
       <div className="mx-auto w-full max-w-md">
-        {/* Card container */}
-        <div className="rounded-2xl border border-border/50 bg-white/80 p-8 shadow-xl backdrop-blur-sm transition-shadow duration-300 hover:shadow-2xl sm:p-10">
+        <div className="rounded-2xl border border-border/50 bg-white/80 p-8 shadow-xl backdrop-blur-sm sm:p-10">
           {/* Logo + Branding */}
           <div className="mb-8 flex flex-col items-center">
             <Image
@@ -127,6 +122,18 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            {/* Inline persistent error */}
+            {formError && (
+              <div
+                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5"
+                role="alert"
+                aria-live="polite"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                <p className="text-sm text-red-700">{formError}</p>
+              </div>
+            )}
+
             {/* Email field */}
             <div className="space-y-1.5">
               <label
@@ -142,6 +149,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
+                  setFormError(null);
                   if (fieldErrors.email) {
                     setFieldErrors((prev) => {
                       const next = { ...prev };
@@ -151,18 +159,14 @@ export default function LoginPage() {
                   }
                 }}
                 disabled={isLoading}
-                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm transition-all duration-150 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                className="h-11 w-full rounded-lg border border-input bg-background px-4 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="nama@email.com"
                 aria-describedby={fieldErrors.email ? 'email-error' : undefined}
                 aria-invalid={!!fieldErrors.email}
                 autoComplete="email"
               />
               {fieldErrors.email && (
-                <p
-                  id="email-error"
-                  className="text-xs text-red-600"
-                  role="alert"
-                >
+                <p id="email-error" className="text-xs text-red-600" role="alert">
                   {fieldErrors.email}
                 </p>
               )}
@@ -184,6 +188,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
+                    setFormError(null);
                     if (fieldErrors.password) {
                       setFieldErrors((prev) => {
                         const next = { ...prev };
@@ -193,18 +198,16 @@ export default function LoginPage() {
                     }
                   }}
                   disabled={isLoading}
-                  className="h-11 w-full rounded-lg border border-input bg-background px-4 pr-11 text-sm transition-all duration-150 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="h-11 w-full rounded-lg border border-input bg-background px-4 pr-11 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Masukkan password"
-                  aria-describedby={
-                    fieldErrors.password ? 'password-error' : undefined
-                  }
+                  aria-describedby={fieldErrors.password ? 'password-error' : undefined}
                   aria-invalid={!!fieldErrors.password}
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm p-0.5 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer rounded-sm p-0.5 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600"
                   aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
                   tabIndex={0}
                 >
@@ -216,11 +219,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {fieldErrors.password && (
-                <p
-                  id="password-error"
-                  className="text-xs text-red-600"
-                  role="alert"
-                >
+                <p id="password-error" className="text-xs text-red-600" role="alert">
                   {fieldErrors.password}
                 </p>
               )}
@@ -230,7 +229,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="h-11 w-full cursor-pointer rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed"
+              className="h-11 w-full cursor-pointer rounded-lg text-sm font-semibold disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -242,13 +241,11 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-
-          {/* Footer info */}
         </div>
 
         {/* Brand footer */}
         <p className="mt-6 text-center text-xs text-muted-foreground/60">
-          © {new Date().getFullYear()} Sekelas. All rights reserved.
+          © {new Date().getFullYear()} Sekelas
         </p>
       </div>
     </>

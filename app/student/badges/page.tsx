@@ -6,14 +6,14 @@ import { formatXP } from '@/lib/utils';
 import { Trophy, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-/** Color palette for achievement cards — inspired by BahasaKu Figma design */
+/** Color palette for achievement cards — uses semantic/brand colors */
 const CARD_COLORS = [
-  'bg-[#9BD2FC]', // biru muda
-  'bg-[#F1C40F]', // kuning
-  'bg-[#16A085]', // hijau teal
-  'bg-[#2980B9]', // biru tua
-  'bg-[#E74C3C]', // merah
-  'bg-[#8E44AD]', // ungu
+  'bg-primary-400',     // hijau
+  'bg-amber-400',       // kuning/gold
+  'bg-teal-500',        // teal
+  'bg-blue-500',        // biru
+  'bg-red-400',         // merah
+  'bg-purple-500',      // ungu
 ];
 
 /**
@@ -244,9 +244,12 @@ export default function BadgesPage() {
 
       {/* Empty state */}
       {badges.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 py-12">
-          <Trophy className="mb-3 h-12 w-12 text-gray-300" />
-          <p className="text-muted-foreground">Belum ada badge tersedia</p>
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-primary-200 bg-primary-50/50 py-14">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
+            <Trophy className="h-8 w-8 text-primary-400" />
+          </div>
+          <p className="mt-4 text-sm font-medium text-foreground">Belum ada badge</p>
+          <p className="mt-1 text-xs text-muted-foreground">Selesaikan materi dan kuis untuk mendapatkan badge pertamamu!</p>
         </div>
       )}
     </div>

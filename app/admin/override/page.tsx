@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Info } from 'lucide-react';
 import { AuditLogTable } from '@/components/admin/OverrideForm';
 import { adminApi } from '@/lib/api';
 import type { AuditLogEntry } from '@/lib/types';
@@ -38,20 +37,6 @@ export default function OverridePage() {
         <p className="text-sm text-muted-foreground">
           Riwayat penyesuaian nilai Chapter yang telah dilakukan oleh admin.
         </p>
-      </div>
-
-      {/* Info notice */}
-      <div className="flex items-start gap-3 rounded-lg border border-primary-200 bg-primary-50 p-4">
-        <Info className="h-5 w-5 mt-0.5 flex-shrink-0 text-primary-600" aria-hidden="true" />
-        <div className="text-sm text-primary-800">
-          <p className="font-medium">Cara Melakukan Penyesuaian</p>
-          <p className="mt-1">
-            Buka halaman <span className="font-medium">Pemantauan</span>, klik baris siswa
-            untuk melihat detail progres, lalu gunakan tombol{' '}
-            <span className="font-medium">Penyesuaian</span> pada Chapter yang ingin diluluskan.
-            Admin wajib mengisi skor (0–100%) dan alasan.
-          </p>
-        </div>
       </div>
 
       {/* Audit Log */}

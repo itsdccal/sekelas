@@ -24,7 +24,8 @@ export default function AdminLayout({
         className="hidden w-64 shrink-0 border-r border-border bg-white md:block lg:w-72"
         aria-label="Sidebar navigasi"
       >
-        <div className="flex h-16 items-center border-b border-border px-4">
+        <div className="flex h-16 items-center gap-2.5 border-b border-border px-4">
+          <img src="/logo-icon.png" alt="" className="h-7 w-7" aria-hidden="true" />
           <span className="text-lg font-semibold text-primary-700">Sekelas</span>
         </div>
         <div className="overflow-y-auto">
