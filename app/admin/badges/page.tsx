@@ -182,18 +182,9 @@ export default function AdminBadgesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Kelola Badge & Milestone</h1>
+        <h1 className="text-2xl font-bold text-foreground">Kelola Milestone</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Atur milestone XP beserta badge yang diterima siswa saat mencapai threshold.
-        </p>
-      </div>
-
-      {/* Info Card */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p className="text-sm text-blue-800">
-          <strong>Cara kerja:</strong> Setiap milestone memiliki XP threshold. Ketika total XP 
-          siswa mencapai threshold suatu milestone, mereka otomatis mendapatkan badge terkait.
-          Milestone ditampilkan berurutan dari threshold terendah ke tertinggi.
         </p>
       </div>
 

@@ -172,8 +172,8 @@ export function CrudTable<T>({
           </div>
         )}
 
-        {/* Add Button */}
-        <Button onClick={onAdd} className="shrink-0">
+        {/* Add Button — always right-aligned */}
+        <Button onClick={onAdd} className="shrink-0 ml-auto">
           <Plus className="h-4 w-4" aria-hidden="true" />
           {addLabel}
         </Button>

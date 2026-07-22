@@ -62,6 +62,7 @@ export default function AdminKurikulumPage() {
   const [babList, setBabList] = useState<Bab[]>([]);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Form dialogs
   const [materiDialogOpen, setMateriDialogOpen] = useState(false);
@@ -146,17 +147,20 @@ export default function AdminKurikulumPage() {
   // --- Navigation ---
 
   const navigateToBab = useCallback((materi: Materi) => {
+    setSearchQuery("");
     setNav({ level: "bab", selectedMateri: materi, selectedBab: null });
   }, []);
 
   const navigateToChapter = useCallback(
     (bab: Bab) => {
+      setSearchQuery("");
       setNav((prev) => ({ ...prev, level: "chapter", selectedBab: bab }));
     },
     []
   );
 
   const navigateBack = useCallback(() => {
+    setSearchQuery("");
     if (nav.level === "chapter") {
       setNav((prev) => ({ ...prev, level: "bab", selectedBab: null }));
     } else if (nav.level === "bab") {
@@ -469,7 +473,7 @@ export default function AdminKurikulumPage() {
       {/* Materi Level */}
       {nav.level === "materi" && (
         <CrudTable<Materi>
-          data={materiList}
+          data={materiList.filter(m => !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()))}
           columns={materiColumns}
           onAdd={handleMateriAdd}
           onEdit={handleMateriEdit}
@@ -479,13 +483,18 @@ export default function AdminKurikulumPage() {
           getItemName={(item) => item.name}
           getRowKey={(item) => item.id}
           onRowClick={navigateToBab}
+          searchConfig={{
+            placeholder: "Cari materi...",
+            value: searchQuery,
+            onChange: setSearchQuery,
+          }}
         />
       )}
 
       {/* Bab Level */}
       {nav.level === "bab" && (
         <CrudTable<Bab>
-          data={babList}
+          data={babList.filter(b => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()))}
           columns={babColumns}
           onAdd={handleBabAdd}
           onEdit={handleBabEdit}
@@ -495,13 +504,18 @@ export default function AdminKurikulumPage() {
           getItemName={(item) => item.name}
           getRowKey={(item) => item.id}
           onRowClick={navigateToChapter}
+          searchConfig={{
+            placeholder: "Cari bab...",
+            value: searchQuery,
+            onChange: setSearchQuery,
+          }}
         />
       )}
 
       {/* Chapter Level */}
       {nav.level === "chapter" && (
         <CrudTable<Chapter>
-          data={chapterList}
+          data={chapterList.filter(c => !searchQuery || c.name.toLowerCase().includes(searchQuery.toLowerCase()))}
           columns={chapterColumns}
           onAdd={handleChapterAdd}
           onEdit={handleChapterEdit}
@@ -510,6 +524,11 @@ export default function AdminKurikulumPage() {
           addLabel="Tambah Chapter"
           getItemName={(item) => item.name}
           getRowKey={(item) => item.id}
+          searchConfig={{
+            placeholder: "Cari chapter...",
+            value: searchQuery,
+            onChange: setSearchQuery,
+          }}
         />
       )}
 
