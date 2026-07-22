@@ -27,6 +27,13 @@ const TYPE_CONFIG: Record<string, { defaultQuestions: number; timerMinutes: numb
   POST_TEST: { defaultQuestions: 20, timerMinutes: 20 },
 };
 
+type SelectionMode = 'RANDOM' | 'MANUAL';
+
+interface TopicAllocation {
+  patternId: string;
+  count: number;
+}
+
 // --- Topic Form ---
 
 function generatePatternCode(name: string, existingCodes: string[]): string {
@@ -161,8 +168,15 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
   const [selectedPattern, setSelectedPattern] = useState<QuestionPattern | null>(null);
   const [passingGrade, setPassingGrade] = useState(70);
 
-  const config = TYPE_CONFIG[quizType];
+  // Enhanced config state
+  const [totalQuestionLimit, setTotalQuestionLimit] = useState(TYPE_CONFIG[quizType].defaultQuestions);
+  const [timerMinutes, setTimerMinutes] = useState(TYPE_CONFIG[quizType].timerMinutes);
+  const [selectionMode, setSelectionMode] = useState<SelectionMode>('RANDOM');
+  const [topicAllocations, setTopicAllocations] = useState<TopicAllocation[]>([]);
+  const [showConfigEdit, setShowConfigEdit] = useState(false);
+
   const totalQuestions = patterns.reduce((s, p) => s + p.questionCount, 0);
+  const allocatedTotal = topicAllocations.reduce((s, a) => s + a.count, 0);
 
   const fetchPatterns = useCallback(async () => {
     setIsLoading(true); setError(null);
@@ -172,6 +186,25 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
   }, [babId]);
 
   useEffect(() => { fetchPatterns(); }, [fetchPatterns]);
+
+  // Sync allocations when patterns change
+  useEffect(() => {
+    if (patterns.length > 0 && topicAllocations.length === 0) {
+      // Initialize with proportional distribution
+      const perTopic = Math.floor(totalQuestionLimit / patterns.length);
+      const remainder = totalQuestionLimit - (perTopic * patterns.length);
+      setTopicAllocations(patterns.map((p, i) => ({
+        patternId: p.id,
+        count: Math.min(perTopic + (i < remainder ? 1 : 0), p.questionCount),
+      })));
+    }
+  }, [patterns, topicAllocations.length, totalQuestionLimit]);
+
+  const handleAllocationChange = (patternId: string, value: number) => {
+    setTopicAllocations(prev => prev.map(a =>
+      a.patternId === patternId ? { ...a, count: value } : a
+    ));
+  };
 
   const handleCreate = async (data: { patternCode: string; description: string }) => {
     await adminApi.createPattern({ chapterId: babId, patternCode: data.patternCode, description: data.description });
@@ -192,35 +225,132 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
         <Button onClick={() => setIsTopicFormOpen(true)}><Plus className="h-4 w-4" /> Buat Topik Baru</Button>
       </div>
 
-      {/* Config */}
-      <div className="rounded-lg border bg-muted/30 p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Pengaturan</span>
+      {/* Config Section */}
+      <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Settings className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Pengaturan Tes</span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setShowConfigEdit(!showConfigEdit)}>
+            {showConfigEdit ? 'Tutup' : 'Edit'}
+          </Button>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-          <div>
-            <span className="text-xs text-muted-foreground">Jumlah Soal</span>
-            <p className="font-medium">{config.defaultQuestions} soal</p>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground">Durasi</span>
-            <p className="font-medium">{config.timerMinutes} menit</p>
-          </div>
-          {quizType === 'POST_TEST' && (
+
+        {!showConfigEdit ? (
+          /* Summary view */
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
             <div>
-              <span className="text-xs text-muted-foreground">KKM</span>
-              <div className="flex items-center gap-1">
-                <input type="number" min={0} max={100} value={passingGrade}
-                  onChange={(e) => setPassingGrade(Math.max(0, Math.min(100, parseInt(e.target.value) || 70)))}
-                  className="h-8 w-16 rounded-md border px-2 text-sm text-center font-medium" />
-                <span className="text-xs text-muted-foreground">%</span>
-              </div>
+              <span className="text-xs text-muted-foreground">Durasi</span>
+              <p className="font-medium">{timerMinutes} menit</p>
             </div>
-          )}
-        </div>
-        {quizType === 'PRE_TEST' && (
-          <p className="text-xs text-muted-foreground italic">Pre Test tidak memiliki KKM — hasilnya berupa penempatan bab.</p>
+            <div>
+              <span className="text-xs text-muted-foreground">Jumlah Soal</span>
+              <p className="font-medium">{totalQuestionLimit} soal</p>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground">Mode Seleksi</span>
+              <p className="font-medium">{selectionMode === 'RANDOM' ? 'Acak' : 'Manual'}</p>
+            </div>
+            {quizType === 'POST_TEST' && (
+              <div>
+                <span className="text-xs text-muted-foreground">KKM</span>
+                <p className="font-medium">{passingGrade}%</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Edit view */
+          <div className="space-y-4">
+            {/* Row 1: Timer + Total Questions + KKM */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label htmlFor="timerMinutes" className="text-xs font-medium text-muted-foreground">Waktu Pengerjaan (menit)</label>
+                <input id="timerMinutes" type="number" min={5} max={180} value={timerMinutes}
+                  onChange={(e) => setTimerMinutes(Math.max(5, Math.min(180, parseInt(e.target.value) || 20)))}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+              </div>
+              <div className="space-y-1.5">
+                <label htmlFor="totalQuestionLimit" className="text-xs font-medium text-muted-foreground">Jumlah Soal Tampil</label>
+                <input id="totalQuestionLimit" type="number" min={1} max={100} value={totalQuestionLimit}
+                  onChange={(e) => setTotalQuestionLimit(Math.max(1, Math.min(100, parseInt(e.target.value) || 20)))}
+                  className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+                <p className="text-[10px] text-muted-foreground">{totalQuestions} soal tersedia di bank</p>
+              </div>
+              {quizType === 'POST_TEST' && (
+                <div className="space-y-1.5">
+                  <label htmlFor="passingGrade" className="text-xs font-medium text-muted-foreground">KKM (%)</label>
+                  <input id="passingGrade" type="number" min={0} max={100} value={passingGrade}
+                    onChange={(e) => setPassingGrade(Math.max(0, Math.min(100, parseInt(e.target.value) || 70)))}
+                    className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+                </div>
+              )}
+            </div>
+
+            {/* Row 2: Selection Mode */}
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-muted-foreground">Mode Pemilihan Soal</label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setSelectionMode('RANDOM')}
+                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                    selectionMode === 'RANDOM'
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-primary-300'
+                  }`}>
+                  🎲 Acak per Topik
+                </button>
+                <button type="button" onClick={() => setSelectionMode('MANUAL')}
+                  className={`flex-1 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+                    selectionMode === 'MANUAL'
+                      ? 'bg-primary-600 text-white border-primary-600'
+                      : 'bg-white text-gray-700 border-gray-300 hover:border-primary-300'
+                  }`}>
+                  📋 Semua Soal Tampil
+                </button>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                {selectionMode === 'RANDOM'
+                  ? 'Soal dipilih secara acak dari setiap topik sesuai alokasi di bawah. Tiap siswa bisa dapat soal berbeda.'
+                  : 'Semua soal dari bank soal akan ditampilkan ke siswa (tanpa pengacakan jumlah).'}
+              </p>
+            </div>
+
+            {/* Row 3: Per-topic allocation (only for RANDOM mode) */}
+            {selectionMode === 'RANDOM' && patterns.length > 0 && (
+              <div className="space-y-2 rounded-md border bg-white p-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-muted-foreground">Alokasi Soal per Topik</label>
+                  <span className={`text-xs font-semibold ${allocatedTotal === totalQuestionLimit ? 'text-green-600' : allocatedTotal > totalQuestionLimit ? 'text-red-600' : 'text-amber-600'}`}>
+                    {allocatedTotal}/{totalQuestionLimit} soal teralokasi
+                  </span>
+                </div>
+                <div className="space-y-2">
+                  {patterns.map((p) => {
+                    const alloc = topicAllocations.find(a => a.patternId === p.id);
+                    const currentCount = alloc?.count ?? 0;
+                    return (
+                      <div key={p.id} className="flex items-center gap-3">
+                        <span className="flex-1 text-sm truncate">{p.description || p.patternCode}</span>
+                        <span className="text-[10px] text-muted-foreground whitespace-nowrap">max {p.questionCount}</span>
+                        <input type="number" min={0} max={p.questionCount} value={currentCount}
+                          onChange={(e) => handleAllocationChange(p.id, Math.max(0, Math.min(p.questionCount, parseInt(e.target.value) || 0)))}
+                          className="h-8 w-16 rounded-md border border-input bg-background px-2 text-sm text-center font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600" />
+                      </div>
+                    );
+                  })}
+                </div>
+                {allocatedTotal !== totalQuestionLimit && (
+                  <p className="text-[10px] text-amber-600">
+                    ⚠ Total alokasi ({allocatedTotal}) belum sesuai jumlah soal tampil ({totalQuestionLimit})
+                  </p>
+                )}
+              </div>
+            )}
+
+            {quizType === 'PRE_TEST' && (
+              <p className="text-xs text-muted-foreground italic">Pre Test tidak memiliki KKM — hasilnya berupa penempatan bab.</p>
+            )}
+          </div>
         )}
       </div>
 
