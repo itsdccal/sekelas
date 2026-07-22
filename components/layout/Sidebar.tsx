@@ -25,14 +25,14 @@ interface NavItem {
 
 const studentMenuItems: NavItem[] = [
   { label: 'Beranda', href: '/student/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { label: 'Kurikulum', href: '/student/curriculum', icon: <BookOpen className="h-5 w-5" /> },
+  { label: 'Materi Pembelajaran', href: '/student/curriculum', icon: <BookOpen className="h-5 w-5" /> },
   { label: 'Raport', href: '/student/report', icon: <FileText className="h-5 w-5" /> },
   { label: 'Koleksi Badge', href: '/student/badges', icon: <User className="h-5 w-5" /> },
 ];
 
 const adminMenuItems: NavItem[] = [
   { label: 'Beranda', href: '/admin/dashboard', icon: <LayoutDashboard className="h-5 w-5" /> },
-  { label: 'Kurikulum', href: '/admin/curriculum', icon: <BookOpen className="h-5 w-5" /> },
+  { label: 'Materi Pembelajaran', href: '/admin/curriculum', icon: <BookOpen className="h-5 w-5" /> },
   { label: 'Bank Soal', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
   { label: 'Kelola Milestone', href: '/admin/badges', icon: <Award className="h-5 w-5" /> },
   { label: 'Kelola Pengguna', href: '/admin/users', icon: <Users className="h-5 w-5" /> },
