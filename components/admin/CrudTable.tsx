@@ -54,6 +54,8 @@ export interface CrudTableProps<T> {
   onSuccess?: (message: string) => void;
   /** Optional callback when a row is clicked (for drill-down navigation) */
   onRowClick?: (item: T) => void;
+  /** Hide the built-in toolbar (search + add button). Use when providing a custom toolbar. */
+  hideToolbar?: boolean;
 }
 
 // --- Skeleton Loader ---
@@ -131,6 +133,7 @@ export function CrudTable<T>({
   getItemName,
   getRowKey,
   onRowClick,
+  hideToolbar = false,
 }: CrudTableProps<T>) {
   const [deleteTarget, setDeleteTarget] = useState<T | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -156,6 +159,7 @@ export function CrudTable<T>({
   return (
     <div className="space-y-4">
       {/* Toolbar: Search + Add Button */}
+      {!hideToolbar && (
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         {/* Search Input */}
         {searchConfig && (
@@ -178,6 +182,7 @@ export function CrudTable<T>({
           {addLabel}
         </Button>
       </div>
+      )}
 
       {/* Table Content */}
       {isLoading ? (

@@ -220,6 +220,7 @@ export default function AdminUsersPage() {
         addLabel="Tambah Pengguna"
         getItemName={(user) => user.name}
         getRowKey={(user) => user.id}
+        hideToolbar
         pagination={totalPages > 1 ? {
           currentPage: page,
           totalPages,
