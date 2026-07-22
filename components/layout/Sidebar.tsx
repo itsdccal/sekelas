@@ -6,6 +6,7 @@ import {
   BookOpen,
   FileText,
   User,
+  Users,
   PenTool,
   BarChart3,
   Settings,
@@ -33,6 +34,7 @@ const adminMenuItems: NavItem[] = [
   { label: 'Kurikulum', href: '/admin/kurikulum', icon: <BookOpen className="h-5 w-5" /> },
   { label: 'Bank Soal', href: '/admin/quiz-builder', icon: <PenTool className="h-5 w-5" /> },
   { label: 'Kelola Milestone', href: '/admin/badges', icon: <Award className="h-5 w-5" /> },
+  { label: 'Kelola Pengguna', href: '/admin/users', icon: <Users className="h-5 w-5" /> },
   { label: 'Pemantauan Siswa', href: '/admin/monitoring', icon: <BarChart3 className="h-5 w-5" /> },
   { label: 'Catatan Perubahan', href: '/admin/override', icon: <Settings className="h-5 w-5" /> },
 ];

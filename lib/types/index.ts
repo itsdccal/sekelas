@@ -51,3 +51,10 @@ export type {
 } from './admin';
 
 export { OVERRIDE_ACTION_LABELS } from './admin';
+
+export type {
+  UserRole,
+  ManagedUser,
+  CreateUserRequest,
+  UpdateUserRequest,
+} from './user-management';

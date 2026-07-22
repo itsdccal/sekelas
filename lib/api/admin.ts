@@ -13,6 +13,9 @@ import type {
   AdminMilestone,
   CreateMilestoneRequest,
   UpdateMilestoneRequest,
+  ManagedUser,
+  CreateUserRequest,
+  UpdateUserRequest,
 } from '@/lib/types';
 import type { StudentProgress } from '@/lib/types';
 
@@ -216,4 +219,38 @@ export async function updateMilestone(milestoneId: string, data: UpdateMilestone
 
 export async function deleteMilestone(milestoneId: string): Promise<void> {
   await apiClient.delete(`/api/v1/admin/milestones/${milestoneId}`);
+}
+
+
+// --- User Management ---
+
+export async function getUsers(params?: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  role?: string;
+}): Promise<{ data: ManagedUser[]; total: number; page: number; pageSize: number }> {
+  return withRetry(async () => {
+    const response = await apiClient.get<{
+      data: ManagedUser[];
+      total: number;
+      page: number;
+      pageSize: number;
+    }>('/api/v1/admin/users', { params });
+    return response.data;
+  });
+}
+
+export async function createUser(data: CreateUserRequest): Promise<ManagedUser> {
+  const response = await apiClient.post<ManagedUser>('/api/v1/admin/users', data);
+  return response.data;
+}
+
+export async function updateUser(userId: string, data: UpdateUserRequest): Promise<ManagedUser> {
+  const response = await apiClient.put<ManagedUser>(`/api/v1/admin/users/${userId}`, data);
+  return response.data;
+}
+
+export async function deleteUser(userId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/users/${userId}`);
 }
