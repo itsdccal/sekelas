@@ -17,9 +17,9 @@ const kelasData = [
 // PUT — update kelas name
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ kelasId: string }> }
+  { params }: { params: Promise<{ classId: string }> }
 ) {
-  const { kelasId } = await params;
+  const { classId } = await params;
   const body = await request.json();
   const name = body.name?.trim();
 
@@ -31,14 +31,14 @@ export async function PUT(
     return NextResponse.json({ message: 'Nama kelas maksimal 50 karakter' }, { status: 400 });
   }
 
-  const index = kelasData.findIndex((k) => k.id === kelasId);
+  const index = kelasData.findIndex((k) => k.id === classId);
   if (index === -1) {
     return NextResponse.json({ message: 'Kelas tidak ditemukan' }, { status: 404 });
   }
 
   // Check duplicate (exclude self)
   const duplicate = kelasData.find(
-    (k) => k.name.toLowerCase() === name.toLowerCase() && k.id !== kelasId
+    (k) => k.name.toLowerCase() === name.toLowerCase() && k.id !== classId
   );
   if (duplicate) {
     return NextResponse.json({ message: 'Nama kelas sudah ada' }, { status: 409 });
@@ -51,11 +51,11 @@ export async function PUT(
 // DELETE — remove kelas
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ kelasId: string }> }
+  { params }: { params: Promise<{ classId: string }> }
 ) {
-  const { kelasId } = await params;
+  const { classId } = await params;
 
-  const index = kelasData.findIndex((k) => k.id === kelasId);
+  const index = kelasData.findIndex((k) => k.id === classId);
   if (index === -1) {
     return NextResponse.json({ message: 'Kelas tidak ditemukan' }, { status: 404 });
   }
