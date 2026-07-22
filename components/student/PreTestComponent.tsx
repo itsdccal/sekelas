@@ -8,7 +8,7 @@ import { UTBKTestLayout } from '@/components/student/UTBKTestLayout';
 import type { Question, PreTestResult } from '@/lib/types';
 
 interface PreTestComponentProps {
-  materiId: string;
+  subjectId: string;
   onComplete: (result: PreTestResult) => void;
 }
 
@@ -20,7 +20,7 @@ interface PreTestComponentProps {
  *
  * Requirements: 17.1, 17.2, 17.3, 17.5, 17.7, 17.8
  */
-export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps) {
+export function PreTestComponent({ subjectId, onComplete }: PreTestComponentProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,12 +32,12 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
   const handleTimeUp = useCallback(() => {
     if (questions.length > 0 && Object.keys(answers).length > 0) {
       const submission = {
-        materiId,
+        subjectId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId })),
       };
       pretestApi.submitPreTest(submission).then(onComplete).catch(() => {});
     }
-  }, [questions.length, answers, materiId, onComplete]);
+  }, [questions.length, answers, subjectId, onComplete]);
 
   const timer = useTimer(20, handleTimeUp, !isLoading && questions.length > 0);
 
@@ -45,7 +45,7 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    pretestApi.getPreTestQuestions(materiId)
+    pretestApi.getPreTestQuestions(subjectId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -54,7 +54,7 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
         setError('Gagal memuat soal Pre Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [materiId]);
+  }, [subjectId]);
 
   const handleAnswer = useCallback(
     (questionId: string, answer: string) => {
@@ -72,7 +72,7 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
     setError(null);
     try {
       const submission = {
-        materiId,
+        subjectId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
           questionId,
           selectedOptionId,
@@ -84,12 +84,12 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
       setError('Gagal mengirim jawaban. Silakan coba lagi.');
       setIsSubmitting(false);
     }
-  }, [materiId, answers, onComplete]);
+  }, [subjectId, answers, onComplete]);
 
   const handleRetry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    pretestApi.getPreTestQuestions(materiId)
+    pretestApi.getPreTestQuestions(subjectId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -98,7 +98,7 @@ export function PreTestComponent({ materiId, onComplete }: PreTestComponentProps
         setError('Gagal memuat soal Pre Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [materiId]);
+  }, [subjectId]);
 
   // Navigation away confirmation
   useEffect(() => {

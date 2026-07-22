@@ -10,8 +10,8 @@ interface PostTestResultDisplayProps {
     passingGrade: number;
     xpEarned: number;
     message: string;
-    remediationBabIds?: string[];
-    remediationBabNames?: string[];
+    remediationSectionIds?: string[];
+    remediationSectionNames?: string[];
     remediationChapterIds?: string[];
   };
   onContinue: () => void;
@@ -27,9 +27,9 @@ interface PostTestResultDisplayProps {
 export function PostTestResultDisplay({ result, onContinue, onWatchChapter, watchedChapterIds = [] }: PostTestResultDisplayProps) {
   const isPassed = result.status === 'PASSED';
 
-  // Support both bab-level and chapter-level remediation
-  const remediationItems = result.remediationBabNames || result.remediationChapterIds || [];
-  const remediationIds = result.remediationBabIds || result.remediationChapterIds || [];
+  // Support both section-level and chapter-level remediation
+  const remediationItems = result.remediationSectionNames || result.remediationChapterIds || [];
+  const remediationIds = result.remediationSectionIds || result.remediationChapterIds || [];
 
   return (
     <div className="flex flex-col items-center gap-6 w-full max-w-md mx-auto py-8">

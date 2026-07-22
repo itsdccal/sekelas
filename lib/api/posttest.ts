@@ -3,13 +3,13 @@ import { withRetry } from './retry';
 import type { Question, PostTestSubmission, PostTestResult } from '@/lib/types';
 
 /**
- * Load Post Test questions for a Materi.
+ * Load Post Test questions for a Subject.
  * Retries on server/connection errors.
  */
-export async function getPostTestQuestions(materiId: string): Promise<Question[]> {
+export async function getPostTestQuestions(subjectId: string): Promise<Question[]> {
   return withRetry(async () => {
     const response = await apiClient.get<Question[]>(
-      `/api/v1/posttest/materi/${materiId}/questions`
+      `/api/v1/posttest/subjects/${subjectId}/questions`
     );
     return response.data;
   });
@@ -24,9 +24,9 @@ export async function submitPostTest(submission: PostTestSubmission): Promise<Po
 }
 
 /**
- * Check Post Test status for a Materi.
+ * Check Post Test status for a Subject.
  */
-export async function getPostTestStatus(materiId: string): Promise<{
+export async function getPostTestStatus(subjectId: string): Promise<{
   available: boolean;
   completed: boolean;
   lastScore: number | null;
@@ -38,7 +38,7 @@ export async function getPostTestStatus(materiId: string): Promise<{
       completed: boolean;
       lastScore: number | null;
       passed: boolean;
-    }>(`/api/v1/posttest/materi/${materiId}/status`);
+    }>(`/api/v1/posttest/subjects/${subjectId}/status`);
     return response.data;
   });
 }

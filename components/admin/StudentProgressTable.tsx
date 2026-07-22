@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { adminApi } from "@/lib/api";
+import { exportStudentDataToExcel } from "@/lib/utils/exportExcel";
 import type { StudentMonitoringRow } from "@/lib/types";
 
 // --- Constants ---
@@ -27,6 +28,9 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
 
   // Available classes extracted from data for the filter
   const [availableClasses, setAvailableClasses] = useState<string[]>([]);
@@ -101,10 +105,50 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
   // Pagination calculations
   const totalPages = useMemo(() => Math.ceil(total / PAGE_SIZE), [total]);
 
-  // Sort data by totalProgress ascending (lowest first) — server may already sort,
-  // but we ensure client-side sort as well for safety
+  // Export handler — fetches all students + their detail scores and exports to Excel
+  const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    try {
+      // 1. Fetch all students matching current filters
+      const result = await adminApi.getStudentMonitoring({
+        page: 1,
+        pageSize: 10000,
+        search: debouncedSearch || undefined,
+        kelas: kelas || undefined,
+      });
+
+      // 2. Fetch detail (scores) for each student in parallel
+      const detailPromises = result.data.map(async (s) => {
+        try {
+          const detail = await adminApi.getStudentDetail(s.userId);
+          return { ...s, detail };
+        } catch {
+          return { ...s, detail: undefined };
+        }
+      });
+
+      const studentsWithDetail = await Promise.all(detailPromises);
+
+      const suffix = kelas ? `-${kelas}` : '';
+      exportStudentDataToExcel(studentsWithDetail, `monitoring-siswa${suffix}`);
+    } catch {
+      // Silently fail — could add toast later
+    } finally {
+      setIsExporting(false);
+    }
+  }, [debouncedSearch, kelas]);
+
+  // Sort data by averageScore descending (highest first = ranking)
+  // Students without score go to bottom
   const sortedData = useMemo(
-    () => Array.isArray(data) ? [...data].sort((a, b) => a.totalProgress - b.totalProgress) : [],
+    () => Array.isArray(data)
+      ? [...data].sort((a, b) => {
+          if (a.averageScore === null && b.averageScore === null) return 0;
+          if (a.averageScore === null) return 1;
+          if (b.averageScore === null) return -1;
+          return b.averageScore - a.averageScore;
+        })
+      : [],
     [data]
   );
 
@@ -142,6 +186,19 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
             </option>
           ))}
         </select>
+
+        {/* Export Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleExport}
+          disabled={isExporting || isLoading || data.length === 0}
+          className="h-10 gap-2 shrink-0"
+          aria-label="Ekspor data ke Excel"
+        >
+          <Download className="h-4 w-4" aria-hidden="true" />
+          <span className="hidden sm:inline">{isExporting ? 'Mengekspor...' : 'Ekspor'}</span>
+        </Button>
       </div>
 
       {/* Error State */}
@@ -182,6 +239,12 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
               <thead className="bg-muted">
                 <tr>
                   <th
+                    className="px-4 py-3 text-center font-medium text-foreground w-16"
+                    scope="col"
+                  >
+                    #
+                  </th>
+                  <th
                     className="px-4 py-3 text-left font-medium text-foreground"
                     scope="col"
                   >
@@ -197,13 +260,13 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                     className="px-4 py-3 text-left font-medium text-foreground"
                     scope="col"
                   >
-                    Progres (%)
+                    Rata-rata Nilai
                   </th>
                   <th
                     className="px-4 py-3 text-left font-medium text-foreground"
                     scope="col"
                   >
-                    Total XP
+                    Progres
                   </th>
                 </tr>
               </thead>
@@ -211,14 +274,14 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                 {sortedData.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={4}
+                      colSpan={5}
                       className="px-4 py-8 text-center text-muted-foreground"
                     >
                       Tidak ada data siswa ditemukan.
                     </td>
                   </tr>
                 ) : (
-                  sortedData.map((student) => (
+                  sortedData.map((student, index) => (
                     <tr
                       key={student.userId}
                       className="hover:bg-accent/50 transition-colors cursor-pointer"
@@ -233,6 +296,9 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                         }
                       }}
                     >
+                      <td className="px-4 py-3 text-center text-muted-foreground font-medium">
+                        {(page - 1) * PAGE_SIZE + index + 1}
+                      </td>
                       <td className="px-4 py-3">
                         <span className="font-medium text-primary-700">
                           {student.name}
@@ -242,6 +308,15 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                         {student.kelas}
                       </td>
                       <td className="px-4 py-3">
+                        {student.averageScore !== null ? (
+                          <span className={`font-semibold ${student.averageScore >= 70 ? 'text-green-600' : 'text-red-500'}`}>
+                            {student.averageScore.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="h-2 w-16 rounded-full bg-muted overflow-hidden">
                             <div
@@ -249,13 +324,10 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                               style={{ width: `${student.totalProgress}%` }}
                             />
                           </div>
-                          <span className="text-sm font-medium">
+                          <span className="text-sm text-muted-foreground">
                             {student.totalProgress}%
                           </span>
                         </div>
-                      </td>
-                      <td className="px-4 py-3 font-medium">
-                        {student.totalXP.toLocaleString("id-ID")} XP
                       </td>
                     </tr>
                   ))
@@ -271,7 +343,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                 Tidak ada data siswa ditemukan.
               </p>
             ) : (
-              sortedData.map((student) => (
+              sortedData.map((student, index) => (
                 <button
                   key={student.userId}
                   type="button"
@@ -280,24 +352,35 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                   aria-label={`Lihat detail ${student.name}`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-medium text-primary-700 text-sm">{student.name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground font-medium w-5">
+                        {(page - 1) * PAGE_SIZE + index + 1}.
+                      </span>
+                      <span className="font-medium text-primary-700 text-sm">{student.name}</span>
+                    </div>
                     <span className="text-xs text-muted-foreground">{student.kelas}</span>
                   </div>
-                  <div className="mt-2 flex items-center gap-3">
-                    <div className="flex-1">
-                      <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                  <div className="mt-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1">
+                      <div className="h-2 flex-1 max-w-32 rounded-full bg-muted overflow-hidden">
                         <div
                           className="h-full rounded-full bg-primary-600 transition-all"
                           style={{ width: `${student.totalProgress}%` }}
                         />
                       </div>
+                      <span className="text-xs text-muted-foreground shrink-0">
+                        {student.totalProgress}%
+                      </span>
                     </div>
-                    <span className="text-xs font-semibold text-foreground shrink-0">
-                      {student.totalProgress}%
-                    </span>
-                  </div>
-                  <div className="mt-1.5 text-xs text-muted-foreground">
-                    {student.totalXP.toLocaleString("id-ID")} XP
+                    <div className="text-right">
+                      {student.averageScore !== null ? (
+                        <span className={`text-sm font-semibold ${student.averageScore >= 70 ? 'text-green-600' : 'text-red-500'}`}>
+                          {student.averageScore.toFixed(1)}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </div>
                   </div>
                 </button>
               ))

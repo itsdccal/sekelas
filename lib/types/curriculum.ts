@@ -1,16 +1,16 @@
-export interface Materi {
+export interface Subject {
   id: string;
   name: string; // max 100 chars
   description?: string; // max 500 chars
   orderIndex: number;
-  babCount: number;
+  sectionCount: number;
   isPublished: boolean;
   semesterId: string;
 }
 
-export interface Bab {
+export interface Section {
   id: string;
-  materiId: string;
+  subjectId: string;
   name: string;
   orderIndex: number;
   chapterCount: number;
@@ -18,7 +18,7 @@ export interface Bab {
 
 export interface Chapter {
   id: string;
-  babId: string;
+  sectionId: string;
   name: string;
   orderIndex: number;
   videoUrl: string;

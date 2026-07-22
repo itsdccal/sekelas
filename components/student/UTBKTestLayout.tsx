@@ -80,9 +80,9 @@ export function UTBKTestLayout({
 
         {/* Center */}
         <div className="flex items-center gap-3 min-w-0">
-          {currentQuestion.materiLabel && (
+          {currentQuestion.subjectLabel && (
             <span className="hidden sm:inline-flex items-center rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-700">
-              {currentQuestion.materiLabel}
+              {currentQuestion.subjectLabel}
             </span>
           )}
           <span className="text-sm font-semibold text-foreground">
@@ -106,9 +106,9 @@ export function UTBKTestLayout({
       <div className="flex-1 flex min-h-0 overflow-hidden">
         {/* Left: Question */}
         <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-          {currentQuestion.materiLabel && (
+          {currentQuestion.subjectLabel && (
             <span className="sm:hidden inline-flex items-center rounded-full bg-primary-100 px-2.5 py-1 text-xs font-medium text-primary-700 mb-3">
-              {currentQuestion.materiLabel}
+              {currentQuestion.subjectLabel}
             </span>
           )}
 

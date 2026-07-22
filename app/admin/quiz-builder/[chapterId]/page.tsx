@@ -55,7 +55,7 @@ export default function QuizBuilderPage() {
 
       {/* Render appropriate panel based on type */}
       {isBabLevel && quizType ? (
-        <BabTestBuilderPanel babId={targetId} quizType={quizType as 'PRE_TEST' | 'POST_TEST'} />
+        <BabTestBuilderPanel sectionId={targetId} quizType={quizType as 'PRE_TEST' | 'POST_TEST'} />
       ) : (
         <QuizBuilderPanel chapterId={targetId} />
       )}

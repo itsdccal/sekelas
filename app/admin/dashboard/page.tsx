@@ -43,12 +43,12 @@ export default function AdminDashboardPage() {
         adminApi.getMilestones(),
       ]);
 
-      // Count materi from curriculum if semester available
+      // Count subjects from curriculum if semester available
       let totalMateri = 0;
       if (selectedSemesterId) {
         try {
-          const materi = await curriculumApi.getMateriList(selectedSemesterId);
-          totalMateri = materi.length;
+          const subjects = await curriculumApi.getSubjectList(selectedSemesterId);
+          totalMateri = subjects.length;
         } catch { /* fallback */ }
       }
 
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">Akses Cepat</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
-            href="/admin/kurikulum"
+            href="/admin/curriculum"
             className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 hover:bg-muted/30"
           >
             <BookOpen className="h-5 w-5 text-primary-600" />

@@ -8,7 +8,7 @@ import { UTBKTestLayout } from '@/components/student/UTBKTestLayout';
 import type { Question, PostTestResult } from '@/lib/types';
 
 interface PostTestComponentProps {
-  materiId: string;
+  subjectId: string;
   onComplete: (result: PostTestResult) => void;
 }
 
@@ -19,7 +19,7 @@ interface PostTestComponentProps {
  *
  * Requirements: 19.2, 19.3, 19.7, 19.8
  */
-export function PostTestComponent({ materiId, onComplete }: PostTestComponentProps) {
+export function PostTestComponent({ subjectId, onComplete }: PostTestComponentProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,12 +31,12 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
   const handleTimeUp = useCallback(() => {
     if (questions.length > 0 && Object.keys(answers).length > 0) {
       const submission = {
-        materiId,
+        subjectId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId })),
       };
       posttestApi.submitPostTest(submission).then(onComplete).catch(() => {});
     }
-  }, [questions.length, answers, materiId, onComplete]);
+  }, [questions.length, answers, subjectId, onComplete]);
 
   const timer = useTimer(20, handleTimeUp, !isLoading && questions.length > 0);
 
@@ -44,7 +44,7 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
   useEffect(() => {
     setIsLoading(true);
     setError(null);
-    posttestApi.getPostTestQuestions(materiId)
+    posttestApi.getPostTestQuestions(subjectId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -53,7 +53,7 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
         setError('Gagal memuat soal Post Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [materiId]);
+  }, [subjectId]);
 
   const handleAnswer = useCallback(
     (questionId: string, answer: string) => {
@@ -71,7 +71,7 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
     setError(null);
     try {
       const submission = {
-        materiId,
+        subjectId,
         answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
           questionId,
           selectedOptionId,
@@ -83,12 +83,12 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
       setError('Gagal mengirim jawaban. Silakan coba lagi.');
       setIsSubmitting(false);
     }
-  }, [materiId, answers, onComplete]);
+  }, [subjectId, answers, onComplete]);
 
   const handleRetry = useCallback(() => {
     setIsLoading(true);
     setError(null);
-    posttestApi.getPostTestQuestions(materiId)
+    posttestApi.getPostTestQuestions(subjectId)
       .then((data) => {
         setQuestions(data);
         setIsLoading(false);
@@ -97,7 +97,7 @@ export function PostTestComponent({ materiId, onComplete }: PostTestComponentPro
         setError('Gagal memuat soal Post Test. Silakan coba lagi.');
         setIsLoading(false);
       });
-  }, [materiId]);
+  }, [subjectId]);
 
   // Navigation away confirmation
   useEffect(() => {

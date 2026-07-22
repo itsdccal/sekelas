@@ -7,9 +7,9 @@ export type QuestionType = 'MULTIPLE_CHOICE' | 'SHORT_ANSWER';
 export interface QuestionPattern {
   id: string;
   chapterId?: string; // for CHAPTER_QUIZ
-  babId?: string; // for PRE_TEST / POST_TEST
+  sectionId?: string; // for PRE_TEST / POST_TEST
   quizType: QuizType;
-  patternCode: string; // max 50 chars, unique per chapter/bab+type
+  patternCode: string; // max 50 chars, unique per chapter/section+type
   description: string; // max 200 chars
   questionCount: number;
 }
@@ -23,7 +23,7 @@ export interface Question {
   correctOptionId?: string; // only for MULTIPLE_CHOICE (admin only)
   xpPerQuestion?: number; // 0-1000, only for CHAPTER_QUIZ and POST_TEST
   weight?: number; // 1-100, weight of question toward total score (default 1)
-  materiLabel?: string; // label materi asal (for Pre/Post Test UTBK-style)
+  subjectLabel?: string; // label materi asal (for Pre/Post Test UTBK-style)
   imageUrl?: string; // URL gambar soal (optional)
 }
 
@@ -64,26 +64,26 @@ export interface QuizReviewItem {
   textAnswer?: string;
 }
 
-// --- Pre Test Types (level Materi) ---
+// --- Pre Test Types (level Subject) ---
 
 export interface PreTestSubmission {
-  materiId: string;
+  subjectId: string;
   answers: { questionId: string; selectedOptionId: string }[];
 }
 
 export interface PreTestResult {
-  materiId: string;
-  startBabIndex: number; // Bab index dimana siswa mulai (0-based)
-  startBabName: string;
-  totalBabsSkipped: number;
-  xpEarned: number; // XP dari Bab yang dilewati (dihitung backend)
+  subjectId: string;
+  startSectionIndex: number; // Section index dimana siswa mulai (0-based)
+  startSectionName: string;
+  totalSectionsSkipped: number;
+  xpEarned: number; // XP dari Section yang dilewati (dihitung backend)
   message: string;
 }
 
-// --- Post Test Types (level Materi) ---
+// --- Post Test Types (level Subject) ---
 
 export interface PostTestSubmission {
-  materiId: string;
+  subjectId: string;
   answers: { questionId: string; selectedOptionId: string }[];
 }
 
@@ -93,15 +93,15 @@ export interface PostTestResult {
   passingGrade: number;
   xpEarned: number;
   message: string;
-  remediationBabIds?: string[];
-  remediationBabNames?: string[];
+  remediationSectionIds?: string[];
+  remediationSectionNames?: string[];
 }
 
 // --- Quiz Config (admin) ---
 
 export interface QuizConfig {
   id: string;
-  targetId: string; // chapterId atau babId tergantung quizType
+  targetId: string; // chapterId or sectionId depending on quizType
   quizType: QuizType;
   passingGrade: number; // 0-100, default 70
   totalPotentialXP: number; // sum of all question XP (calculated)

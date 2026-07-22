@@ -5,7 +5,7 @@ export type ChapterStatus =
   | 'REMEDIATION_REQUIRED'
   | 'READY_FOR_RETAKE';
 
-export type BabStatus =
+export type SectionStatus =
   | 'LOCKED'
   | 'UNLOCKED'
   | 'IN_PROGRESS'
@@ -17,6 +17,7 @@ export interface ChapterProgress {
   watchedPercentage: number; // 0.0 - 100.0
   lastScore: number | null;
   quizAttempts: number;
+  scoreHistory: number[]; // Array of scores from attempt 1 to last attempt
   videoWatchAttempts: number;
 }
 
@@ -25,21 +26,21 @@ export interface StudentProgress {
   completedChapters: number;
   totalChapters: number;
   totalXP: number;
-  materiProgress: MateriProgress[];
+  subjectProgress: SubjectProgress[];
 }
 
-export interface MateriProgress {
-  materiId: string;
-  materiName: string;
+export interface SubjectProgress {
+  subjectId: string;
+  subjectName: string;
   completionPercentage: number; // 0 - 100 integer
   preTestCompleted: boolean;
   postTestCompleted: boolean;
-  babs: BabProgress[];
+  sections: SectionProgress[];
 }
 
-export interface BabProgress {
-  babId: string;
-  babName: string;
-  status: BabStatus;
+export interface SectionProgress {
+  sectionId: string;
+  sectionName: string;
+  status: SectionStatus;
   chapters: ChapterProgress[];
 }

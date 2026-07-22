@@ -64,6 +64,7 @@ describe('VideoPlayerPage - Remediation Flow', () => {
     watchedPercentage: 75, // Previously watched 75%, but remediation resets
     lastScore: 50,
     quizAttempts: 1,
+    scoreHistory: [50],
     videoWatchAttempts: 1,
   };
 
@@ -73,6 +74,7 @@ describe('VideoPlayerPage - Remediation Flow', () => {
     watchedPercentage: 30,
     lastScore: null,
     quizAttempts: 0,
+    scoreHistory: [],
     videoWatchAttempts: 0,
   };
 

@@ -1,6 +1,6 @@
 import apiClient from './client';
 import { withRetry } from './retry';
-import type { Materi, Bab, Chapter, StudentProgress } from '@/lib/types';
+import type { Subject, Section, Chapter, StudentProgress } from '@/lib/types';
 
 /**
  * Fetch student's own progress summary for a given semester.
@@ -15,11 +15,11 @@ export async function getStudentProgress(semesterId: string): Promise<StudentPro
 }
 
 /**
- * Fetch list of Materi for the given semester.
+ * Fetch list of Subjects for the given semester.
  */
-export async function getMateriList(semesterId: string): Promise<Materi[]> {
+export async function getSubjectList(semesterId: string): Promise<Subject[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Materi[]>('/api/v1/curriculum/materi', {
+    const response = await apiClient.get<Subject[]>('/api/v1/curriculum/subjects', {
       params: { semesterId },
     });
     return response.data;
@@ -27,21 +27,21 @@ export async function getMateriList(semesterId: string): Promise<Materi[]> {
 }
 
 /**
- * Fetch list of Bab within a Materi.
+ * Fetch list of Sections within a Subject.
  */
-export async function getBabList(materiId: string): Promise<Bab[]> {
+export async function getSectionList(subjectId: string): Promise<Section[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Bab[]>(`/api/v1/curriculum/materi/${materiId}/bab`);
+    const response = await apiClient.get<Section[]>(`/api/v1/curriculum/subjects/${subjectId}/sections`);
     return response.data;
   });
 }
 
 /**
- * Fetch list of Chapters within a Bab.
+ * Fetch list of Chapters within a Section.
  */
-export async function getChapterList(babId: string): Promise<Chapter[]> {
+export async function getChapterList(sectionId: string): Promise<Chapter[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Chapter[]>(`/api/v1/curriculum/bab/${babId}/chapters`);
+    const response = await apiClient.get<Chapter[]>(`/api/v1/curriculum/sections/${sectionId}/chapters`);
     return response.data;
   });
 }

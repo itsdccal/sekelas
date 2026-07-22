@@ -3,7 +3,7 @@ export { canTransition, getChapterVisualConfig, isOverrideAllowed, VALID_TRANSIT
 export type { ChapterVisualConfig } from "./chapterStatus";
 export {
   validateLogin,
-  validateMateri,
+  validateSubject,
   validateQuestion,
   validateOverrideReason,
   validatePatternCode,

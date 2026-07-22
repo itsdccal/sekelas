@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     message: passed
       ? `Selamat! Kamu lulus Post Test dengan skor ${score}%.`
       : `Skor kamu ${score}% belum mencapai batas kelulusan ${passingGrade}%.`,
-    remediationBabIds: passed ? undefined : ['bab-2', 'bab-3'],
-    remediationBabNames: passed ? undefined : ['Geometri Dasar', 'Aritmatika'],
+    remediationSectionIds: passed ? undefined : ['bab-2', 'bab-3'],
+    remediationSectionNames: passed ? undefined : ['Geometri Dasar', 'Aritmatika'],
   });
 }

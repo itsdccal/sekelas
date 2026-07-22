@@ -1,8 +1,8 @@
 import apiClient from './client';
 import { withRetry } from './retry';
 import type {
-  Materi,
-  Bab,
+  Subject,
+  Section,
   Chapter,
   AuditLogEntry,
   OverrideRequest,
@@ -16,41 +16,44 @@ import type {
   ManagedUser,
   CreateUserRequest,
   UpdateUserRequest,
+  ClassRoom,
+  CreateClassRoomRequest,
+  UpdateClassRoomRequest,
 } from '@/lib/types';
 import type { StudentProgress } from '@/lib/types';
 
 // --- Curriculum CRUD ---
 
-export async function createMateri(data: { name: string; description?: string; semesterId: string }): Promise<Materi> {
-  const response = await apiClient.post<Materi>('/api/v1/admin/curriculum/materi', data);
+export async function createSubject(data: { name: string; description?: string; semesterId: string }): Promise<Subject> {
+  const response = await apiClient.post<Subject>('/api/v1/admin/curriculum/subjects', data);
   return response.data;
 }
 
-export async function updateMateri(materiId: string, data: { name?: string; description?: string }): Promise<Materi> {
-  const response = await apiClient.put<Materi>(`/api/v1/admin/curriculum/materi/${materiId}`, data);
+export async function updateSubject(subjectId: string, data: { name?: string; description?: string }): Promise<Subject> {
+  const response = await apiClient.put<Subject>(`/api/v1/admin/curriculum/subjects/${subjectId}`, data);
   return response.data;
 }
 
-export async function deleteMateri(materiId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/admin/curriculum/materi/${materiId}`);
+export async function deleteSubject(subjectId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/curriculum/subjects/${subjectId}`);
 }
 
-export async function createBab(data: { materiId: string; name: string; orderIndex: number }): Promise<Bab> {
-  const response = await apiClient.post<Bab>('/api/v1/admin/curriculum/bab', data);
+export async function createSection(data: { subjectId: string; name: string; orderIndex: number }): Promise<Section> {
+  const response = await apiClient.post<Section>('/api/v1/admin/curriculum/sections', data);
   return response.data;
 }
 
-export async function updateBab(babId: string, data: { name?: string; orderIndex?: number }): Promise<Bab> {
-  const response = await apiClient.put<Bab>(`/api/v1/admin/curriculum/bab/${babId}`, data);
+export async function updateSection(sectionId: string, data: { name?: string; orderIndex?: number }): Promise<Section> {
+  const response = await apiClient.put<Section>(`/api/v1/admin/curriculum/sections/${sectionId}`, data);
   return response.data;
 }
 
-export async function deleteBab(babId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/admin/curriculum/bab/${babId}`);
+export async function deleteSection(sectionId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/curriculum/sections/${sectionId}`);
 }
 
 export async function createChapter(data: {
-  babId: string;
+  sectionId: string;
   name: string;
   orderIndex: number;
   videoUrl: string;
@@ -60,7 +63,7 @@ export async function createChapter(data: {
   return response.data;
 }
 
-export async function updateChapter(chapterId: string, data: Partial<Omit<Chapter, 'id' | 'babId'>>): Promise<Chapter> {
+export async function updateChapter(chapterId: string, data: Partial<Omit<Chapter, 'id' | 'sectionId'>>): Promise<Chapter> {
   const response = await apiClient.put<Chapter>(`/api/v1/admin/curriculum/chapter/${chapterId}`, data);
   return response.data;
 }
@@ -255,4 +258,28 @@ export async function updateUser(userId: string, data: UpdateUserRequest): Promi
 
 export async function deleteUser(userId: string): Promise<void> {
   await apiClient.delete(`/api/v1/admin/users/${userId}`);
+}
+
+
+// --- ClassRoom Management ---
+
+export async function getClassRoomList(): Promise<ClassRoom[]> {
+  return withRetry(async () => {
+    const response = await apiClient.get<ClassRoom[]>('/api/v1/admin/classes');
+    return response.data;
+  });
+}
+
+export async function createClassRoom(data: CreateClassRoomRequest): Promise<ClassRoom> {
+  const response = await apiClient.post<ClassRoom>('/api/v1/admin/classes', data);
+  return response.data;
+}
+
+export async function updateClassRoom(classRoomId: string, data: UpdateClassRoomRequest): Promise<ClassRoom> {
+  const response = await apiClient.put<ClassRoom>(`/api/v1/admin/classes/${classRoomId}`, data);
+  return response.data;
+}
+
+export async function deleteClassRoom(classRoomId: string): Promise<void> {
+  await apiClient.delete(`/api/v1/admin/classes/${classRoomId}`);
 }

@@ -3,13 +3,13 @@ import { withRetry } from './retry';
 import type { Question, PreTestSubmission, PreTestResult } from '@/lib/types';
 
 /**
- * Load Pre Test questions for a Materi.
+ * Load Pre Test questions for a Subject.
  * Retries on server/connection errors.
  */
-export async function getPreTestQuestions(materiId: string): Promise<Question[]> {
+export async function getPreTestQuestions(subjectId: string): Promise<Question[]> {
   return withRetry(async () => {
     const response = await apiClient.get<Question[]>(
-      `/api/v1/pretest/materi/${materiId}/questions`
+      `/api/v1/pretest/subjects/${subjectId}/questions`
     );
     return response.data;
   });
@@ -24,12 +24,12 @@ export async function submitPreTest(submission: PreTestSubmission): Promise<PreT
 }
 
 /**
- * Check if Pre Test has been completed for a Materi.
+ * Check if Pre Test has been completed for a Subject.
  */
-export async function getPreTestStatus(materiId: string): Promise<{ completed: boolean; startBabIndex: number }> {
+export async function getPreTestStatus(subjectId: string): Promise<{ completed: boolean; startSectionIndex: number }> {
   return withRetry(async () => {
-    const response = await apiClient.get<{ completed: boolean; startBabIndex: number }>(
-      `/api/v1/pretest/materi/${materiId}/status`
+    const response = await apiClient.get<{ completed: boolean; startSectionIndex: number }>(
+      `/api/v1/pretest/subjects/${subjectId}/status`
     );
     return response.data;
   });

@@ -91,9 +91,9 @@ Validasi token dan ambil data user saat ini.
 
 ## 2. Curriculum (Student)
 
-### GET /api/v1/curriculum/materi?semesterId={id}
+### GET /api/v1/curriculum/subjects?semesterId={id}
 
-Daftar materi untuk semester tertentu.
+Daftar Subject untuk semester tertentu.
 
 **Response 200:**
 ```json
@@ -103,7 +103,7 @@ Daftar materi untuk semester tertentu.
     "name": "string",
     "description": "string | null",
     "orderIndex": "number",
-    "babCount": "number",
+    "sectionCount": "number",
     "isPublished": "boolean",
     "semesterId": "string"
   }
@@ -112,16 +112,16 @@ Daftar materi untuk semester tertentu.
 
 ---
 
-### GET /api/v1/curriculum/materi/{materiId}/bab
+### GET /api/v1/curriculum/subjects/{subjectId}/Section
 
-Daftar bab dalam materi.
+Daftar Section dalam Subject.
 
 **Response 200:**
 ```json
 [
   {
     "id": "string",
-    "materiId": "string",
+    "subjectId": "string",
     "name": "string",
     "orderIndex": "number",
     "chapterCount": "number"
@@ -131,16 +131,16 @@ Daftar bab dalam materi.
 
 ---
 
-### GET /api/v1/curriculum/bab/{babId}/chapters
+### GET /api/v1/curriculum/sections/{sectionId}/chapters
 
-Daftar chapter dalam bab.
+Daftar chapter dalam Section.
 
 **Response 200:**
 ```json
 [
   {
     "id": "string",
-    "babId": "string",
+    "sectionId": "string",
     "name": "string",
     "orderIndex": "number",
     "videoUrl": "string",
@@ -220,12 +220,12 @@ Progress keseluruhan siswa (untuk dashboard dan raport).
   "currentStreak": "number",
   "materiProgress": [
     {
-      "materiId": "string",
+      "subjectId": "string",
       "materiName": "string",
       "completionPercentage": "number (0-100)",
       "babs": [
         {
-          "babId": "string",
+          "sectionId": "string",
           "babName": "string",
           "status": "LOCKED | UNLOCKED | IN_PROGRESS | COMPLETED",
           "preTestCompleted": "boolean",
@@ -285,7 +285,7 @@ Ambil soal quiz untuk chapter. Backend mengambil 1 soal acak dari setiap topik (
     "options": [
       { "id": "string", "text": "string", "order": "number" }
     ],
-    "materiLabel": "string | null (label materi asal untuk UTBK-style)"
+    "materiLabel": "string | null (label Subject asal untuk UTBK-style)"
   }
 ]
 ```
@@ -359,9 +359,9 @@ Submit jawaban quiz chapter. Format jawaban berbeda per tipe soal.
 
 ## 5. Pre Test
 
-### GET /api/v1/pretest/bab/{babId}/status
+### GET /api/v1/pretest/Section/{sectionId}/status
 
-Cek apakah pre test sudah dikerjakan untuk bab ini.
+Cek apakah pre test sudah dikerjakan untuk Section ini.
 
 **Response 200:**
 ```json
@@ -373,12 +373,12 @@ Cek apakah pre test sudah dikerjakan untuk bab ini.
 
 ---
 
-### GET /api/v1/pretest/bab/{babId}/questions
+### GET /api/v1/pretest/Section/{sectionId}/questions
 
-Ambil soal pre test untuk bab. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
+Ambil soal pre test untuk Section. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
 
 **Logika backend:**
-1. Baca config distribusi Pre Test untuk bab ini
+1. Baca config distribusi Pre Test untuk Section ini
 2. Untuk setiap chapter: ambil N soal acak dari Bank Soal chapter tersebut
 3. Urutkan soal berdasarkan orderIndex chapter (soal chapter 1 dulu, lalu chapter 2, dst)
 4. Kirim tanpa `correctOptionId`
@@ -408,7 +408,7 @@ Submit jawaban pre test. Backend hitung skor per chapter untuk tentukan placemen
 **Request Body:**
 ```json
 {
-  "babId": "string",
+  "sectionId": "string",
   "answers": [
     { "questionId": "string", "selectedOptionId": "string" }
   ]
@@ -418,7 +418,7 @@ Submit jawaban pre test. Backend hitung skor per chapter untuk tentukan placemen
 **Response 200:**
 ```json
 {
-  "babId": "string",
+  "sectionId": "string",
   "startChapterIndex": "number (0-based)",
   "startChapterName": "string",
   "totalChaptersSkipped": "number",
@@ -433,15 +433,15 @@ Submit jawaban pre test. Backend hitung skor per chapter untuk tentukan placemen
 - Placement: siswa mulai dari **chapter pertama** yang persentase benarnya di bawah threshold (misal < 70%)
 - Jika semua chapter benar → siswa mulai dari chapter terakhir
 - Chapter yang dilewati → status COMPLETED, XP diberikan (sum XP dari video + quiz chapter tersebut)
-- Pre test hanya bisa dikerjakan **1 kali** per bab per siswa
+- Pre test hanya bisa dikerjakan **1 kali** per Section per siswa
 
 ---
 
 ## 6. Post Test
 
-### GET /api/v1/posttest/bab/{babId}/status
+### GET /api/v1/posttest/Section/{sectionId}/status
 
-Cek status post test untuk bab.
+Cek status post test untuk Section.
 
 **Response 200:**
 ```json
@@ -455,9 +455,9 @@ Cek status post test untuk bab.
 
 ---
 
-### GET /api/v1/posttest/bab/{babId}/questions
+### GET /api/v1/posttest/Section/{sectionId}/questions
 
-Ambil soal post test untuk bab. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
+Ambil soal post test untuk Section. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
 
 **Logika backend:** Sama seperti Pre Test — ambil soal dari chapter sesuai distribusi config.
 
@@ -484,7 +484,7 @@ Submit jawaban post test.
 **Request Body:**
 ```json
 {
-  "babId": "string",
+  "sectionId": "string",
   "answers": [
     { "questionId": "string", "selectedOptionId": "string" }
   ]
@@ -509,7 +509,7 @@ Submit jawaban post test.
 **Logika backend:**
 - Hitung skor berdasarkan jawaban benar: `(benar / total) * 100`
 - Bandingkan dengan `passingGrade` dari config admin (bukan hardcoded)
-- Jika `skor >= passingGrade` → PASSED, unlock bab berikutnya, berikan XP
+- Jika `skor >= passingGrade` → PASSED, unlock Section berikutnya, berikan XP
 - Jika `skor < passingGrade` → FAILED:
   - Identifikasi chapter yang soalnya dijawab salah (via `chapterId` di soal)
   - Kirim `remediationChapterIds` + `remediationChapterNames` ke frontend
@@ -559,9 +559,9 @@ Status gamifikasi siswa (XP, badges, milestones).
 
 ## 8. Admin — Curriculum CRUD
 
-### POST /api/v1/admin/curriculum/materi
+### POST /api/v1/admin/curriculum/subjects
 
-Buat materi baru.
+Buat Subject baru.
 
 **Request Body:**
 ```json
@@ -572,13 +572,13 @@ Buat materi baru.
 }
 ```
 
-**Response 201:** Object Materi
+**Response 201:** Object Subject
 
 ---
 
-### PUT /api/v1/admin/curriculum/materi/{materiId}
+### PUT /api/v1/admin/curriculum/subjects/{subjectId}
 
-Update materi.
+Update Subject.
 
 **Request Body:**
 ```json
@@ -590,18 +590,18 @@ Update materi.
 
 ---
 
-### DELETE /api/v1/admin/curriculum/materi/{materiId}
+### DELETE /api/v1/admin/curriculum/subjects/{subjectId}
 
-Hapus materi (cascade delete bab dan chapter di dalamnya).
+Hapus Subject (cascade delete Section dan chapter di dalamnya).
 
 ---
 
-### POST /api/v1/admin/curriculum/bab
+### POST /api/v1/admin/curriculum/sections
 
 **Request Body:**
 ```json
 {
-  "materiId": "string",
+  "subjectId": "string",
   "name": "string",
   "orderIndex": "number"
 }
@@ -609,9 +609,9 @@ Hapus materi (cascade delete bab dan chapter di dalamnya).
 
 ---
 
-### PUT /api/v1/admin/curriculum/bab/{babId}
+### PUT /api/v1/admin/curriculum/sections/{sectionId}
 
-### DELETE /api/v1/admin/curriculum/bab/{babId}
+### DELETE /api/v1/admin/curriculum/sections/{sectionId}
 
 ---
 
@@ -620,7 +620,7 @@ Hapus materi (cascade delete bab dan chapter di dalamnya).
 **Request Body:**
 ```json
 {
-  "babId": "string",
+  "sectionId": "string",
   "name": "string",
   "orderIndex": "number",
   "videoUrl": "string",
@@ -640,7 +640,7 @@ Hapus materi (cascade delete bab dan chapter di dalamnya).
 
 ### GET /api/v1/admin/quiz/chapter/{targetId}/patterns
 
-Ambil daftar topik soal (QuestionPattern) untuk chapter atau bab.
+Ambil daftar topik soal (QuestionPattern) untuk chapter atau Section.
 
 **Query Params (optional):**
 - `type`: `CHAPTER_QUIZ | PRE_TEST | POST_TEST` (default: CHAPTER_QUIZ)
@@ -651,7 +651,7 @@ Ambil daftar topik soal (QuestionPattern) untuk chapter atau bab.
   {
     "id": "string",
     "chapterId": "string | null",
-    "babId": "string | null",
+    "sectionId": "string | null",
     "quizType": "CHAPTER_QUIZ | PRE_TEST | POST_TEST",
     "patternCode": "string",
     "description": "string",
@@ -669,7 +669,7 @@ Buat topik soal baru.
 **Request Body:**
 ```json
 {
-  "chapterId": "string (untuk CHAPTER_QUIZ, atau babId untuk PRE/POST)",
+  "chapterId": "string (untuk CHAPTER_QUIZ, atau sectionId untuk PRE/POST)",
   "patternCode": "string (auto-generated dari nama topik, max 50, unique)",
   "description": "string (nama topik, max 200)",
   "quizType": "CHAPTER_QUIZ | PRE_TEST | POST_TEST"
@@ -760,9 +760,9 @@ Pre Test and Post Test use a **subtest** model (not pattern-based randomization 
 - Subtests are stored as `QuestionPattern` records with `quizType = PRE_TEST | POST_TEST`
 - Questions inside subtests are shown directly (all active questions appear)
 
-### GET /api/v1/admin/quiz/config/{materiId}?type={quizType}
+### GET /api/v1/admin/quiz/config/{subjectId}?type={quizType}
 
-Get Pre Test or Post Test configuration for a materi.
+Get Pre Test or Post Test configuration for a Subject.
 
 **Query Params:**
 - `type`: `PRE_TEST | POST_TEST` (required)
@@ -771,7 +771,7 @@ Get Pre Test or Post Test configuration for a materi.
 ```json
 {
   "id": "string",
-  "materiId": "string",
+  "subjectId": "string",
   "quizType": "PRE_TEST | POST_TEST",
   "timerMinutes": "number (default 135 for UTBK-style)",
   "passingGrade": "number (0-100, only for POST_TEST, default 70)",
@@ -788,7 +788,7 @@ Get Pre Test or Post Test configuration for a materi.
 
 ---
 
-### PUT /api/v1/admin/quiz/config/{materiId}
+### PUT /api/v1/admin/quiz/config/{subjectId}
 
 Save/update Pre Test or Post Test configuration.
 
@@ -825,12 +825,12 @@ Save/update Pre Test or Post Test configuration.
 
 When a student takes a Pre Test or Post Test:
 
-1. Backend reads config for the materi
+1. Backend reads config for the Subject
 2. For each subtest: collect only `activeQuestionIds` (questions admin has enabled)
 3. Apply `questionWeights` for scoring calculation
 4. Send all active questions to frontend grouped by subtest (without correctOptionId)
 5. On submit:
-   - **Pre Test**: determine placement (which bab student starts from)
+   - **Pre Test**: determine placement (which Section student starts from)
    - **Post Test**: calculate weighted score, compare against passingGrade
 
 ---
@@ -889,12 +889,12 @@ Detail progres satu siswa (sama seperti GET /student/progress tapi untuk admin).
   "totalXP": "number",
   "materiProgress": [
     {
-      "materiId": "string",
+      "subjectId": "string",
       "materiName": "string",
       "completionPercentage": "number (0-100)",
       "babs": [
         {
-          "babId": "string",
+          "sectionId": "string",
           "babName": "string",
           "status": "LOCKED | UNLOCKED | IN_PROGRESS | COMPLETED",
           "preTestCompleted": "boolean",
@@ -1189,22 +1189,22 @@ READY_FOR_RETAKE → COMPLETED (retake quiz lulus)
 READY_FOR_RETAKE → REMEDIATION_REQUIRED (retake quiz gagal lagi)
 ```
 
-### State Machine — Bab Status
+### State Machine — Section Status
 
 ```
-LOCKED → UNLOCKED (Post Test bab sebelumnya lulus, atau bab pertama dalam materi)
+LOCKED → UNLOCKED (Post Test Section sebelumnya lulus, atau Section pertama dalam Subject)
 UNLOCKED → IN_PROGRESS (Pre Test dikerjakan)
 IN_PROGRESS → COMPLETED (Post Test lulus)
 ```
 
 ### Flow Progresif
 
-1. Bab pertama dalam materi selalu UNLOCKED
-2. Bab berikutnya LOCKED sampai Post Test bab sebelumnya PASSED
-3. Masuk bab → harus Pre Test dulu (1 kali, tidak bisa diulang)
+1. Section pertama dalam Subject selalu UNLOCKED
+2. Section berikutnya LOCKED sampai Post Test Section sebelumnya PASSED
+3. Masuk Section → harus Pre Test dulu (1 kali, tidak bisa diulang)
 4. Chapter sequential: chapter N+1 baru UNLOCKED setelah chapter N COMPLETED
 5. Semua chapter COMPLETED → Post Test available
-6. Post Test lulus → bab berikutnya UNLOCKED
+6. Post Test lulus → Section berikutnya UNLOCKED
 
 ### Pre Test Placement Logic
 

@@ -52,6 +52,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 50,
         lastScore: null,
         quizAttempts: 0,
+        scoreHistory: [],
         videoWatchAttempts: 1,
       };
       useChapterStore.setState({ progressMap: { 'ch-1': progress } });
@@ -77,6 +78,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 10,
         lastScore: null,
         quizAttempts: 0,
+        scoreHistory: [],
         videoWatchAttempts: 1,
       };
       useChapterStore.setState({ progressMap: { 'ch-1': progress } });
@@ -97,8 +99,8 @@ describe('useChapterStore', () => {
   describe('fetchProgress', () => {
     it('fetches chapters and their progress, populating progressMap', async () => {
       mockedGetChapterList.mockResolvedValue([
-        { id: 'ch-1', babId: 'bab-1', name: 'Chapter 1', orderIndex: 1, videoUrl: '', passingGrade: 70 },
-        { id: 'ch-2', babId: 'bab-1', name: 'Chapter 2', orderIndex: 2, videoUrl: '', passingGrade: 70 },
+        { id: 'ch-1', sectionId: 'bab-1', name: 'Chapter 1', orderIndex: 1, videoUrl: '', passingGrade: 70 },
+        { id: 'ch-2', sectionId: 'bab-1', name: 'Chapter 2', orderIndex: 2, videoUrl: '', passingGrade: 70 },
       ]);
 
       const progress1: ChapterProgress = {
@@ -107,6 +109,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 100,
         lastScore: 85,
         quizAttempts: 1,
+        scoreHistory: [85],
         videoWatchAttempts: 1,
       };
       const progress2: ChapterProgress = {
@@ -115,6 +118,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 30,
         lastScore: null,
         quizAttempts: 0,
+        scoreHistory: [],
         videoWatchAttempts: 0,
       };
 
@@ -142,7 +146,7 @@ describe('useChapterStore', () => {
 
     it('uses default progress when individual chapter progress fetch fails', async () => {
       mockedGetChapterList.mockResolvedValue([
-        { id: 'ch-1', babId: 'bab-1', name: 'Chapter 1', orderIndex: 1, videoUrl: '', passingGrade: 70 },
+        { id: 'ch-1', sectionId: 'bab-1', name: 'Chapter 1', orderIndex: 1, videoUrl: '', passingGrade: 70 },
       ]);
 
       mockedGetVideoInfo.mockRejectedValue(new Error('Network error'));
@@ -157,6 +161,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 0,
         lastScore: null,
         quizAttempts: 0,
+        scoreHistory: [],
         videoWatchAttempts: 0,
       });
     });
@@ -177,12 +182,13 @@ describe('useChapterStore', () => {
         watchedPercentage: 100,
         lastScore: 90,
         quizAttempts: 1,
+        scoreHistory: [90],
         videoWatchAttempts: 1,
       };
       useChapterStore.setState({ progressMap: { 'ch-existing': existingProgress } });
 
       mockedGetChapterList.mockResolvedValue([
-        { id: 'ch-new', babId: 'bab-2', name: 'New Chapter', orderIndex: 1, videoUrl: '', passingGrade: 70 },
+        { id: 'ch-new', sectionId: 'bab-2', name: 'New Chapter', orderIndex: 1, videoUrl: '', passingGrade: 70 },
       ]);
       const newProgress: ChapterProgress = {
         chapterId: 'ch-new',
@@ -190,6 +196,7 @@ describe('useChapterStore', () => {
         watchedPercentage: 0,
         lastScore: null,
         quizAttempts: 0,
+        scoreHistory: [],
         videoWatchAttempts: 0,
       };
       mockedGetVideoInfo.mockResolvedValue(newProgress);

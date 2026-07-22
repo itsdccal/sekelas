@@ -10,7 +10,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import type { ManagedUser, UserRole } from '@/lib/types';
+import { adminApi } from '@/lib/api';
+import type { ManagedUser, UserRole, ClassRoom } from '@/lib/types';
 
 export interface UserFormData {
   name: string;
@@ -42,6 +43,22 @@ export function UserFormDialog({
   const [kelas, setKelas] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Kelas dropdown options
+  const [kelasList, setKelasList] = useState<ClassRoom[]>([]);
+  const [isLoadingKelas, setisLoadingKelas] = useState(false);
+
+  // Fetch Kelas list when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setisLoadingKelas(true);
+    adminApi.getClassRoomList()
+      .then((data) => { if (!cancelled) setKelasList(data); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setisLoadingKelas(false); });
+    return () => { cancelled = true; };
+  }, [open]);
 
   // Populate form when editing
   useEffect(() => {
@@ -192,18 +209,23 @@ export function UserFormDialog({
           {role === 'STUDENT' && (
             <div className="space-y-1.5">
               <label htmlFor="user-kelas" className="text-sm font-medium text-foreground">
-                Kelas <span className="text-destructive">*</span>
+                ClassRoom <span className="text-destructive">*</span>
               </label>
-              <input
+              <select
                 id="user-kelas"
-                type="text"
                 value={kelas}
                 onChange={(e) => setKelas(e.target.value)}
-                disabled={isSubmitting}
-                placeholder="Contoh: 10A, 11B"
-                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
-              />
-              {kelas.length > 0 && errors.kelas && (
+                disabled={isSubmitting || isLoadingKelas}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 disabled:opacity-50"
+              >
+                <option value="">{isLoadingKelas ? 'Memuat...' : 'Pilih Kelas'}</option>
+                {kelasList.map((k) => (
+                  <option key={k.id} value={k.name}>
+                    {k.name}
+                  </option>
+                ))}
+              </select>
+              {kelas.length === 0 && errors.kelas && (
                 <p className="text-xs text-destructive">{errors.kelas}</p>
               )}
             </div>

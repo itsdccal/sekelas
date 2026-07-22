@@ -146,7 +146,7 @@ export default function StudentDashboardPage() {
       {/* Lanjutkan Belajar Card */}
       {progress && progress.completedChapters < progress.totalChapters && (
         <Link
-          href="/student/kurikulum"
+          href="/student/curriculum"
           className="block rounded-lg border border-border bg-white p-4 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
         >
           <div className="flex items-center gap-3">
@@ -209,18 +209,18 @@ export default function StudentDashboardPage() {
       <NextMilestoneCard />
 
       {/* Materi yang Diikuti */}
-      {progress && Array.isArray(progress.materiProgress) && progress.materiProgress.length > 0 && (
+      {progress && Array.isArray(progress.subjectProgress) && progress.subjectProgress.length > 0 && (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-foreground">Materi yang Diikuti</h2>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {progress.materiProgress.map((materi) => (
+            {progress.subjectProgress.map((materi) => (
               <Link
-                key={materi.materiId}
-                href={`/student/kurikulum/${materi.materiId}`}
+                key={materi.subjectId}
+                href={`/student/curriculum/${materi.subjectId}`}
                 className="block rounded-lg border border-border bg-white p-5 hover:bg-muted/30"
               >
                 <h3 className="mb-3 text-sm font-medium text-foreground">
-                  {materi.materiName}
+                  {materi.subjectName}
                 </h3>
                 <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
                   <span>Progres</span>
@@ -234,7 +234,7 @@ export default function StudentDashboardPage() {
                   aria-valuenow={materi.completionPercentage}
                   aria-valuemin={0}
                   aria-valuemax={100}
-                  aria-label={`Progres ${materi.materiName}`}
+                  aria-label={`Progres ${materi.subjectName}`}
                 >
                   <div
                     className="h-full rounded-full bg-primary-500"

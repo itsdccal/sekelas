@@ -32,6 +32,7 @@ export interface StudentMonitoringRow {
   kelas: string;
   totalProgress: number; // 0-100 integer
   totalXP: number;
+  averageScore: number | null; // Rata-rata nilai quiz (null jika belum ada)
 }
 
 export interface VideoUploadResponse {

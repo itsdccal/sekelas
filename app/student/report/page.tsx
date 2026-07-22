@@ -29,8 +29,8 @@ import { formatXP } from '@/lib/utils/formatters';
 import { Button } from '@/components/ui/button';
 import type {
   StudentProgress,
-  MateriProgress,
-  BabProgress,
+  SubjectProgress,
+  SectionProgress,
   ChapterProgress,
   ChapterStatus,
 } from '@/lib/types';
@@ -93,10 +93,10 @@ function PageSkeleton() {
 
 // ─── Pre/Post Test Chart ───
 
-function PrePostTestChart({ babs }: { babs: BabProgress[] }) {
-  const completedBabs = babs.filter(b => b.status === 'COMPLETED').length;
+function PrePostTestChart({ sections }: { sections: SectionProgress[] }) {
+  const completedSections = sections.filter(b => b.status === 'COMPLETED').length;
 
-  if (babs.length === 0) {
+  if (sections.length === 0) {
     return (
       <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border">
         <p className="text-sm text-muted-foreground">Belum ada data</p>
@@ -108,15 +108,15 @@ function PrePostTestChart({ babs }: { babs: BabProgress[] }) {
     <div className="space-y-3 p-4">
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Progres Bab</span>
-        <span className="font-medium">{completedBabs}/{babs.length} bab selesai</span>
+        <span className="font-medium">{completedSections}/{sections.length} bab selesai</span>
       </div>
       <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
-        <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${(completedBabs / babs.length) * 100}%` }} />
+        <div className="h-full rounded-full bg-primary-500 transition-all" style={{ width: `${(completedSections / sections.length) * 100}%` }} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {babs.map((bab) => (
-          <div key={bab.babId} className={`rounded-md px-3 py-2 text-xs ${bab.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
-            {bab.babName}
+        {sections.map((section) => (
+          <div key={section.sectionId} className={`rounded-md px-3 py-2 text-xs ${section.status === 'COMPLETED' ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-500'}`}>
+            {section.sectionName}
           </div>
         ))}
       </div>
@@ -164,7 +164,7 @@ function ChapterLogCard({ chapter }: { chapter: ChapterProgress }) {
 
 // ─── Bab Accordion ───
 
-function BabSection({ bab }: { bab: BabProgress }) {
+function BabSection({ section }: { section: SectionProgress }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -174,7 +174,7 @@ function BabSection({ bab }: { bab: BabProgress }) {
         className="flex w-full items-center gap-2 p-3 sm:p-4 text-left hover:bg-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        aria-controls={`bab-log-${bab.babId}`}
+        aria-controls={`bab-log-${section.sectionId}`}
       >
         {expanded ? (
           <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -182,19 +182,19 @@ function BabSection({ bab }: { bab: BabProgress }) {
           <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground truncate">{bab.babName}</p>
+          <p className="text-sm font-medium text-foreground truncate">{section.sectionName}</p>
           <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
-            <span>{bab.chapters.filter((c) => c.status === 'COMPLETED').length} chapter selesai</span>
+            <span>{section.chapters.filter((c) => c.status === 'COMPLETED').length} chapter selesai</span>
           </div>
         </div>
         <span className="text-xs font-medium text-muted-foreground shrink-0">
-          {bab.chapters.filter((c) => c.status === 'COMPLETED').length}/{bab.chapters.length}
+          {section.chapters.filter((c) => c.status === 'COMPLETED').length}/{section.chapters.length}
         </span>
       </button>
 
       {expanded && (
-        <div id={`bab-log-${bab.babId}`} className="border-t border-border px-3 py-2.5 sm:px-4 sm:py-3 space-y-2">
-          {bab.chapters.map((ch) => (
+        <div id={`bab-log-${section.sectionId}`} className="border-t border-border px-3 py-2.5 sm:px-4 sm:py-3 space-y-2">
+          {section.chapters.map((ch) => (
             <ChapterLogCard key={ch.chapterId} chapter={ch} />
           ))}
         </div>
@@ -205,7 +205,7 @@ function BabSection({ bab }: { bab: BabProgress }) {
 
 // ─── Materi Section ───
 
-function MateriSection({ materi }: { materi: MateriProgress }) {
+function MateriSection({ subject }: { subject: SubjectProgress }) {
   const [expanded, setExpanded] = useState(true);
 
   return (
@@ -221,16 +221,16 @@ function MateriSection({ materi }: { materi: MateriProgress }) {
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
         )}
-        <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{materi.materiName}</h3>
+        <h3 className="text-sm sm:text-base font-semibold text-foreground truncate">{subject.subjectName}</h3>
         <span className="ml-auto shrink-0 rounded-full bg-primary-100 px-2 py-0.5 text-xs font-semibold text-primary-700">
-          {materi.completionPercentage}%
+          {subject.completionPercentage}%
         </span>
       </button>
 
       {expanded && (
         <div className="space-y-2">
-          {materi.babs.map((bab) => (
-            <BabSection key={bab.babId} bab={bab} />
+          {subject.sections.map((section) => (
+            <BabSection key={section.sectionId} section={section} />
           ))}
         </div>
       )}
@@ -274,8 +274,8 @@ export default function RaportPage() {
     .filter((b) => b.isEarned)
     .map((b) => ({ id: b.id, name: b.name }));
 
-  const allBabs: BabProgress[] = progress
-    ? progress.materiProgress.flatMap((m) => m.babs)
+  const allSections: SectionProgress[] = progress
+    ? progress.subjectProgress.flatMap((m) => m.sections)
     : [];
 
   // ─── Error state ───
@@ -304,7 +304,7 @@ export default function RaportPage() {
   }
 
   // ─── Empty state ───
-  if (!progress || progress.materiProgress.length === 0) {
+  if (!progress || progress.subjectProgress.length === 0) {
     return (
       <div className="space-y-4">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Raport</h1>
@@ -349,7 +349,7 @@ export default function RaportPage() {
         <h2 className="mb-3 text-sm sm:text-base font-semibold text-foreground">
           Pre Test vs Post Test
         </h2>
-        <PrePostTestChart babs={allBabs} />
+        <PrePostTestChart sections={allSections} />
       </div>
 
       {/* Milestones */}
@@ -370,8 +370,8 @@ export default function RaportPage() {
       {/* Log per Chapter */}
       <div className="space-y-4">
         <h2 className="text-sm sm:text-lg font-semibold text-foreground">Log Aktivitas per Chapter</h2>
-        {progress.materiProgress.map((materi) => (
-          <MateriSection key={materi.materiId} materi={materi} />
+        {progress.subjectProgress.map((subject) => (
+          <MateriSection key={subject.subjectId} subject={subject} />
         ))}
       </div>
     </div>

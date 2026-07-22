@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import type { Bab } from "@/lib/types";
+import type { Section } from "@/lib/types";
 
 export interface BabFormData {
   name: string;
@@ -22,7 +22,7 @@ interface BabFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: BabFormData) => Promise<void>;
-  initialData?: Bab | null;
+  initialData?: Section | null;
   mode: "create" | "edit";
 }
 
@@ -43,9 +43,9 @@ function BabFormContent({
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
     if (!name || name.trim().length === 0) {
-      errs.name = "Nama bab wajib diisi";
+      errs.name = "Nama Section wajib diisi";
     } else if (name.length > 100) {
-      errs.name = "Nama bab maksimal 100 karakter";
+      errs.name = "Nama Section maksimal 100 karakter";
     }
     if (orderIndex < 0) {
       errs.orderIndex = "Urutan harus bernilai positif";
@@ -89,24 +89,24 @@ function BabFormContent({
       {/* Name Field */}
       <div className="space-y-1.5">
         <label
-          htmlFor="bab-name"
+          htmlFor="Section-name"
           className="text-sm font-medium text-foreground"
         >
-          Nama Bab <span className="text-red-500">*</span>
+          Nama Section <span className="text-red-500">*</span>
         </label>
         <input
-          id="bab-name"
+          id="Section-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
           className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-          placeholder="Masukkan nama bab"
+          placeholder="Masukkan nama Section"
           aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? "bab-name-error" : undefined}
+          aria-describedby={errors.name ? "Section-name-error" : undefined}
         />
         {errors.name && (
-          <p id="bab-name-error" className="text-xs text-red-600">
+          <p id="Section-name-error" className="text-xs text-red-600">
             {errors.name}
           </p>
         )}
@@ -115,13 +115,13 @@ function BabFormContent({
       {/* Order Index Field */}
       <div className="space-y-1.5">
         <label
-          htmlFor="bab-order"
+          htmlFor="Section-order"
           className="text-sm font-medium text-foreground"
         >
           Urutan <span className="text-red-500">*</span>
         </label>
         <input
-          id="bab-order"
+          id="Section-order"
           type="number"
           value={orderIndex}
           onChange={(e) => setOrderIndex(parseInt(e.target.value, 10) || 0)}
@@ -129,11 +129,11 @@ function BabFormContent({
           className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
           aria-invalid={!!errors.orderIndex}
           aria-describedby={
-            errors.orderIndex ? "bab-order-error" : undefined
+            errors.orderIndex ? "Section-order-error" : undefined
           }
         />
         {errors.orderIndex && (
-          <p id="bab-order-error" className="text-xs text-red-600">
+          <p id="Section-order-error" className="text-xs text-red-600">
             {errors.orderIndex}
           </p>
         )}
@@ -165,15 +165,15 @@ export function BabFormDialog({
 }: BabFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby="bab-form-desc">
+      <DialogContent aria-describedby="Section-form-desc">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Tambah Bab" : "Ubah Bab"}
+            {mode === "create" ? "Tambah Section" : "Ubah Section"}
           </DialogTitle>
-          <DialogDescription id="bab-form-desc">
+          <DialogDescription id="Section-form-desc">
             {mode === "create"
-              ? "Isi data untuk membuat Bab baru."
-              : "Ubah data Bab yang sudah ada."}
+              ? "Isi data untuk membuat Section baru."
+              : "Ubah data Section yang sudah ada."}
           </DialogDescription>
         </DialogHeader>
 

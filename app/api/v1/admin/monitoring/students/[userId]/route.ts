@@ -5,9 +5,7 @@ import { NextRequest, NextResponse } from 'next/server';
  * Returns detailed progress for a specific student with full hierarchy
  * (Materi → Bab → Chapter) matching the StudentProgress type.
  *
- * This mock data supports testing override functionality — multiple chapters
- * have statuses other than COMPLETED (LOCKED, UNLOCKED, REMEDIATION_REQUIRED,
- * READY_FOR_RETAKE) which can be targeted for override.
+ * scoreHistory: array of scores from attempt 1 to last attempt.
  */
 export async function GET(
   request: NextRequest,
@@ -36,9 +34,9 @@ export async function GET(
               preTestScore: 60,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 2, videoWatchAttempts: 2 },
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, scoreHistory: [85], videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, scoreHistory: [90], videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 2, scoreHistory: [30, 45], videoWatchAttempts: 2 },
               ],
             },
             {
@@ -50,9 +48,9 @@ export async function GET(
               preTestScore: 40,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 2, videoWatchAttempts: 1 },
-                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 3, videoWatchAttempts: 3 },
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, scoreHistory: [80], videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 2, scoreHistory: [55, 75], videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 3, scoreHistory: [20, 35, 50], videoWatchAttempts: 3 },
               ],
             },
             {
@@ -64,9 +62,9 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -85,9 +83,9 @@ export async function GET(
               preTestScore: 50,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-12', status: 'UNLOCKED', watchedPercentage: 30, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, scoreHistory: [88], videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, scoreHistory: [82], videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'UNLOCKED', watchedPercentage: 30, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 1 },
               ],
             },
             {
@@ -99,8 +97,8 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-13', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-14', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-13', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-14', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -119,9 +117,9 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-15', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-16', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-17', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-15', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-16', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-17', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -148,9 +146,9 @@ export async function GET(
               preTestScore: 30,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, videoWatchAttempts: 2 },
-                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, videoWatchAttempts: 2 },
-                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 50, lastScore: 40, quizAttempts: 4, videoWatchAttempts: 3 },
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, scoreHistory: [55, 72], videoWatchAttempts: 2 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, scoreHistory: [40, 58, 70], videoWatchAttempts: 2 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 50, lastScore: 40, quizAttempts: 4, scoreHistory: [15, 25, 32, 40], videoWatchAttempts: 3 },
               ],
             },
             {
@@ -162,9 +160,9 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-4', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-5', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-6', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-4', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-5', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-6', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -183,9 +181,9 @@ export async function GET(
               preTestScore: 20,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 60, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
-                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 75, quizAttempts: 1, scoreHistory: [75], videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 60, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -212,9 +210,9 @@ export async function GET(
               preTestScore: 80,
               postTestScore: 92,
               chapters: [
-                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 95, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-3', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 95, quizAttempts: 1, scoreHistory: [95], videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, scoreHistory: [90], videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, scoreHistory: [88], videoWatchAttempts: 1 },
               ],
             },
             {
@@ -226,9 +224,9 @@ export async function GET(
               preTestScore: 70,
               postTestScore: 85,
               chapters: [
-                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 87, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-6', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 2, videoWatchAttempts: 1 },
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, scoreHistory: [92], videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 87, quizAttempts: 1, scoreHistory: [87], videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 2, scoreHistory: [60, 85], videoWatchAttempts: 1 },
               ],
             },
             {
@@ -240,9 +238,9 @@ export async function GET(
               preTestScore: 75,
               postTestScore: 90,
               chapters: [
-                { chapterId: 'ch-7', status: 'COMPLETED', watchedPercentage: 100, lastScore: 93, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-8', status: 'COMPLETED', watchedPercentage: 100, lastScore: 91, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-9', status: 'COMPLETED', watchedPercentage: 100, lastScore: 94, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-7', status: 'COMPLETED', watchedPercentage: 100, lastScore: 93, quizAttempts: 1, scoreHistory: [93], videoWatchAttempts: 1 },
+                { chapterId: 'ch-8', status: 'COMPLETED', watchedPercentage: 100, lastScore: 91, quizAttempts: 1, scoreHistory: [91], videoWatchAttempts: 1 },
+                { chapterId: 'ch-9', status: 'COMPLETED', watchedPercentage: 100, lastScore: 94, quizAttempts: 1, scoreHistory: [94], videoWatchAttempts: 1 },
               ],
             },
           ],
@@ -261,9 +259,9 @@ export async function GET(
               preTestScore: 60,
               postTestScore: 88,
               chapters: [
-                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-12', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, videoWatchAttempts: 1 },
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 90, quizAttempts: 1, scoreHistory: [90], videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, scoreHistory: [85], videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'COMPLETED', watchedPercentage: 100, lastScore: 88, quizAttempts: 1, scoreHistory: [88], videoWatchAttempts: 1 },
               ],
             },
             {
@@ -275,8 +273,8 @@ export async function GET(
               preTestScore: 55,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-13', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-14', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 55, quizAttempts: 2, videoWatchAttempts: 2 },
+                { chapterId: 'ch-13', status: 'COMPLETED', watchedPercentage: 100, lastScore: 92, quizAttempts: 1, scoreHistory: [92], videoWatchAttempts: 1 },
+                { chapterId: 'ch-14', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 55, quizAttempts: 2, scoreHistory: [40, 55], videoWatchAttempts: 2 },
               ],
             },
           ],
@@ -295,16 +293,16 @@ export async function GET(
               preTestScore: 45,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-15', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-16', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-17', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-18', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-19', status: 'COMPLETED', watchedPercentage: 100, lastScore: 79, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-20', status: 'UNLOCKED', watchedPercentage: 40, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
-                { chapterId: 'ch-21', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-22', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-23', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-24', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-15', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, scoreHistory: [80], videoWatchAttempts: 1 },
+                { chapterId: 'ch-16', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, scoreHistory: [78], videoWatchAttempts: 1 },
+                { chapterId: 'ch-17', status: 'COMPLETED', watchedPercentage: 100, lastScore: 82, quizAttempts: 1, scoreHistory: [82], videoWatchAttempts: 1 },
+                { chapterId: 'ch-18', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, scoreHistory: [85], videoWatchAttempts: 1 },
+                { chapterId: 'ch-19', status: 'COMPLETED', watchedPercentage: 100, lastScore: 79, quizAttempts: 1, scoreHistory: [79], videoWatchAttempts: 1 },
+                { chapterId: 'ch-20', status: 'UNLOCKED', watchedPercentage: 40, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 1 },
+                { chapterId: 'ch-21', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-22', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-23', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-24', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -331,9 +329,9 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-1', status: 'UNLOCKED', watchedPercentage: 15, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
-                { chapterId: 'ch-2', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-3', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-1', status: 'UNLOCKED', watchedPercentage: 15, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-3', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -360,9 +358,9 @@ export async function GET(
               preTestScore: 25,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, videoWatchAttempts: 3 },
-                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, videoWatchAttempts: 2 },
-                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 20, lastScore: 35, quizAttempts: 5, videoWatchAttempts: 4 },
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 70, quizAttempts: 3, scoreHistory: [35, 55, 70], videoWatchAttempts: 3 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 2, scoreHistory: [50, 72], videoWatchAttempts: 2 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 20, lastScore: 35, quizAttempts: 5, scoreHistory: [10, 15, 22, 28, 35], videoWatchAttempts: 4 },
               ],
             },
           ],
@@ -374,7 +372,7 @@ export async function GET(
   const student = studentDetails[userId];
 
   if (!student) {
-    // Return generic student data for any unknown userId — useful for testing override
+    // Return generic student data for any unknown userId
     return NextResponse.json({
       userId,
       completedChapters: 5,
@@ -395,9 +393,9 @@ export async function GET(
               preTestScore: 50,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 3, videoWatchAttempts: 2 },
+                { chapterId: 'ch-1', status: 'COMPLETED', watchedPercentage: 100, lastScore: 78, quizAttempts: 1, scoreHistory: [78], videoWatchAttempts: 1 },
+                { chapterId: 'ch-2', status: 'COMPLETED', watchedPercentage: 100, lastScore: 80, quizAttempts: 1, scoreHistory: [80], videoWatchAttempts: 1 },
+                { chapterId: 'ch-3', status: 'REMEDIATION_REQUIRED', watchedPercentage: 100, lastScore: 45, quizAttempts: 3, scoreHistory: [20, 35, 45], videoWatchAttempts: 2 },
               ],
             },
             {
@@ -409,9 +407,9 @@ export async function GET(
               preTestScore: 40,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 76, quizAttempts: 2, videoWatchAttempts: 1 },
-                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 2, videoWatchAttempts: 2 },
+                { chapterId: 'ch-4', status: 'COMPLETED', watchedPercentage: 100, lastScore: 85, quizAttempts: 1, scoreHistory: [85], videoWatchAttempts: 1 },
+                { chapterId: 'ch-5', status: 'COMPLETED', watchedPercentage: 100, lastScore: 76, quizAttempts: 2, scoreHistory: [50, 76], videoWatchAttempts: 1 },
+                { chapterId: 'ch-6', status: 'READY_FOR_RETAKE', watchedPercentage: 100, lastScore: 50, quizAttempts: 2, scoreHistory: [30, 50], videoWatchAttempts: 2 },
               ],
             },
             {
@@ -423,9 +421,9 @@ export async function GET(
               preTestScore: null,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
-                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-7', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-8', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
+                { chapterId: 'ch-9', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],
@@ -444,9 +442,9 @@ export async function GET(
               preTestScore: 35,
               postTestScore: null,
               chapters: [
-                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 1, videoWatchAttempts: 1 },
-                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 50, lastScore: null, quizAttempts: 0, videoWatchAttempts: 1 },
-                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, videoWatchAttempts: 0 },
+                { chapterId: 'ch-10', status: 'COMPLETED', watchedPercentage: 100, lastScore: 72, quizAttempts: 1, scoreHistory: [72], videoWatchAttempts: 1 },
+                { chapterId: 'ch-11', status: 'UNLOCKED', watchedPercentage: 50, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 1 },
+                { chapterId: 'ch-12', status: 'LOCKED', watchedPercentage: 0, lastScore: null, quizAttempts: 0, scoreHistory: [], videoWatchAttempts: 0 },
               ],
             },
           ],

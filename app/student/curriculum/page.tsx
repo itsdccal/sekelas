@@ -6,7 +6,7 @@ import { BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
 import { curriculumApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
 import { getErrorMessage } from '@/lib/api/retry';
-import type { Materi } from '@/lib/types';
+import type { Subject } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 
 /** Accent colors for materi cards */
@@ -22,13 +22,13 @@ const CARD_ACCENTS = [
 export default function KurikulumPage() {
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
-  const [materiList, setMateriList] = useState<Materi[]>([]);
+  const [subjectList, setSubjectList] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedSemesterId) {
-      setMateriList([]);
+      setSubjectList([]);
       setIsLoading(false);
       return;
     }
@@ -40,10 +40,10 @@ export default function KurikulumPage() {
       setError(null);
 
       try {
-        const data = await curriculumApi.getMateriList(selectedSemesterId!);
+        const data = await curriculumApi.getSubjectList(selectedSemesterId!);
         if (!cancelled) {
           const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
-          setMateriList(sorted);
+          setSubjectList(sorted);
         }
       } catch (err) {
         if (!cancelled) {
@@ -66,10 +66,10 @@ export default function KurikulumPage() {
     setError(null);
 
     curriculumApi
-      .getMateriList(selectedSemesterId)
+      .getSubjectList(selectedSemesterId)
       .then((data) => {
         const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
-        setMateriList(sorted);
+        setSubjectList(sorted);
       })
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setIsLoading(false));
@@ -105,7 +105,7 @@ export default function KurikulumPage() {
     );
   }
 
-  if (materiList.length === 0) {
+  if (subjectList.length === 0) {
     return (
       <div className="space-y-4">
         <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
@@ -113,7 +113,7 @@ export default function KurikulumPage() {
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <BookOpen className="h-7 w-7 text-primary-400" />
           </div>
-          <p className="mt-4 text-sm font-medium text-foreground">Belum ada materi</p>
+          <p className="mt-4 text-sm font-medium text-foreground">Belum ada Subject</p>
           <p className="mt-1 max-w-xs text-xs text-muted-foreground">
             Materi untuk semester ini belum tersedia. Hubungi pengajar untuk informasi lebih lanjut.
           </p>
@@ -130,24 +130,24 @@ export default function KurikulumPage() {
       </div>
 
       <div className="space-y-3">
-        {materiList.map((materi, index) => (
+        {subjectList.map((Subject, index) => (
           <Link
-            key={materi.id}
-            href={`/student/kurikulum/${materi.id}`}
+            key={Subject.id}
+            href={`/student/curriculum/${Subject.id}`}
             className={`block rounded-lg border border-l-4 ${CARD_ACCENTS[index % CARD_ACCENTS.length]} border-border bg-white p-4 transition-all hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2`}
           >
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
                 <h2 className="text-base font-semibold text-foreground">
-                  {materi.name}
+                  {Subject.name}
                 </h2>
-                {materi.description && (
+                {Subject.description && (
                   <p className="mt-0.5 text-sm text-muted-foreground line-clamp-1">
-                    {materi.description}
+                    {Subject.description}
                   </p>
                 )}
                 <p className="mt-1.5 text-xs text-muted-foreground">
-                  {materi.babCount} Bab
+                  {Subject.sectionCount} Section
                 </p>
               </div>
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-600">

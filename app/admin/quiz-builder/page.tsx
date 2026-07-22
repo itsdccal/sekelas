@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, ChevronRight } from 'lucide-react';
 import { curriculumApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
-import type { Materi, Bab, Chapter, QuizType } from '@/lib/types';
+import type { Subject, Section, Chapter, QuizType } from '@/lib/types';
 
-type DrillLevel = 'materi' | 'bab' | 'chapter';
+type DrillLevel = 'Subject' | 'Section' | 'chapter';
 
 const QUIZ_TYPE_LABELS: Record<QuizType, string> = {
   CHAPTER_QUIZ: 'Kuis Chapter',
@@ -18,9 +18,9 @@ const QUIZ_TYPE_LABELS: Record<QuizType, string> = {
 /**
  * Bank Soal index page.
  * Quiz type tabs: Kuis Chapter, Pre Test, Post Test.
- * - Kuis Chapter: Materi → Bab → Chapter → quiz builder
- * - Pre Test: Materi → Bab → pre test builder (bab level)
- * - Post Test: Materi → Bab → post test builder (bab level)
+ * - Kuis Chapter: Materi → Section → Chapter → quiz builder
+ * - Pre Test: Materi → Section → pre test builder (Section level)
+ * - Post Test: Materi → Section → post test builder (Section level)
  *
  * Requirements: 21.1, 21.7
  */
@@ -29,79 +29,78 @@ export default function QuizBuilderIndexPage() {
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
   const [quizType, setQuizType] = useState<QuizType>('CHAPTER_QUIZ');
-  const [level, setLevel] = useState<DrillLevel>('materi');
-  const [materiList, setMateriList] = useState<Materi[]>([]);
-  const [selectedMateri, setSelectedMateri] = useState<Materi | null>(null);
-  const [babList, setBabList] = useState<Bab[]>([]);
-  const [selectedBab, setSelectedBab] = useState<Bab | null>(null);
+  const [level, setLevel] = useState<DrillLevel>('Subject');
+  const [subjectList, setSubjectList] = useState<Subject[]>([]);
+  const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
+  const [sectionList, setSectionList] = useState<Section[]>([]);
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Reset drill-down when quiz type changes
   const handleQuizTypeChange = useCallback((type: QuizType) => {
     setQuizType(type);
-    setLevel('materi');
-    setSelectedMateri(null);
-    setSelectedBab(null);
+    setLevel('Subject');
+    setSelectedSubject(null);
+    setSelectedSection(null);
   }, []);
 
-  // Fetch materi list
+  // Fetch subject list
   useEffect(() => {
     if (!selectedSemesterId) return;
     setIsLoading(true);
-    curriculumApi.getMateriList(selectedSemesterId)
+    curriculumApi.getSubjectList(selectedSemesterId)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
-        setMateriList(sorted);
+        setSubjectList(sorted);
         setIsLoading(false);
       })
       .catch(() => setIsLoading(false));
   }, [selectedSemesterId]);
 
-  // Fetch bab when materi selected
+  // Fetch sections when subject selected
   useEffect(() => {
-    if (level !== 'bab' || !selectedMateri) return;
+    if (level !== 'Section' || !selectedSubject) return;
     setIsLoading(true);
-    curriculumApi.getBabList(selectedMateri.id)
+    curriculumApi.getSectionList(selectedSubject.id)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
-        setBabList(sorted);
+        setSectionList(sorted);
         setIsLoading(false);
       })
-      .catch(() => { setBabList([]); setIsLoading(false); });
-  }, [level, selectedMateri]);
+      .catch(() => { setSectionList([]); setIsLoading(false); });
+  }, [level, selectedSubject]);
 
-  // Fetch chapters when bab selected (only for CHAPTER_QUIZ)
+  // Fetch chapters when Section selected (only for CHAPTER_QUIZ)
   useEffect(() => {
     if (quizType !== 'CHAPTER_QUIZ') return;
-    if (level !== 'chapter' || !selectedBab) return;
+    if (level !== 'chapter' || !selectedSection) return;
     setIsLoading(true);
-    curriculumApi.getChapterList(selectedBab.id)
+    curriculumApi.getChapterList(selectedSection.id)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
         setChapterList(sorted);
         setIsLoading(false);
       })
       .catch(() => { setChapterList([]); setIsLoading(false); });
-  }, [level, selectedBab, quizType]);
+  }, [level, selectedSection, quizType]);
 
-  const handleSelectMateri = useCallback((materi: Materi) => {
+  const handleSelectSubject = useCallback((subject: Subject) => {
     if (quizType === 'PRE_TEST' || quizType === 'POST_TEST') {
-      // Pre Test and Post Test are at materi level
-      router.push(`/admin/quiz-builder/${materi.id}?type=${quizType.toLowerCase()}`);
+      router.push(`/admin/quiz-builder/${subject.id}?type=${quizType.toLowerCase()}`);
     } else {
-      setSelectedMateri(materi);
-      setSelectedBab(null);
-      setLevel('bab');
+      setSelectedSubject(subject);
+      setSelectedSection(null);
+      setLevel('Section');
     }
   }, [quizType, router]);
 
-  const handleSelectBab = useCallback((bab: Bab) => {
+  const handleSelectSection = useCallback((section: Section) => {
     if (quizType === 'CHAPTER_QUIZ') {
-      setSelectedBab(bab);
+      setSelectedSection(section);
       setLevel('chapter');
     } else {
-      router.push(`/admin/quiz-builder/${bab.id}?type=${quizType.toLowerCase()}`);
+      router.push(`/admin/quiz-builder/${section.id}?type=${quizType.toLowerCase()}`);
     }
   }, [quizType, router]);
 
@@ -111,16 +110,16 @@ export default function QuizBuilderIndexPage() {
 
   const handleBack = useCallback(() => {
     if (level === 'chapter') {
-      setSelectedBab(null);
-      setLevel('bab');
-    } else if (level === 'bab') {
-      setSelectedMateri(null);
-      setLevel('materi');
+      setSelectedSection(null);
+      setLevel('Section');
+    } else if (level === 'Section') {
+      setSelectedSubject(null);
+      setLevel('Subject');
     }
   }, [level]);
 
   // Determine max drill level based on quiz type
-  const maxLevel: DrillLevel = quizType === 'CHAPTER_QUIZ' ? 'chapter' : 'bab';
+  const maxLevel: DrillLevel = quizType === 'CHAPTER_QUIZ' ? 'chapter' : 'Section';
 
   if (!selectedSemesterId) {
     return (
@@ -165,31 +164,31 @@ export default function QuizBuilderIndexPage() {
       {/* Breadcrumb */}
       <nav className="flex flex-wrap items-center gap-1 text-sm" aria-label="Breadcrumb navigasi Bank Soal">
         <button
-          onClick={() => { setLevel('materi'); setSelectedMateri(null); setSelectedBab(null); }}
+          onClick={() => { setLevel('Subject'); setSelectedSubject(null); setSelectedSection(null); }}
           className={`rounded px-1.5 py-0.5 transition-colors ${
-            level === 'materi' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
+            level === 'Subject' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
           }`}
         >
           {QUIZ_TYPE_LABELS[quizType]}
         </button>
-        {selectedMateri && (
+        {selectedSubject && (
           <>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <button
-              onClick={() => { setLevel('bab'); setSelectedBab(null); }}
+              onClick={() => { setLevel('Section'); setSelectedSection(null); }}
               className={`rounded px-1.5 py-0.5 transition-colors truncate max-w-[120px] sm:max-w-none ${
-                level === 'bab' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
+                level === 'Section' ? 'font-semibold text-foreground' : 'text-primary-600 hover:underline'
               }`}
             >
-              {selectedMateri.name}
+              {selectedSubject.name}
             </button>
           </>
         )}
-        {selectedBab && quizType === 'CHAPTER_QUIZ' && (
+        {selectedSection && quizType === 'CHAPTER_QUIZ' && (
           <>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <span className="font-semibold text-foreground px-1.5 py-0.5 truncate max-w-[120px] sm:max-w-none">
-              {selectedBab.name}
+              {selectedSection.name}
             </span>
           </>
         )}
@@ -202,15 +201,15 @@ export default function QuizBuilderIndexPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {level === 'materi' && (
+          {level === 'Subject' && (
             <>
-              {materiList.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada materi</p>
+              {subjectList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada Subject</p>
               ) : (
-                materiList.map(m => (
+                subjectList.map(m => (
                   <button
                     key={m.id}
-                    onClick={() => handleSelectMateri(m)}
+                    onClick={() => handleSelectSubject(m)}
                     className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3 text-left transition-colors hover:border-primary-200 hover:bg-primary-50/50 group"
                   >
                     <span className="text-sm font-medium text-foreground">{m.name}</span>
@@ -221,22 +220,22 @@ export default function QuizBuilderIndexPage() {
             </>
           )}
 
-          {level === 'bab' && (
+          {level === 'Section' && (
             <>
-              {babList.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada bab dalam materi ini</p>
+              {sectionList.length === 0 ? (
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada Section dalam materi ini</p>
               ) : (
-                babList.map(b => (
+                sectionList.map(b => (
                   <button
                     key={b.id}
-                    onClick={() => handleSelectBab(b)}
+                    onClick={() => handleSelectSection(b)}
                     className="flex w-full items-center justify-between rounded-lg border border-border bg-white px-4 py-3 text-left transition-colors hover:border-primary-200 hover:bg-primary-50/50 group"
                   >
                     <div className="text-left">
                       <span className="text-sm font-medium text-foreground">{b.name}</span>
                       {quizType !== 'CHAPTER_QUIZ' && (
                         <p className="text-xs text-muted-foreground mt-0.5">
-                          Kelola soal {QUIZ_TYPE_LABELS[quizType]} untuk bab ini
+                          Kelola soal {QUIZ_TYPE_LABELS[quizType]} untuk Section ini
                         </p>
                       )}
                     </div>
@@ -250,7 +249,7 @@ export default function QuizBuilderIndexPage() {
           {level === 'chapter' && quizType === 'CHAPTER_QUIZ' && (
             <>
               {chapterList.length === 0 ? (
-                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada chapter dalam bab ini</p>
+                <p className="py-8 text-center text-sm text-muted-foreground">Belum ada chapter dalam Section ini</p>
               ) : (
                 chapterList.map(ch => (
                   <button

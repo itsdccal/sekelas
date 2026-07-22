@@ -12,10 +12,10 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
-import type { Kelas } from '@/lib/types';
+import type { ClassRoom } from '@/lib/types';
 
-export default function AdminKelasPage() {
-  const [kelasList, setKelasList] = useState<Kelas[]>([]);
+export default function AdminClassesPage() {
+  const [classList, setClassList] = useState<ClassRoom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -28,7 +28,7 @@ export default function AdminKelasPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Delete confirmation
-  const [deleteTarget, setDeleteTarget] = useState<Kelas | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ClassRoom | null>(null);
 
   // Notification
   const [notification, setNotification] = useState<string | null>(null);
@@ -37,8 +37,8 @@ export default function AdminKelasPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await adminApi.getKelasList();
-      setKelasList(data);
+      const data = await adminApi.getClassRoomList();
+      setClassList(data);
     } catch {
       setError('Gagal memuat data kelas.');
     } finally {
@@ -58,10 +58,10 @@ export default function AdminKelasPage() {
 
   // Filter
   const filteredList = useMemo(() => {
-    if (!searchQuery.trim()) return kelasList;
+    if (!searchQuery.trim()) return classList;
     const q = searchQuery.toLowerCase();
-    return kelasList.filter((k) => k.name.toLowerCase().includes(q));
-  }, [kelasList, searchQuery]);
+    return classList.filter((k) => k.name.toLowerCase().includes(q));
+  }, [classList, searchQuery]);
 
   // CRUD handlers
   const handleAdd = () => {
@@ -71,7 +71,7 @@ export default function AdminKelasPage() {
     setDialogOpen(true);
   };
 
-  const handleEdit = (kelas: Kelas) => {
+  const handleEdit = (kelas: ClassRoom) => {
     setEditingId(kelas.id);
     setFormValue(kelas.name);
     setFormError(null);
@@ -95,12 +95,12 @@ export default function AdminKelasPage() {
 
     try {
       if (editingId) {
-        const updated = await adminApi.updateKelas(editingId, { name });
-        setKelasList((prev) => prev.map((k) => (k.id === updated.id ? updated : k)));
+        const updated = await adminApi.updateClassRoom(editingId, { name });
+        setClassList((prev) => prev.map((k) => (k.id === updated.id ? updated : k)));
         setNotification(`Kelas "${name}" berhasil diubah`);
       } else {
-        const created = await adminApi.createKelas({ name });
-        setKelasList((prev) => [...prev, created]);
+        const created = await adminApi.createClassRoom({ name });
+        setClassList((prev) => [...prev, created]);
         setNotification(`Kelas "${name}" berhasil ditambahkan`);
       }
       setDialogOpen(false);
@@ -114,8 +114,8 @@ export default function AdminKelasPage() {
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
     try {
-      await adminApi.deleteKelas(deleteTarget.id);
-      setKelasList((prev) => prev.filter((k) => k.id !== deleteTarget.id));
+      await adminApi.deleteClassRoom(deleteTarget.id);
+      setClassList((prev) => prev.filter((k) => k.id !== deleteTarget.id));
       setNotification(`Kelas "${deleteTarget.name}" berhasil dihapus`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Gagal menghapus kelas');
@@ -169,7 +169,7 @@ export default function AdminKelasPage() {
       {/* Kelas Table */}
       {!isLoading && !error && (
         <div className="overflow-x-auto rounded-lg border border-border">
-          {filteredList.length === 0 && kelasList.length === 0 ? (
+          {filteredList.length === 0 && classList.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-14 text-center">
               <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
                 <GraduationCap className="h-7 w-7 text-primary-400" />

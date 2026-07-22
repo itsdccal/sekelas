@@ -13,7 +13,7 @@ import type { QuestionPattern, Question, QuizType } from "@/lib/types";
 // --- Types ---
 
 export interface BabTestBuilderPanelProps {
-  babId: string;
+  sectionId: string;
   quizType: 'PRE_TEST' | 'POST_TEST';
 }
 
@@ -208,7 +208,7 @@ function SubtestQuestionList({ pattern, quizType, onBack, onRefresh }: {
 
 // --- Main Panel ---
 
-export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProps) {
+export function BabTestBuilderPanel({ sectionId, quizType }: BabTestBuilderPanelProps) {
   const [patterns, setPatterns] = useState<QuestionPattern[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -223,15 +223,15 @@ export function BabTestBuilderPanel({ babId, quizType }: BabTestBuilderPanelProp
 
   const fetchPatterns = useCallback(async () => {
     setIsLoading(true); setError(null);
-    try { setPatterns(await adminApi.getPatterns(babId)); }
+    try { setPatterns(await adminApi.getPatterns(sectionId)); }
     catch { setError("Gagal memuat subtest"); }
     finally { setIsLoading(false); }
-  }, [babId]);
+  }, [sectionId]);
 
   useEffect(() => { fetchPatterns(); }, [fetchPatterns]);
 
   const handleCreate = async (data: { patternCode: string; description: string }) => {
-    await adminApi.createPattern({ chapterId: babId, patternCode: data.patternCode, description: data.description });
+    await adminApi.createPattern({ chapterId: sectionId, patternCode: data.patternCode, description: data.description });
     await fetchPatterns();
   };
 

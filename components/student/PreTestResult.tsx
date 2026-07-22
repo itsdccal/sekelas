@@ -39,11 +39,11 @@ export function PreTestResultDisplay({ result, onContinue }: PreTestResultDispla
           Kamu akan memulai dari:
         </p>
         <p className="text-lg font-semibold text-primary-700">
-          {result.startBabName}
+          {result.startSectionName}
         </p>
-        {result.totalBabsSkipped > 0 && (
+        {result.totalSectionsSkipped > 0 && (
           <p className="text-sm text-primary-700">
-            {result.totalBabsSkipped} bab dilewati berdasarkan pemahamanmu
+            {result.totalSectionsSkipped} bab dilewati berdasarkan pemahamanmu
           </p>
         )}
       </div>

@@ -17,7 +17,7 @@ type PageState = 'gate' | 'confirm' | 'test' | 'result';
 export default function PreTestPage() {
   const params = useParams();
   const router = useRouter();
-  const materiId = params.materiId as string;
+  const subjectId = params.subjectId as string;
 
   const [pageState, setPageState] = useState<PageState>('gate');
   const [result, setResult] = useState<PreTestResult | null>(null);
@@ -28,8 +28,8 @@ export default function PreTestPage() {
   }, []);
 
   const handleContinue = useCallback(() => {
-    router.push(`/student/kurikulum/${materiId}`);
-  }, [router, materiId]);
+    router.push(`/student/curriculum/${subjectId}`);
+  }, [router, subjectId]);
 
   if (pageState === 'result' && result) {
     return (
@@ -42,7 +42,7 @@ export default function PreTestPage() {
   if (pageState === 'test') {
     return (
       <div className="flex flex-col">
-        <PreTestComponent materiId={materiId} onComplete={handleComplete} />
+        <PreTestComponent subjectId={subjectId} onComplete={handleComplete} />
       </div>
     );
   }

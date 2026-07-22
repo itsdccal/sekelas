@@ -5,24 +5,24 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, Loader2, AlertCircle, Lock, CheckCircle, ClipboardCheck, FileQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { curriculumApi, pretestApi, posttestApi } from '@/lib/api';
-import type { Bab, BabStatus } from '@/lib/types';
+import type { Section, SectionStatus } from '@/lib/types';
 
-interface BabWithStatus extends Bab {
-  babStatus: BabStatus;
+interface SectionWithStatus extends Section {
+  SectionStatus: SectionStatus;
 }
 
 /**
- * Bab list page with progressive flow.
+ * Section list page with progressive flow.
  * Pre Test gate at materi level (before seeing babs).
- * Bab 1 unlocked after Pre Test, rest locked until all chapters of previous bab completed.
+ * Section 1 unlocked after Pre Test, rest locked until all chapters of previous Section completed.
  * Post Test available when all babs completed.
  */
 export default function BabListPage() {
   const params = useParams();
   const router = useRouter();
-  const materiId = params.materiId as string;
+  const subjectId = params.subjectId as string;
 
-  const [babs, setBabs] = useState<BabWithStatus[]>([]);
+  const [babs, setBabs] = useState<SectionWithStatus[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [preTestCompleted, setPreTestCompleted] = useState(false);
@@ -33,7 +33,7 @@ export default function BabListPage() {
     setError(null);
     try {
       // Check pre test status
-      const preStatus = await pretestApi.getPreTestStatus(materiId);
+      const preStatus = await pretestApi.getPreTestStatus(subjectId);
       setPreTestCompleted(preStatus.completed);
 
       if (!preStatus.completed) {
@@ -42,22 +42,22 @@ export default function BabListPage() {
         return;
       }
 
-      // Fetch babs
-      const data = await curriculumApi.getBabList(materiId);
+      // Fetch sections
+      const data = await curriculumApi.getSectionList(subjectId);
       const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
 
-      // For now, simple sequential: bab 1 unlocked, rest locked
-      // In production, backend returns bab status based on chapter completion
-      const babsWithStatus: BabWithStatus[] = sorted.map((bab, index) => ({
-        ...bab,
-        babStatus: index === 0 ? 'IN_PROGRESS' : 'LOCKED' as BabStatus,
+      // For now, simple sequential: Section 1 unlocked, rest locked
+      // In production, backend returns Section status based on chapter completion
+      const babsWithStatus: SectionWithStatus[] = sorted.map((Section, index) => ({
+        ...Section,
+        SectionStatus: index === 0 ? 'IN_PROGRESS' : 'LOCKED' as SectionStatus,
       }));
 
       setBabs(babsWithStatus);
 
       // Check post test
       try {
-        const ptStatus = await posttestApi.getPostTestStatus(materiId);
+        const ptStatus = await posttestApi.getPostTestStatus(subjectId);
         setPostTestStatus(ptStatus);
       } catch { /* default */ }
     } catch {
@@ -65,7 +65,7 @@ export default function BabListPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [materiId]);
+  }, [subjectId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -85,7 +85,7 @@ export default function BabListPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/student/kurikulum')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
         <div className="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8">
@@ -108,13 +108,13 @@ export default function BabListPage() {
           <div className="space-y-2">
             <h2 className="text-lg font-semibold">Pre Test Diperlukan</h2>
             <p className="text-sm text-muted-foreground">
-              Kerjakan Pre Test terlebih dahulu untuk menentukan dari bab mana kamu mulai belajar.
+              Kerjakan Pre Test terlebih dahulu untuk menentukan dari Section mana kamu mulai belajar.
             </p>
           </div>
-          <Button onClick={() => router.push(`/student/materi/${materiId}/pretest`)} className="w-full bg-primary-600 hover:bg-primary-700 text-white" size="lg">
+          <Button onClick={() => router.push(`/student/subject/${subjectId}/pretest`)} className="w-full bg-primary-600 hover:bg-primary-700 text-white" size="lg">
             Mulai Pre Test
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => router.push('/student/kurikulum')} className="w-full text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')} className="w-full text-muted-foreground">
             ← Kembali ke Kurikulum
           </Button>
         </div>
@@ -122,20 +122,20 @@ export default function BabListPage() {
     );
   }
 
-  // Bab list
-  const allBabsCompleted = babs.length > 0 && babs.every(b => b.babStatus === 'COMPLETED');
+  // Section list
+  const allBabsCompleted = babs.length > 0 && babs.every(b => b.SectionStatus === 'COMPLETED');
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/student/kurikulum')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <ol className="flex items-center gap-1">
-            <li><a href="/student/kurikulum" className="hover:text-primary-600">Kurikulum</a></li>
+            <li><a href="/student/curriculum" className="hover:text-primary-600">Kurikulum</a></li>
             <li aria-hidden="true">/</li>
-            <li className="font-medium text-foreground">Daftar Bab</li>
+            <li className="font-medium text-foreground">Daftar Section</li>
           </ol>
         </nav>
       </div>
@@ -143,18 +143,18 @@ export default function BabListPage() {
       {babs.length === 0 ? (
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-gray-300 p-12">
           <BookOpen className="h-10 w-10 text-gray-400" />
-          <p className="text-sm text-gray-500">Belum ada bab tersedia.</p>
+          <p className="text-sm text-gray-500">Belum ada Section tersedia.</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {babs.map((bab) => {
-            const isLocked = bab.babStatus === 'LOCKED';
-            const isCompleted = bab.babStatus === 'COMPLETED';
+          {babs.map((Section) => {
+            const isLocked = Section.SectionStatus === 'LOCKED';
+            const isCompleted = Section.SectionStatus === 'COMPLETED';
 
             return (
               <button
-                key={bab.id}
-                onClick={() => !isLocked && router.push(`/student/kurikulum/${materiId}/${bab.id}`)}
+                key={Section.id}
+                onClick={() => !isLocked && router.push(`/student/curriculum/${subjectId}/${Section.id}`)}
                 disabled={isLocked}
                 className={`w-full rounded-lg border p-4 text-left transition-colors ${
                   isLocked ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 grayscale'
@@ -167,11 +167,11 @@ export default function BabListPage() {
                   {isCompleted && <CheckCircle className="h-5 w-5 text-green-500" />}
                   {!isLocked && !isCompleted && <BookOpen className="h-5 w-5 text-primary-600" />}
                   <div>
-                    <h2 className={`font-medium ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>{bab.name}</h2>
-                    <p className={`mt-0.5 text-xs ${isLocked ? 'text-gray-400' : 'text-gray-500'}`}>{bab.chapterCount} chapter</p>
+                    <h2 className={`font-medium ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>{Section.name}</h2>
+                    <p className={`mt-0.5 text-xs ${isLocked ? 'text-gray-400' : 'text-gray-500'}`}>{Section.chapterCount} chapter</p>
                   </div>
                 </div>
-                {isLocked && <p className="mt-2 text-xs text-gray-400">Selesaikan bab sebelumnya untuk membuka</p>}
+                {isLocked && <p className="mt-2 text-xs text-gray-400">Selesaikan Section sebelumnya untuk membuka</p>}
               </button>
             );
           })}
@@ -187,7 +187,7 @@ export default function BabListPage() {
                 </div>
               </div>
             ) : allBabsCompleted ? (
-              <Button onClick={() => router.push(`/student/materi/${materiId}/posttest`)} className="w-full gap-2 bg-primary-600 hover:bg-primary-700 text-white">
+              <Button onClick={() => router.push(`/student/subject/${subjectId}/posttest`)} className="w-full gap-2 bg-primary-600 hover:bg-primary-700 text-white">
                 <ClipboardCheck className="h-4 w-4" /> Kerjakan Post Test
               </Button>
             ) : (
@@ -195,7 +195,7 @@ export default function BabListPage() {
                 <Lock className="h-5 w-5 text-gray-400" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Post Test</p>
-                  <p className="text-xs text-gray-400">Selesaikan semua bab untuk membuka Post Test</p>
+                  <p className="text-xs text-gray-400">Selesaikan semua Section untuk membuka Post Test</p>
                 </div>
               </div>
             )}

@@ -1,18 +1,18 @@
 export type { User, LoginRequest, LoginResponse } from './auth';
 
 export type {
-  Materi,
-  Bab,
+  Subject,
+  Section,
   Chapter,
 } from './curriculum';
 
 export type {
   ChapterStatus,
-  BabStatus,
+  SectionStatus,
   ChapterProgress,
   StudentProgress,
-  MateriProgress,
-  BabProgress,
+  SubjectProgress,
+  SectionProgress,
 } from './progress';
 
 export type {
@@ -58,3 +58,9 @@ export type {
   CreateUserRequest,
   UpdateUserRequest,
 } from './user-management';
+
+export type {
+  ClassRoom,
+  CreateClassRoomRequest,
+  UpdateClassRoomRequest,
+} from './kelas';

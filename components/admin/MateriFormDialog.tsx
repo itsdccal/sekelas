@@ -11,8 +11,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { validateMateri } from "@/lib/utils/validation";
-import type { Materi } from "@/lib/types";
+import { validateSubject } from "@/lib/utils/validation";
+import type { Subject } from "@/lib/types";
 
 export interface MateriFormData {
   name: string;
@@ -23,7 +23,7 @@ interface MateriFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: MateriFormData) => Promise<void>;
-  initialData?: Materi | null;
+  initialData?: Subject | null;
   mode: "create" | "edit";
 }
 
@@ -44,7 +44,7 @@ function MateriFormContent({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const validation = validateMateri(name, description || undefined);
+    const validation = validateSubject(name, description || undefined);
     if (!validation.valid) {
       setErrors(validation.errors);
       return;
@@ -82,24 +82,24 @@ function MateriFormContent({
       {/* Name Field */}
       <div className="space-y-1.5">
         <label
-          htmlFor="materi-name"
+          htmlFor="Subject-name"
           className="text-sm font-medium text-foreground"
         >
-          Nama Materi <span className="text-red-500">*</span>
+          Nama Subject <span className="text-red-500">*</span>
         </label>
         <input
-          id="materi-name"
+          id="Subject-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           maxLength={100}
           className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-          placeholder="Masukkan nama materi"
+          placeholder="Masukkan nama Subject"
           aria-invalid={!!errors.name}
-          aria-describedby={errors.name ? "materi-name-error" : undefined}
+          aria-describedby={errors.name ? "Subject-name-error" : undefined}
         />
         {errors.name && (
-          <p id="materi-name-error" className="text-xs text-red-600">
+          <p id="Subject-name-error" className="text-xs text-red-600">
             {errors.name}
           </p>
         )}
@@ -111,13 +111,13 @@ function MateriFormContent({
       {/* Description Field */}
       <div className="space-y-1.5">
         <label
-          htmlFor="materi-description"
+          htmlFor="Subject-description"
           className="text-sm font-medium text-foreground"
         >
           Deskripsi
         </label>
         <textarea
-          id="materi-description"
+          id="Subject-description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={500}
@@ -126,11 +126,11 @@ function MateriFormContent({
           placeholder="Masukkan deskripsi (opsional)"
           aria-invalid={!!errors.description}
           aria-describedby={
-            errors.description ? "materi-desc-error" : undefined
+            errors.description ? "Subject-desc-error" : undefined
           }
         />
         {errors.description && (
-          <p id="materi-desc-error" className="text-xs text-red-600">
+          <p id="Subject-desc-error" className="text-xs text-red-600">
             {errors.description}
           </p>
         )}
@@ -165,15 +165,15 @@ export function MateriFormDialog({
 }: MateriFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent aria-describedby="materi-form-desc">
+      <DialogContent aria-describedby="Subject-form-desc">
         <DialogHeader>
           <DialogTitle>
-            {mode === "create" ? "Tambah Materi" : "Ubah Materi"}
+            {mode === "create" ? "Tambah Subject" : "Ubah Subject"}
           </DialogTitle>
-          <DialogDescription id="materi-form-desc">
+          <DialogDescription id="Subject-form-desc">
             {mode === "create"
-              ? "Isi data untuk membuat Materi baru."
-              : "Ubah data Materi yang sudah ada."}
+              ? "Isi data untuk membuat Subject baru."
+              : "Ubah data Subject yang sudah ada."}
           </DialogDescription>
         </DialogHeader>
 

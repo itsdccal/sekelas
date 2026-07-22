@@ -41,7 +41,7 @@ export default function QuizPage() {
 
   // Called when student clicks "Lanjut" after passing
   const handleContinue = useCallback(() => {
-    router.push('/student/kurikulum');
+    router.push('/student/curriculum');
   }, [router]);
 
   // Called when student clicks "Kerjakan Kuis Kembali" (remediation flow)

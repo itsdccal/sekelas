@@ -7,7 +7,7 @@ import type { ChapterStatus } from '@/lib/types/progress';
 
 const baseChapter: Chapter = {
   id: 'ch-1',
-  babId: 'bab-1',
+  sectionId: 'bab-1',
   name: 'Pengenalan Aljabar',
   orderIndex: 1,
   videoUrl: 'https://example.com/video.mp4',

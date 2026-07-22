@@ -11,15 +11,15 @@ import { ChapterFormDialog, type ChapterFormData } from "@/components/admin/Chap
 import { CascadeDeleteDialog } from "@/components/admin/CascadeDeleteDialog";
 import { curriculumApi, adminApi } from "@/lib/api";
 import { useUIStore } from "@/stores";
-import type { Materi, Bab, Chapter } from "@/lib/types";
+import type { Subject, Section, Chapter } from "@/lib/types";
 
 // --- View state for drill-down navigation ---
-type ViewLevel = "materi" | "bab" | "chapter";
+type ViewLevel = "subject" | "section" | "chapter";
 
 interface NavigationState {
   level: ViewLevel;
-  selectedMateri: Materi | null;
-  selectedBab: Bab | null;
+  selectedSubject: Subject | null;
+  selectedSection: Section | null;
 }
 
 // --- Notification Component ---
@@ -47,31 +47,31 @@ function SuccessNotification({
 }
 
 // --- Main Page Component ---
-export default function AdminKurikulumPage() {
+export default function AdminCurriculumPage() {
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
   // Navigation state
   const [nav, setNav] = useState<NavigationState>({
-    level: "materi",
-    selectedMateri: null,
-    selectedBab: null,
+    level: "subject",
+    selectedSubject: null,
+    selectedSection: null,
   });
 
   // Data
-  const [materiList, setMateriList] = useState<Materi[]>([]);
-  const [babList, setBabList] = useState<Bab[]>([]);
+  const [subjectList, setSubjectList] = useState<Subject[]>([]);
+  const [sectionList, setSectionList] = useState<Section[]>([]);
   const [chapterList, setChapterList] = useState<Chapter[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Form dialogs
-  const [materiDialogOpen, setMateriDialogOpen] = useState(false);
-  const [materiDialogMode, setMateriDialogMode] = useState<"create" | "edit">("create");
-  const [editingMateri, setEditingMateri] = useState<Materi | null>(null);
+  const [subjectDialogOpen, setSubjectDialogOpen] = useState(false);
+  const [subjectDialogMode, setSubjectDialogMode] = useState<"create" | "edit">("create");
+  const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
 
-  const [babDialogOpen, setBabDialogOpen] = useState(false);
-  const [babDialogMode, setBabDialogMode] = useState<"create" | "edit">("create");
-  const [editingBab, setEditingBab] = useState<Bab | null>(null);
+  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
+  const [sectionDialogMode, setSectionDialogMode] = useState<"create" | "edit">("create");
+  const [editingSection, setEditingSection] = useState<Section | null>(null);
 
   const [chapterDialogOpen, setChapterDialogOpen] = useState(false);
   const [chapterDialogMode, setChapterDialogMode] = useState<"create" | "edit">("create");
@@ -79,19 +79,19 @@ export default function AdminKurikulumPage() {
 
   // Cascade delete dialog
   const [cascadeDeleteOpen, setCascadeDeleteOpen] = useState(false);
-  const [cascadeDeleteTarget, setCascadeDeleteTarget] = useState<Materi | null>(null);
+  const [cascadeDeleteTarget, setCascadeDeleteTarget] = useState<Subject | null>(null);
 
   // Success notification
   const [notification, setNotification] = useState<string | null>(null);
 
   // --- Data Fetching ---
 
-  const fetchMateriList = useCallback(async () => {
+  const fetchSubjectList = useCallback(async () => {
     if (!selectedSemesterId) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getMateriList(selectedSemesterId);
-      setMateriList(data.sort((a, b) => a.orderIndex - b.orderIndex));
+      const data = await curriculumApi.getSubjectList(selectedSemesterId);
+      setSubjectList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
     } finally {
@@ -99,44 +99,44 @@ export default function AdminKurikulumPage() {
     }
   }, [selectedSemesterId]);
 
-  const fetchBabList = useCallback(async () => {
-    if (!nav.selectedMateri) return;
+  const fetchSectionList = useCallback(async () => {
+    if (!nav.selectedSubject) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getBabList(nav.selectedMateri.id);
-      setBabList(data.sort((a, b) => a.orderIndex - b.orderIndex));
+      const data = await curriculumApi.getSectionList(nav.selectedSubject.id);
+      setSectionList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
     } finally {
       setIsLoading(false);
     }
-  }, [nav.selectedMateri]);
+  }, [nav.selectedSubject]);
 
   const fetchChapterList = useCallback(async () => {
-    if (!nav.selectedBab) return;
+    if (!nav.selectedSection) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getChapterList(nav.selectedBab.id);
+      const data = await curriculumApi.getChapterList(nav.selectedSection.id);
       setChapterList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
     } finally {
       setIsLoading(false);
     }
-  }, [nav.selectedBab]);
+  }, [nav.selectedSection]);
 
   // Fetch on mount and when semester changes
   useEffect(() => {
-    if (nav.level === "materi") {
-      startTransition(() => { fetchMateriList(); });
+    if (nav.level === "subject") {
+      startTransition(() => { fetchSubjectList(); });
     }
-  }, [nav.level, fetchMateriList]);
+  }, [nav.level, fetchSubjectList]);
 
   useEffect(() => {
-    if (nav.level === "bab") {
-      startTransition(() => { fetchBabList(); });
+    if (nav.level === "section") {
+      startTransition(() => { fetchSectionList(); });
     }
-  }, [nav.level, fetchBabList]);
+  }, [nav.level, fetchSectionList]);
 
   useEffect(() => {
     if (nav.level === "chapter") {
@@ -146,15 +146,15 @@ export default function AdminKurikulumPage() {
 
   // --- Navigation ---
 
-  const navigateToBab = useCallback((materi: Materi) => {
+  const navigateToSection = useCallback((subject: Subject) => {
     setSearchQuery("");
-    setNav({ level: "bab", selectedMateri: materi, selectedBab: null });
+    setNav({ level: "section", selectedSubject: subject, selectedSection: null });
   }, []);
 
   const navigateToChapter = useCallback(
-    (bab: Bab) => {
+    (section: Section) => {
       setSearchQuery("");
-      setNav((prev) => ({ ...prev, level: "chapter", selectedBab: bab }));
+      setNav((prev) => ({ ...prev, level: "chapter", selectedSection: section }));
     },
     []
   );
@@ -162,31 +162,31 @@ export default function AdminKurikulumPage() {
   const navigateBack = useCallback(() => {
     setSearchQuery("");
     if (nav.level === "chapter") {
-      setNav((prev) => ({ ...prev, level: "bab", selectedBab: null }));
-    } else if (nav.level === "bab") {
-      setNav({ level: "materi", selectedMateri: null, selectedBab: null });
+      setNav((prev) => ({ ...prev, level: "section", selectedSection: null }));
+    } else if (nav.level === "section") {
+      setNav({ level: "subject", selectedSubject: null, selectedSection: null });
     }
   }, [nav.level]);
 
-  // --- Materi CRUD Handlers ---
+  // --- Subject CRUD Handlers ---
 
-  const handleMateriAdd = useCallback(() => {
-    setEditingMateri(null);
-    setMateriDialogMode("create");
-    setMateriDialogOpen(true);
+  const handleSubjectAdd = useCallback(() => {
+    setEditingSubject(null);
+    setSubjectDialogMode("create");
+    setSubjectDialogOpen(true);
   }, []);
 
-  const handleMateriEdit = useCallback((item: Materi) => {
-    setEditingMateri(item);
-    setMateriDialogMode("edit");
-    setMateriDialogOpen(true);
+  const handleSubjectEdit = useCallback((item: Subject) => {
+    setEditingSubject(item);
+    setSubjectDialogMode("edit");
+    setSubjectDialogOpen(true);
   }, []);
 
-  const performMateriDelete = useCallback(
-    async (item: Materi) => {
+  const performSubjectDelete = useCallback(
+    async (item: Subject) => {
       try {
-        await adminApi.deleteMateri(item.id);
-        setMateriList((prev) => prev.filter((m) => m.id !== item.id));
+        await adminApi.deleteSubject(item.id);
+        setSubjectList((prev) => prev.filter((m) => m.id !== item.id));
         setNotification("Materi berhasil dihapus");
       } catch {
         // Error handled silently — API layer shows error
@@ -195,63 +195,62 @@ export default function AdminKurikulumPage() {
     []
   );
 
-  const handleMateriDelete = useCallback((item: Materi) => {
-    if (item.babCount > 0) {
+  const handleSubjectDelete = useCallback((item: Subject) => {
+    if (item.sectionCount > 0) {
       setCascadeDeleteTarget(item);
       setCascadeDeleteOpen(true);
     } else {
-      // Standard delete — CrudTable handles its own confirm dialog
-      performMateriDelete(item);
+      performSubjectDelete(item);
     }
-  }, [performMateriDelete]);
+  }, [performSubjectDelete]);
 
-  const handleMateriFormSubmit = useCallback(
+  const handleSubjectFormSubmit = useCallback(
     async (data: MateriFormData) => {
       if (!selectedSemesterId) throw new Error("Semester belum dipilih");
 
-      if (materiDialogMode === "create") {
-        const newMateri = await adminApi.createMateri({
+      if (subjectDialogMode === "create") {
+        const newSubject = await adminApi.createSubject({
           name: data.name,
           description: data.description || undefined,
           semesterId: selectedSemesterId,
         });
-        setMateriList((prev) =>
-          [...prev, newMateri].sort((a, b) => a.orderIndex - b.orderIndex)
+        setSubjectList((prev) =>
+          [...prev, newSubject].sort((a, b) => a.orderIndex - b.orderIndex)
         );
         setNotification("Materi berhasil ditambahkan");
-      } else if (editingMateri) {
-        const updated = await adminApi.updateMateri(editingMateri.id, {
+      } else if (editingSubject) {
+        const updated = await adminApi.updateSubject(editingSubject.id, {
           name: data.name,
           description: data.description || undefined,
         });
-        setMateriList((prev) =>
+        setSubjectList((prev) =>
           prev.map((m) => (m.id === updated.id ? updated : m))
         );
         setNotification("Materi berhasil diubah");
       }
     },
-    [materiDialogMode, editingMateri, selectedSemesterId]
+    [subjectDialogMode, editingSubject, selectedSemesterId]
   );
 
-  // --- Bab CRUD Handlers ---
+  // --- Section CRUD Handlers ---
 
-  const handleBabAdd = useCallback(() => {
-    setEditingBab(null);
-    setBabDialogMode("create");
-    setBabDialogOpen(true);
+  const handleSectionAdd = useCallback(() => {
+    setEditingSection(null);
+    setSectionDialogMode("create");
+    setSectionDialogOpen(true);
   }, []);
 
-  const handleBabEdit = useCallback((item: Bab) => {
-    setEditingBab(item);
-    setBabDialogMode("edit");
-    setBabDialogOpen(true);
+  const handleSectionEdit = useCallback((item: Section) => {
+    setEditingSection(item);
+    setSectionDialogMode("edit");
+    setSectionDialogOpen(true);
   }, []);
 
-  const handleBabDelete = useCallback(
-    async (item: Bab) => {
+  const handleSectionDelete = useCallback(
+    async (item: Section) => {
       try {
-        await adminApi.deleteBab(item.id);
-        setBabList((prev) => prev.filter((b) => b.id !== item.id));
+        await adminApi.deleteSection(item.id);
+        setSectionList((prev) => prev.filter((b) => b.id !== item.id));
         setNotification("Bab berhasil dihapus");
       } catch {
         // Error handled by API layer
@@ -260,26 +259,26 @@ export default function AdminKurikulumPage() {
     []
   );
 
-  const handleBabFormSubmit = useCallback(
+  const handleSectionFormSubmit = useCallback(
     async (data: BabFormData) => {
-      if (!nav.selectedMateri) throw new Error("Materi belum dipilih");
+      if (!nav.selectedSubject) throw new Error("Materi belum dipilih");
 
-      if (babDialogMode === "create") {
-        const newBab = await adminApi.createBab({
-          materiId: nav.selectedMateri.id,
+      if (sectionDialogMode === "create") {
+        const newSection = await adminApi.createSection({
+          subjectId: nav.selectedSubject.id,
           name: data.name,
           orderIndex: data.orderIndex,
         });
-        setBabList((prev) =>
-          [...prev, newBab].sort((a, b) => a.orderIndex - b.orderIndex)
+        setSectionList((prev) =>
+          [...prev, newSection].sort((a, b) => a.orderIndex - b.orderIndex)
         );
         setNotification("Bab berhasil ditambahkan");
-      } else if (editingBab) {
-        const updated = await adminApi.updateBab(editingBab.id, {
+      } else if (editingSection) {
+        const updated = await adminApi.updateSection(editingSection.id, {
           name: data.name,
           orderIndex: data.orderIndex,
         });
-        setBabList((prev) =>
+        setSectionList((prev) =>
           prev
             .map((b) => (b.id === updated.id ? updated : b))
             .sort((a, b) => a.orderIndex - b.orderIndex)
@@ -287,7 +286,7 @@ export default function AdminKurikulumPage() {
         setNotification("Bab berhasil diubah");
       }
     },
-    [babDialogMode, editingBab, nav.selectedMateri]
+    [sectionDialogMode, editingSection, nav.selectedSubject]
   );
 
   // --- Chapter CRUD Handlers ---
@@ -319,11 +318,11 @@ export default function AdminKurikulumPage() {
 
   const handleChapterFormSubmit = useCallback(
     async (data: ChapterFormData) => {
-      if (!nav.selectedBab) throw new Error("Bab belum dipilih");
+      if (!nav.selectedSection) throw new Error("Bab belum dipilih");
 
       if (chapterDialogMode === "create") {
         const newChapter = await adminApi.createChapter({
-          babId: nav.selectedBab.id,
+          sectionId: nav.selectedSection.id,
           name: data.name,
           orderIndex: data.orderIndex,
           videoUrl: data.videoUrl,
@@ -348,18 +347,18 @@ export default function AdminKurikulumPage() {
         setNotification("Chapter berhasil diubah");
       }
     },
-    [chapterDialogMode, editingChapter, nav.selectedBab]
+    [chapterDialogMode, editingChapter, nav.selectedSection]
   );
 
   // --- Column Definitions ---
 
-  const materiColumns: ColumnDef<Materi>[] = useMemo(
+  const subjectColumns: ColumnDef<Subject>[] = useMemo(
     () => [
       { key: "name", header: "Nama Materi" },
       {
-        key: "babCount",
+        key: "sectionCount",
         header: "Jumlah Bab",
-        render: (item) => <span>{item.babCount}</span>,
+        render: (item) => <span>{item.sectionCount}</span>,
       },
       {
         key: "isPublished",
@@ -380,7 +379,7 @@ export default function AdminKurikulumPage() {
     []
   );
 
-  const babColumns: ColumnDef<Bab>[] = useMemo(
+  const sectionColumns: ColumnDef<Section>[] = useMemo(
     () => [
       { key: "name", header: "Nama Bab" },
       {
@@ -427,12 +426,12 @@ export default function AdminKurikulumPage() {
 
   const getPageTitle = (): string => {
     switch (nav.level) {
-      case "materi":
+      case "subject":
         return "Manajemen Kurikulum";
-      case "bab":
-        return `Bab — ${nav.selectedMateri?.name ?? ""}`;
+      case "section":
+        return `Bab — ${nav.selectedSubject?.name ?? ""}`;
       case "chapter":
-        return `Chapter — ${nav.selectedBab?.name ?? ""}`;
+        return `Chapter — ${nav.selectedSection?.name ?? ""}`;
     }
   };
 
@@ -454,7 +453,7 @@ export default function AdminKurikulumPage() {
     <div className="space-y-4">
       {/* Header with back navigation */}
       <div className="flex items-center gap-2 sm:gap-3">
-        {nav.level !== "materi" && (
+        {nav.level !== "subject" && (
           <Button
             variant="ghost"
             size="icon"
@@ -470,19 +469,19 @@ export default function AdminKurikulumPage() {
         </h1>
       </div>
 
-      {/* Materi Level */}
-      {nav.level === "materi" && (
-        <CrudTable<Materi>
-          data={materiList.filter(m => !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()))}
-          columns={materiColumns}
-          onAdd={handleMateriAdd}
-          onEdit={handleMateriEdit}
-          onDelete={handleMateriDelete}
+      {/* Subject Level */}
+      {nav.level === "subject" && (
+        <CrudTable<Subject>
+          data={subjectList.filter(m => !searchQuery || m.name.toLowerCase().includes(searchQuery.toLowerCase()))}
+          columns={subjectColumns}
+          onAdd={handleSubjectAdd}
+          onEdit={handleSubjectEdit}
+          onDelete={handleSubjectDelete}
           isLoading={isLoading}
           addLabel="Tambah Materi"
           getItemName={(item) => item.name}
           getRowKey={(item) => item.id}
-          onRowClick={navigateToBab}
+          onRowClick={navigateToSection}
           searchConfig={{
             placeholder: "Cari materi...",
             value: searchQuery,
@@ -491,14 +490,14 @@ export default function AdminKurikulumPage() {
         />
       )}
 
-      {/* Bab Level */}
-      {nav.level === "bab" && (
-        <CrudTable<Bab>
-          data={babList.filter(b => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()))}
-          columns={babColumns}
-          onAdd={handleBabAdd}
-          onEdit={handleBabEdit}
-          onDelete={handleBabDelete}
+      {/* Section Level */}
+      {nav.level === "section" && (
+        <CrudTable<Section>
+          data={sectionList.filter(b => !searchQuery || b.name.toLowerCase().includes(searchQuery.toLowerCase()))}
+          columns={sectionColumns}
+          onAdd={handleSectionAdd}
+          onEdit={handleSectionEdit}
+          onDelete={handleSectionDelete}
           isLoading={isLoading}
           addLabel="Tambah Bab"
           getItemName={(item) => item.name}
@@ -535,19 +534,19 @@ export default function AdminKurikulumPage() {
       {/* --- Dialogs --- */}
 
       <MateriFormDialog
-        open={materiDialogOpen}
-        onOpenChange={setMateriDialogOpen}
-        onSubmit={handleMateriFormSubmit}
-        initialData={editingMateri}
-        mode={materiDialogMode}
+        open={subjectDialogOpen}
+        onOpenChange={setSubjectDialogOpen}
+        onSubmit={handleSubjectFormSubmit}
+        initialData={editingSubject}
+        mode={subjectDialogMode}
       />
 
       <BabFormDialog
-        open={babDialogOpen}
-        onOpenChange={setBabDialogOpen}
-        onSubmit={handleBabFormSubmit}
-        initialData={editingBab}
-        mode={babDialogMode}
+        open={sectionDialogOpen}
+        onOpenChange={setSectionDialogOpen}
+        onSubmit={handleSectionFormSubmit}
+        initialData={editingSection}
+        mode={sectionDialogMode}
       />
 
       <ChapterFormDialog
@@ -558,7 +557,7 @@ export default function AdminKurikulumPage() {
         mode={chapterDialogMode}
       />
 
-      {/* Cascade Delete Dialog for Materi with Bab */}
+      {/* Cascade Delete Dialog for Subject with Sections */}
       <CascadeDeleteDialog
         open={cascadeDeleteOpen}
         onOpenChange={setCascadeDeleteOpen}
@@ -566,7 +565,7 @@ export default function AdminKurikulumPage() {
         cascadeWarning="Seluruh Bab dan Chapter di dalamnya juga akan terhapus."
         onConfirm={() => {
           if (cascadeDeleteTarget) {
-            performMateriDelete(cascadeDeleteTarget);
+            performSubjectDelete(cascadeDeleteTarget);
             setCascadeDeleteTarget(null);
           }
         }}

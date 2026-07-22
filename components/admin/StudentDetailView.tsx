@@ -17,8 +17,8 @@ import { Button } from '@/components/ui/button';
 import { OverrideForm } from '@/components/admin/OverrideForm';
 import type {
   StudentProgress,
-  MateriProgress,
-  BabProgress,
+  SubjectProgress,
+  SectionProgress,
   ChapterProgress,
   ChapterStatus,
   OverrideAction,
@@ -142,7 +142,7 @@ function ChapterRow({ chapter, onOverrideClick }: ChapterRowProps) {
 // ─── Bab detail (expandable) ───
 
 interface BabDetailProps {
-  bab: BabProgress;
+  bab: SectionProgress;
   onOverrideClick: (chapter: ChapterProgress) => void;
 }
 
@@ -156,21 +156,21 @@ function BabDetail({ bab, onOverrideClick }: BabDetailProps) {
         className="flex w-full items-center gap-2 py-2 text-left text-sm font-medium text-foreground hover:text-primary-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        aria-controls={`detail-bab-${bab.babId}-chapters`}
+        aria-controls={`detail-section-${bab.sectionId}-chapters`}
       >
         {expanded ? (
           <ChevronDown className="h-4 w-4 flex-shrink-0" />
         ) : (
           <ChevronRight className="h-4 w-4 flex-shrink-0" />
         )}
-        <span>{bab.babName}</span>
+        <span>{bab.sectionName}</span>
         <span className="ml-auto text-xs text-muted-foreground">
           {bab.chapters.filter((c) => c.status === 'COMPLETED').length}/{bab.chapters.length} chapter
         </span>
       </button>
 
       {expanded && (
-        <div id={`detail-bab-${bab.babId}-chapters`} className="mt-1 space-y-1 pb-2">
+        <div id={`detail-section-${bab.sectionId}-chapters`} className="mt-1 space-y-1 pb-2">
           {bab.chapters.map((chapter) => (
             <ChapterRow
               key={chapter.chapterId}
@@ -187,7 +187,7 @@ function BabDetail({ bab, onOverrideClick }: BabDetailProps) {
 // ─── Materi accordion item ───
 
 interface MateriItemProps {
-  materi: MateriProgress;
+  materi: SubjectProgress;
   onOverrideClick: (chapter: ChapterProgress) => void;
 }
 
@@ -201,26 +201,26 @@ function MateriItem({ materi, onOverrideClick }: MateriItemProps) {
         className="flex w-full items-center gap-3 p-4 text-left hover:bg-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 rounded-t-lg"
         onClick={() => setExpanded(!expanded)}
         aria-expanded={expanded}
-        aria-controls={`detail-materi-${materi.materiId}-content`}
+        aria-controls={`detail-subject-${materi.subjectId}-content`}
       >
         {expanded ? (
           <ChevronDown className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
         ) : (
           <ChevronRight className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
         )}
-        <span className="flex-1 font-medium text-foreground">{materi.materiName}</span>
+        <span className="flex-1 font-medium text-foreground">{materi.subjectName}</span>
         <span className="text-sm font-semibold text-primary-700">
           {materi.completionPercentage}%
         </span>
       </button>
 
       {expanded && (
-        <div id={`detail-materi-${materi.materiId}-content`} className="border-t border-border px-4 py-3 space-y-2">
-          {!materi.babs || materi.babs.length === 0 ? (
+        <div id={`detail-subject-${materi.subjectId}-content`} className="border-t border-border px-4 py-3 space-y-2">
+          {!materi.sections || materi.sections.length === 0 ? (
             <p className="text-sm text-muted-foreground">Tidak ada Bab.</p>
           ) : (
-            materi.babs.map((bab) => (
-              <BabDetail key={bab.babId} bab={bab} onOverrideClick={onOverrideClick} />
+            materi.sections.map((bab) => (
+              <BabDetail key={bab.sectionId} bab={bab} onOverrideClick={onOverrideClick} />
             ))
           )}
         </div>
@@ -275,9 +275,9 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
       return {
         ...prev,
         completedChapters: prev.completedChapters + 1,
-        materiProgress: prev.materiProgress.map((materi) => ({
+        SubjectProgress: prev.subjectProgress.map((materi) => ({
           ...materi,
-          babs: materi.babs.map((bab) => ({
+          sections: materi.sections.map((bab) => ({
             ...bab,
             chapters: bab.chapters.map((ch) =>
               ch.chapterId === overrideTarget.chapterId
@@ -320,7 +320,7 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
       {isLoading && <DetailSkeleton />}
 
       {/* Empty state */}
-      {!isLoading && !error && progress && progress.materiProgress.length === 0 && (
+      {!isLoading && !error && progress && progress.subjectProgress.length === 0 && (
         <div className="rounded-lg border border-border bg-white p-12 text-center">
           <p className="text-sm text-muted-foreground">
             Belum ada data progres untuk siswa ini.
@@ -329,7 +329,7 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
       )}
 
       {/* Content state */}
-      {!isLoading && !error && progress && progress.materiProgress.length > 0 && (
+      {!isLoading && !error && progress && progress.subjectProgress.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>
@@ -338,9 +338,9 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
             <span>•</span>
             <span>{progress.totalXP} XP</span>
           </div>
-          {progress.materiProgress.map((materi) => (
+          {progress.subjectProgress.map((materi) => (
             <MateriItem
-              key={materi.materiId}
+              key={materi.subjectId}
               materi={materi}
               onOverrideClick={(chapter) => setOverrideTarget(chapter)}
             />

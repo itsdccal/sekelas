@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   validateLogin,
-  validateMateri,
+  validateSubject,
   validateQuestion,
   validateOverrideReason,
   validatePatternCode,
@@ -46,37 +46,37 @@ describe('validateLogin', () => {
   });
 });
 
-describe('validateMateri', () => {
+describe('validateSubject', () => {
   it('passes with valid name and no description', () => {
-    const result = validateMateri('Matematika');
+    const result = validateSubject('Matematika');
     expect(result.valid).toBe(true);
   });
 
   it('passes with valid name and description', () => {
-    const result = validateMateri('Matematika', 'Pelajaran hitung');
+    const result = validateSubject('Matematika', 'Pelajaran hitung');
     expect(result.valid).toBe(true);
   });
 
   it('fails with empty name', () => {
-    const result = validateMateri('');
+    const result = validateSubject('');
     expect(result.valid).toBe(false);
     expect(result.errors.name).toBeDefined();
   });
 
   it('fails with name over 100 chars', () => {
-    const result = validateMateri('a'.repeat(101));
+    const result = validateSubject('a'.repeat(101));
     expect(result.valid).toBe(false);
     expect(result.errors.name).toBeDefined();
   });
 
   it('fails with description over 500 chars', () => {
-    const result = validateMateri('Math', 'a'.repeat(501));
+    const result = validateSubject('Math', 'a'.repeat(501));
     expect(result.valid).toBe(false);
     expect(result.errors.description).toBeDefined();
   });
 
   it('passes with empty description string', () => {
-    const result = validateMateri('Math', '');
+    const result = validateSubject('Math', '');
     expect(result.valid).toBe(true);
   });
 });

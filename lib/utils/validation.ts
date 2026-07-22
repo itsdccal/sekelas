@@ -27,11 +27,11 @@ export function validateLogin(email: string, password: string): ValidationResult
 }
 
 /**
- * Validate Materi form fields.
+ * Validate Subject form fields.
  * - name: required, max 100 chars
  * - description: optional, max 500 chars
  */
-export function validateMateri(name: string, description?: string): ValidationResult {
+export function validateSubject(name: string, description?: string): ValidationResult {
   const errors: Record<string, string> = {};
 
   if (!name || name.trim().length === 0) {

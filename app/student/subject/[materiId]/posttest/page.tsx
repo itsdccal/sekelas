@@ -13,7 +13,7 @@ import type { PostTestResult } from '@/lib/types';
 export default function PostTestPage() {
   const params = useParams();
   const router = useRouter();
-  const materiId = params.materiId as string;
+  const subjectId = params.subjectId as string;
 
   const [result, setResult] = useState<PostTestResult | null>(null);
   const [showTest, setShowTest] = useState(true);
@@ -24,7 +24,7 @@ export default function PostTestPage() {
   }, []);
 
   const handleContinue = useCallback(() => {
-    router.push('/student/kurikulum');
+    router.push('/student/curriculum');
   }, [router]);
 
   const handleWatchChapter = useCallback((chapterId: string) => {
@@ -46,7 +46,7 @@ export default function PostTestPage() {
 
   return (
     <div className="flex flex-col">
-      <PostTestComponent materiId={materiId} onComplete={handleComplete} />
+      <PostTestComponent subjectId={subjectId} onComplete={handleComplete} />
     </div>
   );
 }

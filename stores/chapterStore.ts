@@ -7,7 +7,7 @@ interface ChapterState {
   activeChapterId: string | null;
   isLoading: boolean;
 
-  fetchProgress: (babId: string) => Promise<void>;
+  fetchProgress: (sectionId: string) => Promise<void>;
   updateStatus: (chapterId: string, status: ChapterStatus) => void;
   updateWatchedPercentage: (chapterId: string, pct: number) => void;
   setActiveChapter: (chapterId: string) => void;
@@ -18,10 +18,10 @@ export const useChapterStore = create<ChapterState>((set, get) => ({
   activeChapterId: null,
   isLoading: false,
 
-  fetchProgress: async (babId: string) => {
+  fetchProgress: async (sectionId: string) => {
     set({ isLoading: true });
     try {
-      const chapters = await curriculumApi.getChapterList(babId);
+      const chapters = await curriculumApi.getChapterList(sectionId);
 
       // Fetch progress for each chapter and build progressMap
       const progressEntries = await Promise.all(
@@ -37,6 +37,7 @@ export const useChapterStore = create<ChapterState>((set, get) => ({
               watchedPercentage: 0,
               lastScore: null,
               quizAttempts: 0,
+              scoreHistory: [],
               videoWatchAttempts: 0,
             };
             return [chapter.id, defaultProgress] as const;

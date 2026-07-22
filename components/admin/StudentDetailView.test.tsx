@@ -20,17 +20,17 @@ const mockProgress: StudentProgress = {
   completedChapters: 3,
   totalChapters: 10,
   totalXP: 750,
-  materiProgress: [
+  subjectProgress: [
     {
-      materiId: 'materi-1',
-      materiName: 'Matematika Dasar',
+      subjectId: 'materi-1',
+      subjectName: 'Matematika Dasar',
       completionPercentage: 50,
       preTestCompleted: true,
       postTestCompleted: false,
-      babs: [
+      sections: [
         {
-          babId: 'bab-1',
-          babName: 'Aljabar',
+          sectionId: 'bab-1',
+          sectionName: 'Aljabar',
           status: 'IN_PROGRESS',
           chapters: [
             {
@@ -52,8 +52,8 @@ const mockProgress: StudentProgress = {
           ],
         },
         {
-          babId: 'bab-2',
-          babName: 'Geometri',
+          sectionId: 'bab-2',
+          sectionName: 'Geometri',
           status: 'LOCKED',
           chapters: [
             {
@@ -69,12 +69,12 @@ const mockProgress: StudentProgress = {
       ],
     },
     {
-      materiId: 'materi-2',
-      materiName: 'Bahasa Indonesia',
+      subjectId: 'materi-2',
+      subjectName: 'Bahasa Indonesia',
       completionPercentage: 0,
       preTestCompleted: false,
       postTestCompleted: false,
-      babs: [],
+      sections: [],
     },
   ],
 };
@@ -143,7 +143,7 @@ describe('StudentDetailView', () => {
       completedChapters: 0,
       totalChapters: 0,
       totalXP: 0,
-      materiProgress: [],
+      subjectProgress: [],
     });
 
     render(<StudentDetailView userId="user-1" onBack={onBack} />);
@@ -169,7 +169,7 @@ describe('StudentDetailView', () => {
     expect(screen.getByText('0%')).toBeInTheDocument();
   });
 
-  it('expands materi to show babs on click', async () => {
+  it('expands materi to show sections on click', async () => {
     mockGetStudentDetail.mockResolvedValueOnce(mockProgress);
     const user = userEvent.setup();
 
