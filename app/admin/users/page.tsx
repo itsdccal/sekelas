@@ -21,11 +21,11 @@ function SuccessNotification({
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-50 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 shadow-lg"
+      className="fixed top-5 left-1/2 z-50 -translate-x-1/2 flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-2.5 shadow-sm"
       role="status"
       aria-live="polite"
     >
-      ✓ {message}
+      <span className="text-sm text-green-800">{message}</span>
     </div>
   );
 }
@@ -170,18 +170,44 @@ export default function AdminUsersPage() {
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-foreground">Kelola Pengguna</h1>
 
-      {/* Role Filter */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          className="h-10 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
-          aria-label="Filter berdasarkan peran"
+      {/* Toolbar: Filter + Search + Add — all in one row */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3 flex-1">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="h-10 w-full sm:w-40 rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
+            aria-label="Filter berdasarkan peran"
+          >
+            <option value="">Semua Peran</option>
+            <option value="STUDENT">Siswa</option>
+            <option value="ADMIN">Pengajar / Admin</option>
+          </select>
+
+          <div className="relative flex-1 max-w-sm">
+            <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <input
+              type="search"
+              placeholder="Cari nama atau email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
+              aria-label="Cari nama atau email"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={handleAdd}
+          className="inline-flex h-10 shrink-0 cursor-pointer items-center gap-2 rounded-md bg-primary-600 px-4 text-sm font-medium text-white hover:bg-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2 ml-auto"
         >
-          <option value="">Semua Peran</option>
-          <option value="STUDENT">Siswa</option>
-          <option value="ADMIN">Pengajar / Admin</option>
-        </select>
+          <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          Tambah Pengguna
+        </button>
       </div>
 
       <CrudTable<ManagedUser>
@@ -194,11 +220,6 @@ export default function AdminUsersPage() {
         addLabel="Tambah Pengguna"
         getItemName={(user) => user.name}
         getRowKey={(user) => user.id}
-        searchConfig={{
-          placeholder: 'Cari nama atau email...',
-          value: search,
-          onChange: setSearch,
-        }}
         pagination={totalPages > 1 ? {
           currentPage: page,
           totalPages,
