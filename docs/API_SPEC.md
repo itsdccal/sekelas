@@ -20,6 +20,7 @@ Dokumentasi lengkap endpoint API yang dibutuhkan frontend. Semua endpoint menggu
 12. [Admin — Override](#12-admin--override)
 13. [Admin — Video Upload](#13-admin--video-upload)
 14. [Admin — Badge Management](#14-admin--badge-management)
+15. [Admin — User Management](#15-admin--user-management)
 
 ---
 
@@ -952,6 +953,163 @@ Buat badge baru.
 ### PUT /api/v1/admin/badges/{badgeId}
 
 ### DELETE /api/v1/admin/badges/{badgeId}
+
+---
+
+## 15. Admin — User Management
+
+Kelola pengguna (siswa dan admin/pengajar). Hanya admin yang dapat mengakses endpoint ini.
+
+### GET /api/v1/admin/users
+
+Daftar pengguna dengan pagination, search, dan filter.
+
+**Query Params:**
+- `page`: number (default 1)
+- `pageSize`: number (default 20)
+- `search`: string (partial match nama atau email, case-insensitive)
+- `role`: string (filter: `STUDENT` | `ADMIN`, kosong = semua)
+
+**Response 200:**
+```json
+{
+  "data": [
+    {
+      "id": "string",
+      "name": "string",
+      "email": "string",
+      "role": "STUDENT | ADMIN",
+      "kelas": "string | null (hanya untuk STUDENT)",
+      "isActive": "boolean",
+      "createdAt": "string (ISO date)"
+    }
+  ],
+  "total": "number",
+  "page": "number",
+  "pageSize": "number"
+}
+```
+
+---
+
+### POST /api/v1/admin/users
+
+Buat pengguna baru.
+
+**Request Body:**
+```json
+{
+  "name": "string (min 2, max 100 char)",
+  "email": "string (valid email, max 100 char, unik)",
+  "password": "string (min 8, max 64 char)",
+  "role": "STUDENT | ADMIN",
+  "kelas": "string (wajib jika role = STUDENT)"
+}
+```
+
+**Response 201:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "email": "string",
+  "role": "STUDENT | ADMIN",
+  "kelas": "string | null",
+  "isActive": true,
+  "createdAt": "string (ISO date)"
+}
+```
+
+**Response 400:**
+```json
+{ "message": "Nama wajib diisi (minimal 2 karakter)" }
+```
+
+**Response 409:**
+```json
+{ "message": "Email sudah terdaftar" }
+```
+
+---
+
+### PUT /api/v1/admin/users/{userId}
+
+Update data pengguna.
+
+**Request Body:** (semua field optional, kirim yang ingin diubah)
+```json
+{
+  "name": "string (min 2, max 100 char)",
+  "email": "string (valid email, max 100 char)",
+  "role": "STUDENT | ADMIN",
+  "kelas": "string (wajib jika role = STUDENT)",
+  "isActive": "boolean"
+}
+```
+
+**Response 200:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "email": "string",
+  "role": "STUDENT | ADMIN",
+  "kelas": "string | null",
+  "isActive": "boolean",
+  "createdAt": "string (ISO date)"
+}
+```
+
+**Response 400:**
+```json
+{ "message": "Email tidak valid" }
+```
+
+**Response 404:**
+```json
+{ "message": "Pengguna tidak ditemukan" }
+```
+
+**Catatan:**
+- Jika `role` diubah dari STUDENT ke ADMIN, field `kelas` akan dihapus (set null)
+- Jika `isActive` diubah ke `false`, pengguna tidak bisa login tapi data tetap tersimpan
+- Password tidak bisa diubah via endpoint ini (gunakan endpoint reset password terpisah jika diperlukan)
+
+---
+
+### DELETE /api/v1/admin/users/{userId}
+
+Hapus pengguna. Soft delete (set `isActive = false` dan tandai `deletedAt`).
+
+**Response 200:**
+```json
+{
+  "success": true,
+  "message": "Pengguna berhasil dihapus"
+}
+```
+
+**Response 404:**
+```json
+{ "message": "Pengguna tidak ditemukan" }
+```
+
+**Catatan:**
+- Penghapusan bersifat soft delete — data tidak hilang dari database
+- Progres belajar siswa yang dihapus tetap tersimpan untuk keperluan audit
+- Admin tidak bisa menghapus dirinya sendiri
+
+---
+
+### Validasi Backend — User Management
+
+| Field | Rule |
+|-------|------|
+| name | Wajib, min 2, max 100 karakter |
+| email | Wajib, format email valid, max 100 karakter, unik |
+| password | Wajib saat create, min 8, max 64 karakter, hash sebelum simpan |
+| role | Wajib, hanya `STUDENT` atau `ADMIN` |
+| kelas | Wajib jika role = STUDENT, diabaikan jika role = ADMIN |
 
 ---
 
