@@ -299,7 +299,12 @@ function calculateAverageScore(detail: StudentProgress): number | null {
       if (sectionAny.postTestScore != null) allScores.push(sectionAny.postTestScore);
 
       section.chapters.forEach((ch: ChapterProgress) => {
-        if (ch.lastScore != null) allScores.push(ch.lastScore);
+        // Use scoreHistory[0] as official score (first attempt) if available
+        // Falls back to lastScore for backward compatibility
+        const officialScore = ch.scoreHistory && ch.scoreHistory.length > 0
+          ? ch.scoreHistory[0]
+          : ch.lastScore;
+        if (officialScore != null) allScores.push(officialScore);
       });
     });
   });

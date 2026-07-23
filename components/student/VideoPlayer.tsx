@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { formatVideoProgress } from '@/lib/utils/formatters';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 import type { ChapterStatus } from '@/lib/types';
 import './VideoPlayer.css';
 
@@ -28,6 +30,7 @@ export function VideoPlayer({
   onComplete,
   onProgressUpdate,
 }: VideoPlayerProps) {
+  const router = useRouter();
   const videoContainerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<ReturnType<typeof import('video.js')['default']> | null>(null);
   const [currentProgress, setCurrentProgress] = useState(initialProgress);
@@ -210,6 +213,21 @@ export function VideoPlayer({
           data-testid="completion-overlay"
         >
           <p className="text-sm font-medium">✅ Video selesai!</p>
+        </div>
+      )}
+
+      {/* Mode Offline: Skip to Quiz button + notice */}
+      {isOfflineMode && chapterStatus === 'UNLOCKED' && (
+        <div className="mt-3 space-y-2" data-testid="offline-mode-skip">
+          <Button
+            onClick={() => router.push(`/student/chapter/${chapterId}/quiz`)}
+            className="w-full"
+          >
+            Langsung ke Quiz
+          </Button>
+          <p className="text-sm text-muted-foreground text-center">
+            Video bersifat opsional — materi diajarkan langsung oleh pengajar
+          </p>
         </div>
       )}
 

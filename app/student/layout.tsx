@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/Header';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { MobileNav } from '@/components/layout/MobileNav';
 import { GamificationOverlay } from '@/components/student/GamificationOverlay';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 
 export default function StudentLayout({
   children,
@@ -28,6 +29,11 @@ export default function StudentLayout({
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-4">
           <img src="/logo-icon.png" alt="" className="h-7 w-7" aria-hidden="true" />
           <span className="text-lg font-semibold text-primary-700">Sekelas</span>
+          {isOfflineMode && (
+            <span className="ml-auto rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700">
+              Offline
+            </span>
+          )}
         </div>
         <div className="overflow-y-auto">
           <Sidebar />

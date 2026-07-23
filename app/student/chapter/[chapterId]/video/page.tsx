@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Loader2, AlertCircle, WifiOff } from 'lucide-react';
+import { Loader2, AlertCircle, WifiOff, SkipForward } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from '@/components/student/VideoPlayer';
 import HeartbeatTracker from '@/components/student/HeartbeatTracker';
 import type { HeartbeatError } from '@/components/student/HeartbeatTracker';
 import { useChapterStore } from '@/stores/chapterStore';
 import { videoApi } from '@/lib/api';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 import type { ChapterProgress, ChapterStatus } from '@/lib/types';
 
 /**
@@ -221,6 +222,23 @@ export default function VideoPlayerPage() {
           >
             ×
           </button>
+        </div>
+      )}
+
+      {/* Offline Mode: Skip to Quiz */}
+      {isOfflineMode && (videoInfo.status === 'UNLOCKED' || videoInfo.status === 'COMPLETED') && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-3">
+          <p className="text-sm text-blue-800">
+            Video bersifat opsional — materi diajarkan langsung oleh pengajar.
+          </p>
+          <Button
+            onClick={goToQuiz}
+            variant="default"
+            className="gap-2"
+          >
+            <SkipForward className="h-4 w-4" />
+            Langsung ke Quiz
+          </Button>
         </div>
       )}
 

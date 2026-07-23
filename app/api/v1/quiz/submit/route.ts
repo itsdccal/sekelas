@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 
 /**
  * Mock quiz submission endpoint for development.
@@ -15,6 +16,33 @@ export async function POST(request: NextRequest) {
       { message: 'Missing required fields: chapterId, answers' },
       { status: 400 }
     );
+  }
+
+  // Mode Offline: always pass, no remediation flow
+  if (isOfflineMode) {
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    // Simple scoring for record-keeping
+    const correctAnswers: Record<string, string> = {
+      'q-1': 'opt-1b', 'q-2': 'opt-2c', 'q-3': 'opt-3c', 'q-4': 'opt-4b', 'q-5': 'opt-5b',
+      'q-p1': 'opt-p1b', 'q-p2': 'opt-p2a', 'q-p3': 'opt-p3c', 'q-p4': 'opt-p4b', 'q-p5': 'opt-p5b',
+    };
+    let correctCount = 0;
+    const mcAnswers = answers.filter((a: { textAnswer?: string }) => !a.textAnswer);
+    mcAnswers.forEach((answer: { questionId: string; selectedOptionId?: string }) => {
+      if (correctAnswers[answer.questionId] === answer.selectedOptionId) correctCount++;
+    });
+    const score = mcAnswers.length > 0 ? Math.round((correctCount / mcAnswers.length) * 100) : 0;
+
+    return NextResponse.json({
+      status: 'PASSED',
+      score,
+      passingGrade: 70,
+      passed: true,
+      nextStatus: 'COMPLETED',
+      message: 'Quiz selesai. Chapter berikutnya telah terbuka.',
+      xpEarned: 150,
+    });
   }
 
   // Simulate grading delay

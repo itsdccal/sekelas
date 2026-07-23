@@ -200,11 +200,10 @@ export function QuestionForm({ open, onOpenChange, onSubmit, initialData, quizTy
               </button>
             </div>
             <textarea id="questionText" value={text} onChange={(e) => setText(e.target.value)}
-              maxLength={1000} rows={3}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 resize-none"
+              rows={5}
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 min-h-[120px]"
               placeholder="Tulis soal... Gunakan $x^2$ untuk LaTeX" />
             {errors.text && <p className="text-xs text-red-600">{errors.text}</p>}
-            <p className="text-xs text-muted-foreground">{text.length}/1000</p>
             {showPreview && <LatexPreview text={text} />}
           </div>
 

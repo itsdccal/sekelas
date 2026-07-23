@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { coursesApi, videoApi } from '@/lib/api';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 import type { ChapterProgress, ChapterStatus } from '@/lib/types';
 
 interface ChapterState {
@@ -11,6 +12,7 @@ interface ChapterState {
   updateStatus: (chapterId: string, status: ChapterStatus) => void;
   updateWatchedPercentage: (chapterId: string, pct: number) => void;
   setActiveChapter: (chapterId: string) => void;
+  completeQuizOffline: (chapterId: string) => void;
 }
 
 export const useChapterStore = create<ChapterState>((set, get) => ({
@@ -84,5 +86,31 @@ export const useChapterStore = create<ChapterState>((set, get) => ({
 
   setActiveChapter: (chapterId: string) => {
     set({ activeChapterId: chapterId });
+  },
+
+  completeQuizOffline: (chapterId: string) => {
+    if (!isOfflineMode) return;
+
+    const { progressMap } = get();
+    const existing = progressMap[chapterId];
+    if (!existing) return;
+
+    // Always set chapter to COMPLETED regardless of score
+    const updatedMap = {
+      ...progressMap,
+      [chapterId]: { ...existing, status: 'COMPLETED' as ChapterStatus },
+    };
+
+    // Unlock next chapter: find chapter with next sequential order
+    // (Simple heuristic: find any LOCKED chapter and unlock it)
+    const chapterIds = Object.keys(updatedMap);
+    for (const id of chapterIds) {
+      if (id !== chapterId && updatedMap[id].status === 'LOCKED') {
+        updatedMap[id] = { ...updatedMap[id], status: 'UNLOCKED' as ChapterStatus };
+        break; // Only unlock the next one
+      }
+    }
+
+    set({ progressMap: updatedMap });
   },
 }));

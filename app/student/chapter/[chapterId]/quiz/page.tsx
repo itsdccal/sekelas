@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { QuizComponent } from '@/components/student/QuizComponent';
 import { QuizResultDisplay } from '@/components/student/QuizResult';
 import { useChapterStore } from '@/stores/chapterStore';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 import type { QuizResult } from '@/lib/types';
 
 /**
@@ -24,6 +25,11 @@ export default function QuizPage() {
   const chapterId = params.chapterId as string;
 
   const updateStatus = useChapterStore((s) => s.updateStatus);
+  const progressMap = useChapterStore((s) => s.progressMap);
+
+  // Determine chapter status for offline mode notices
+  const chapterProgress = progressMap[chapterId];
+  const chapterCurrentStatus = chapterProgress?.status;
 
   // State toggle between quiz and result views
   const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
@@ -78,6 +84,20 @@ export default function QuizPage() {
   // Default: show quiz component
   return (
     <div className="flex flex-col items-center py-8 px-4">
+      {/* Mode Offline: first attempt notice */}
+      {isOfflineMode && chapterCurrentStatus === 'UNLOCKED' && (
+        <div className="mb-4 w-full max-w-2xl rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+          Percobaan pertama akan dinilai sebagai nilai resmi.
+        </div>
+      )}
+
+      {/* Mode Offline: retake notice */}
+      {isOfflineMode && chapterCurrentStatus === 'COMPLETED' && (
+        <div className="mb-4 w-full max-w-2xl rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Latihan Ulang — skor tidak mempengaruhi nilai resmi
+        </div>
+      )}
+
       <QuizComponent chapterId={chapterId} onComplete={handleQuizComplete} />
     </div>
   );

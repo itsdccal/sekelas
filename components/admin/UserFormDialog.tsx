@@ -11,6 +11,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { adminApi } from '@/lib/api';
+import { isOfflineMode } from '@/lib/config/offlineMode';
 import type { ManagedUser, UserRole, ClassRoom } from '@/lib/types';
 
 export interface UserFormData {
@@ -89,7 +90,7 @@ export function UserFormDialog({
       if (!password || password.length < 8) e.password = 'Password minimal 8 karakter';
       if (password.length > 64) e.password = 'Password maksimal 64 karakter';
     }
-    if (role === 'STUDENT' && !kelas.trim()) e.kelas = 'Kelas wajib diisi untuk siswa';
+    if (role === 'STUDENT' && !isOfflineMode && !kelas.trim()) e.kelas = 'Kelas wajib diisi untuk siswa';
     return e;
   }, [name, email, password, role, kelas, mode]);
 
@@ -209,7 +210,7 @@ export function UserFormDialog({
           {role === 'STUDENT' && (
             <div className="space-y-1.5">
               <label htmlFor="user-kelas" className="text-sm font-medium text-foreground">
-                ClassRoom <span className="text-destructive">*</span>
+                ClassRoom {!isOfflineMode && <span className="text-destructive">*</span>}
               </label>
               <select
                 id="user-kelas"

@@ -19,8 +19,10 @@ Dokumentasi lengkap endpoint API yang dibutuhkan frontend. Semua endpoint menggu
 11. [Admin — Monitoring](#11-admin--monitoring)
 12. [Admin — Override](#12-admin--override)
 13. [Admin — Video Upload](#13-admin--video-upload)
-14. [Admin — Badge Management](#14-admin--badge-management)
+14. [Admin — Milestone Management](#14-admin--milestone-management)
 15. [Admin — User Management](#15-admin--user-management)
+16. [Admin — Class Management](#16-admin--class-management)
+17. [Offline Mode](#17-offline-mode-mode-pembelajaran-tatap-muka)
 
 ---
 
@@ -199,6 +201,30 @@ Heartbeat progress tontonan video (dikirim setiap 5 detik).
 }
 ```
 
+---
+
+### POST /api/v1/video/track-progress/batch
+
+Batch kirim heartbeats yang ter-queue (saat koneksi sempat terputus).
+
+**Request Body:**
+```json
+{
+  "heartbeats": [
+    {
+      "chapterId": "string",
+      "currentTimeSeconds": "number",
+      "totalDurationSeconds": "number"
+    }
+  ]
+}
+```
+
+**Response 200:**
+```json
+{ "processed": "number (jumlah heartbeat yang berhasil diproses)" }
+```
+
 **Logika backend:**
 - Hitung `watchedPercentage = (currentTime / totalDuration) * 100`
 - Jika `watchedPercentage >= 100` dan status `REMEDIATION_REQUIRED` → ubah status ke `READY_FOR_RETAKE`
@@ -359,7 +385,7 @@ Submit jawaban quiz chapter. Format jawaban berbeda per tipe soal.
 
 ## 5. Pre Test
 
-### GET /api/v1/pretest/Section/{sectionId}/status
+### GET /api/v1/pretest/subjects/{subjectId}/status
 
 Cek apakah pre test sudah dikerjakan untuk Section ini.
 
@@ -373,7 +399,7 @@ Cek apakah pre test sudah dikerjakan untuk Section ini.
 
 ---
 
-### GET /api/v1/pretest/Section/{sectionId}/questions
+### GET /api/v1/pretest/subjects/{subjectId}/questions
 
 Ambil soal pre test untuk Section. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
 
@@ -439,7 +465,7 @@ Submit jawaban pre test. Backend hitung skor per chapter untuk tentukan placemen
 
 ## 6. Post Test
 
-### GET /api/v1/posttest/Section/{sectionId}/status
+### GET /api/v1/posttest/subjects/{subjectId}/status
 
 Cek status post test untuk Section.
 
@@ -455,7 +481,7 @@ Cek status post test untuk Section.
 
 ---
 
-### GET /api/v1/posttest/Section/{sectionId}/questions
+### GET /api/v1/posttest/subjects/{subjectId}/questions
 
 Ambil soal post test untuk Section. **Backend mengambil soal dari Bank Soal per chapter sesuai distribusi yang dikonfigurasi admin.**
 
@@ -717,7 +743,7 @@ Buat soal baru.
 ```json
 {
   "patternId": "string",
-  "text": "string (max 1000)",
+  "text": "string",
   "options": [
     { "text": "string (max 500)", "order": "number" }
   ],
@@ -992,30 +1018,69 @@ Upload video chapter. Multipart form data.
 
 ---
 
-## 14. Admin — Badge Management
+## 14. Admin — Milestone Management
 
-### GET /api/v1/admin/badges
+### GET /api/v1/admin/milestones
 
-Daftar semua badge.
+Daftar semua milestone (badge berbasis XP threshold).
 
-### POST /api/v1/admin/badges
+**Response 200:**
+```json
+[
+  {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "imageUrl": "string",
+    "xpThreshold": "number",
+    "isActive": "boolean",
+    "createdAt": "string (ISO date)",
+    "updatedAt": "string (ISO date)"
+  }
+]
+```
 
-Buat badge baru.
+---
+
+### POST /api/v1/admin/milestones
+
+Buat milestone baru.
 
 **Request Body:**
 ```json
 {
-  "name": "string",
-  "description": "string",
-  "iconUrl": "string",
-  "criteriaType": "XP_THRESHOLD | CHAPTER_COMPLETED | STREAK",
-  "criteriaValue": "number"
+  "name": "string (max 50)",
+  "description": "string (max 200)",
+  "imageUrl": "string",
+  "xpThreshold": "number (> 0)",
+  "isActive": "boolean (default true)"
 }
 ```
 
-### PUT /api/v1/admin/badges/{badgeId}
+**Response 201:** Object milestone
 
-### DELETE /api/v1/admin/badges/{badgeId}
+---
+
+### PUT /api/v1/admin/milestones/{milestoneId}
+
+Update milestone.
+
+**Request Body:** (semua optional)
+```json
+{
+  "name": "string",
+  "description": "string",
+  "imageUrl": "string",
+  "xpThreshold": "number",
+  "isActive": "boolean"
+}
+```
+
+---
+
+### DELETE /api/v1/admin/milestones/{milestoneId}
+
+Hapus milestone.
 
 ---
 
@@ -1284,3 +1349,158 @@ Semua endpoint menggunakan format error yang sama:
 - Token expiry: backend return 401 → frontend redirect ke /login
 - Role-based access: STUDENT hanya bisa akses /api/v1/student/*, /api/v1/quiz/*, /api/v1/courses/*, /api/v1/gamification/*
 - ADMIN bisa akses /api/v1/admin/* dan semua endpoint student
+
+
+---
+
+## 16. Admin — Class Management
+
+Kelola kelas (classroom). Kelas digunakan untuk mengelompokkan siswa.
+
+### GET /api/v1/admin/classes
+
+Daftar semua kelas.
+
+**Response 200:**
+```json
+[
+  {
+    "id": "string",
+    "name": "string",
+    "studentCount": "number",
+    "createdAt": "string (ISO date)"
+  }
+]
+```
+
+---
+
+### POST /api/v1/admin/classes
+
+Buat kelas baru.
+
+**Request Body:**
+```json
+{
+  "name": "string (min 1, max 50, unik)"
+}
+```
+
+**Response 201:**
+```json
+{
+  "id": "string",
+  "name": "string",
+  "studentCount": 0,
+  "createdAt": "string (ISO date)"
+}
+```
+
+**Response 409:**
+```json
+{ "message": "Nama kelas sudah ada" }
+```
+
+---
+
+### PUT /api/v1/admin/classes/{classId}
+
+Update nama kelas.
+
+**Request Body:**
+```json
+{
+  "name": "string (min 1, max 50, unik)"
+}
+```
+
+**Response 200:** Object kelas yang diupdate
+
+---
+
+### DELETE /api/v1/admin/classes/{classId}
+
+Hapus kelas. Hanya bisa dihapus jika tidak ada siswa yang terdaftar di kelas tersebut.
+
+**Response 200:**
+```json
+{ "success": true, "message": "Kelas berhasil dihapus" }
+```
+
+**Response 400:**
+```json
+{ "message": "Tidak dapat menghapus kelas \"10A\" karena masih memiliki 8 siswa" }
+```
+
+---
+
+## 17. Offline Mode (Mode Pembelajaran Tatap Muka)
+
+Offline Mode adalah konfigurasi khusus untuk deployment di institusi yang menggunakan pengajaran tatap muka (misal: pondok pesantren). Mode ini di-toggle via environment variable, bukan per-user.
+
+### Konfigurasi
+
+```
+NEXT_PUBLIC_OFFLINE_MODE=true   → Aktifkan offline mode
+NEXT_PUBLIC_OFFLINE_MODE=false  → Mode standar (default)
+```
+
+Backend juga perlu membaca env var ini (misal `OFFLINE_MODE=true` tanpa prefix `NEXT_PUBLIC_`) untuk menyesuaikan logika server-side.
+
+### Perubahan Perilaku Backend saat Offline Mode Aktif
+
+#### 1. Quiz Submit (`POST /api/v1/quiz/submit`)
+
+| Aspek | Mode Online (Standar) | Mode Offline |
+|-------|----------------------|--------------|
+| Scoring | Skor vs passingGrade → PASSED/FAILED | Skor dihitung tapi **selalu return PASSED** |
+| nextStatus | COMPLETED / REMEDIATION_REQUIRED | **Selalu COMPLETED** |
+| Chapter unlock | Hanya jika PASSED | **Selalu unlock next chapter** |
+| scoreHistory | Append setiap submit | Append setiap submit (sama) |
+| Nilai resmi | `lastScore` (skor terakhir lulus) | **`scoreHistory[0]`** (percobaan pertama) |
+
+**Catatan untuk BE:** Saat offline mode, `POST /api/v1/quiz/submit` harus:
+1. Tetap hitung skor seperti biasa
+2. Append skor ke `scoreHistory[]`
+3. Selalu return `nextStatus: 'COMPLETED'` dan `status: 'PASSED'`
+4. Tidak pernah return `REMEDIATION_REQUIRED` atau `READY_FOR_RETAKE`
+
+#### 2. Chapter State Machine (Simplified)
+
+**Mode Offline** hanya menggunakan 3 state:
+
+```
+LOCKED → UNLOCKED → COMPLETED
+```
+
+- **Tidak ada** `REMEDIATION_REQUIRED`
+- **Tidak ada** `READY_FOR_RETAKE`
+- Chapter langsung COMPLETED setelah quiz pertama di-submit (apapun skornya)
+- Chapter yang sudah COMPLETED tetap bisa diakses quiz-nya (untuk latihan ulang)
+
+#### 3. Video Heartbeat (`POST /api/v1/video/track-progress`)
+
+- Masih bisa dikirim (jika siswa menonton video)
+- Tapi **tidak memblokir akses quiz** — siswa bisa langsung ke quiz tanpa video 100%
+- Backend tetap simpan `watchedPercentage` untuk statistik
+
+#### 4. User Management (`POST/PUT /api/v1/admin/users`)
+
+| Field | Mode Online | Mode Offline |
+|-------|-------------|--------------|
+| `kelas` | **Wajib** jika role = STUDENT | **Opsional** (boleh kosong/null) |
+
+#### 5. Monitoring & Export
+
+- `scoreHistory[0]` = nilai resmi untuk ranking dan export
+- `lastScore` tetap berisi skor terakhir (mungkin dari latihan ulang)
+- Untuk ranking/export, gunakan `scoreHistory[0]` bukan `lastScore`
+
+### Catatan Implementasi untuk Backend Developer
+
+1. **Baca env var saat startup** — simpan sebagai config constant, jangan baca ulang tiap request
+2. **Jangan buat endpoint baru** — semua endpoint tetap sama, hanya logika internal yang berubah
+3. **scoreHistory tetap append** — setiap submit quiz (baik percobaan pertama maupun latihan ulang) tetap masuk ke array
+4. **Retake di offline mode** — siswa boleh submit quiz berulang kali pada chapter COMPLETED, tapi status tidak berubah
+5. **Pre Test & Post Test** — behavior tetap sama di kedua mode (tidak terpengaruh offline mode)
+6. **Export/Ranking** — selalu pakai `scoreHistory[0]` sebagai nilai resmi di offline mode, `lastScore` di online mode

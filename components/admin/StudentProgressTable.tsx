@@ -67,7 +67,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
 
       // Extract unique classes for the filter dropdown (on first load or when no filter is active)
       if (!kelas && !debouncedSearch && page === 1) {
-        const classes = [...new Set(result.data.map((row) => row.kelas))].sort();
+        const classes = [...new Set(result.data.map((row) => row.kelas).filter(Boolean))].sort();
         setAvailableClasses((prev) =>
           classes.length > 0 ? classes : prev
         );
@@ -91,7 +91,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
           page: 1,
           pageSize: 1000,
         });
-        const classes = [...new Set(result.data.map((row) => row.kelas))].sort();
+        const classes = [...new Set(result.data.map((row) => row.kelas).filter(Boolean))].sort();
         if (classes.length > 0) {
           setAvailableClasses(classes);
         }
@@ -305,7 +305,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                         </span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground">
-                        {student.kelas}
+                        {student.kelas || '—'}
                       </td>
                       <td className="px-4 py-3">
                         {student.averageScore !== null ? (
@@ -358,7 +358,7 @@ export function StudentProgressTable({ onStudentClick }: StudentProgressTablePro
                       </span>
                       <span className="font-medium text-primary-700 text-sm">{student.name}</span>
                     </div>
-                    <span className="text-xs text-muted-foreground">{student.kelas}</span>
+                    <span className="text-xs text-muted-foreground">{student.kelas || '—'}</span>
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <div className="flex items-center gap-2 flex-1">
