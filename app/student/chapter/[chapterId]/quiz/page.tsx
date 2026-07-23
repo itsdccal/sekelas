@@ -13,7 +13,7 @@ import type { QuizResult } from '@/lib/types';
  * Flow:
  * 1. Initially shows QuizComponent
  * 2. On quiz completion (onComplete): updates chapter status, shows QuizResult
- * 3. QuizResult onContinue (PASSED): navigates back to kurikulum
+ * 3. QuizResult onContinue (PASSED): navigates back to courses
  * 4. QuizResult onRetake: navigates to video page for remediation
  *
  * Requirements: 6.3
@@ -41,7 +41,7 @@ export default function QuizPage() {
 
   // Called when student clicks "Lanjut" after passing
   const handleContinue = useCallback(() => {
-    router.push('/student/curriculum');
+    router.push('/student/courses');
   }, [router]);
 
   // Called when student clicks "Kerjakan Kuis Kembali" (remediation flow)

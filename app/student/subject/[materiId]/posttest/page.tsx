@@ -24,7 +24,7 @@ export default function PostTestPage() {
   }, []);
 
   const handleContinue = useCallback(() => {
-    router.push('/student/curriculum');
+    router.push('/student/courses');
   }, [router]);
 
   const handleWatchChapter = useCallback((chapterId: string) => {

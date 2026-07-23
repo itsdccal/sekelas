@@ -9,7 +9,7 @@ import { MateriFormDialog, type MateriFormData } from "@/components/admin/Materi
 import { BabFormDialog, type BabFormData } from "@/components/admin/BabFormDialog";
 import { ChapterFormDialog, type ChapterFormData } from "@/components/admin/ChapterFormDialog";
 import { CascadeDeleteDialog } from "@/components/admin/CascadeDeleteDialog";
-import { curriculumApi, adminApi } from "@/lib/api";
+import { coursesApi, adminApi } from "@/lib/api";
 import { useUIStore } from "@/stores";
 import type { Subject, Section, Chapter } from "@/lib/types";
 
@@ -90,7 +90,7 @@ export default function AdminCurriculumPage() {
     if (!selectedSemesterId) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getSubjectList(selectedSemesterId);
+      const data = await coursesApi.getSubjectList(selectedSemesterId);
       setSubjectList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
@@ -103,7 +103,7 @@ export default function AdminCurriculumPage() {
     if (!nav.selectedSubject) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getSectionList(nav.selectedSubject.id);
+      const data = await coursesApi.getSectionList(nav.selectedSubject.id);
       setSectionList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
@@ -116,7 +116,7 @@ export default function AdminCurriculumPage() {
     if (!nav.selectedSection) return;
     setIsLoading(true);
     try {
-      const data = await curriculumApi.getChapterList(nav.selectedSection.id);
+      const data = await coursesApi.getChapterList(nav.selectedSection.id);
       setChapterList(data.sort((a, b) => a.orderIndex - b.orderIndex));
     } catch {
       // Error handled by API retry mechanism
@@ -427,7 +427,7 @@ export default function AdminCurriculumPage() {
   const getPageTitle = (): string => {
     switch (nav.level) {
       case "subject":
-        return "Manajemen Kurikulum";
+        return "Materi Pembelajaran";
       case "section":
         return `Bab — ${nav.selectedSubject?.name ?? ""}`;
       case "chapter":
@@ -440,10 +440,10 @@ export default function AdminCurriculumPage() {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold text-foreground">
-          Manajemen Kurikulum
+          Materi Pembelajaran
         </h1>
         <p className="text-muted-foreground">
-          Pilih semester terlebih dahulu pada header untuk melihat data kurikulum.
+          Pilih semester terlebih dahulu pada header untuk melihat data materi.
         </p>
       </div>
     );

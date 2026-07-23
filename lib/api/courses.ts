@@ -19,7 +19,7 @@ export async function getStudentProgress(semesterId: string): Promise<StudentPro
  */
 export async function getSubjectList(semesterId: string): Promise<Subject[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Subject[]>('/api/v1/curriculum/subjects', {
+    const response = await apiClient.get<Subject[]>('/api/v1/courses/subjects', {
       params: { semesterId },
     });
     return response.data;
@@ -31,7 +31,7 @@ export async function getSubjectList(semesterId: string): Promise<Subject[]> {
  */
 export async function getSectionList(subjectId: string): Promise<Section[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Section[]>(`/api/v1/curriculum/subjects/${subjectId}/sections`);
+    const response = await apiClient.get<Section[]>(`/api/v1/courses/subjects/${subjectId}/sections`);
     return response.data;
   });
 }
@@ -41,7 +41,7 @@ export async function getSectionList(subjectId: string): Promise<Section[]> {
  */
 export async function getChapterList(sectionId: string): Promise<Chapter[]> {
   return withRetry(async () => {
-    const response = await apiClient.get<Chapter[]>(`/api/v1/curriculum/sections/${sectionId}/chapters`);
+    const response = await apiClient.get<Chapter[]>(`/api/v1/courses/sections/${sectionId}/chapters`);
     return response.data;
   });
 }

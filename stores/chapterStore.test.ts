@@ -4,7 +4,7 @@ import type { ChapterProgress } from '@/lib/types';
 
 // Mock the API modules
 vi.mock('@/lib/api', () => ({
-  curriculumApi: {
+  coursesApi: {
     getChapterList: vi.fn(),
   },
   videoApi: {
@@ -12,9 +12,9 @@ vi.mock('@/lib/api', () => ({
   },
 }));
 
-import { curriculumApi, videoApi } from '@/lib/api';
+import { coursesApi, videoApi } from '@/lib/api';
 
-const mockedGetChapterList = vi.mocked(curriculumApi.getChapterList);
+const mockedGetChapterList = vi.mocked(coursesApi.getChapterList);
 const mockedGetVideoInfo = vi.mocked(videoApi.getVideoInfo);
 
 describe('useChapterStore', () => {

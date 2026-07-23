@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { BookOpen, Users, PenTool, Award, FileText, BarChart3 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
-import { adminApi, curriculumApi } from '@/lib/api';
+import { adminApi, coursesApi } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
 import { Button } from '@/components/ui/button';
 import type { AuditLogEntry } from '@/lib/types';
@@ -47,7 +47,7 @@ export default function AdminDashboardPage() {
       let totalMateri = 0;
       if (selectedSemesterId) {
         try {
-          const subjects = await curriculumApi.getSubjectList(selectedSemesterId);
+          const subjects = await coursesApi.getSubjectList(selectedSemesterId);
           totalMateri = subjects.length;
         } catch { /* fallback */ }
       }
@@ -151,12 +151,12 @@ export default function AdminDashboardPage() {
         <h2 className="mb-3 text-sm font-medium text-muted-foreground">Akses Cepat</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
-            href="/admin/curriculum"
+            href="/admin/courses"
             className="flex items-center gap-3 rounded-lg border border-border bg-white p-4 hover:bg-muted/30"
           >
             <BookOpen className="h-5 w-5 text-primary-600" />
             <div>
-              <p className="text-sm font-medium text-foreground">Kurikulum</p>
+              <p className="text-sm font-medium text-foreground">Materi Pembelajaran</p>
               <p className="text-xs text-muted-foreground">Kelola materi, bab, chapter</p>
             </div>
           </Link>

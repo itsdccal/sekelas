@@ -6,7 +6,7 @@ import { Play, Trophy, BookOpen } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
-import { curriculumApi } from '@/lib/api';
+import { coursesApi } from '@/lib/api';
 import { formatProgressSummary, formatXP } from '@/lib/utils/formatters';
 import { Button } from '@/components/ui/button';
 import type { StudentProgress } from '@/lib/types';
@@ -94,7 +94,7 @@ export default function StudentDashboardPage() {
     setError(null);
 
     try {
-      const data = await curriculumApi.getStudentProgress(selectedSemesterId);
+      const data = await coursesApi.getStudentProgress(selectedSemesterId);
       setProgress(data);
     } catch {
       setError('Gagal memuat data. Silakan coba lagi.');
@@ -146,7 +146,7 @@ export default function StudentDashboardPage() {
       {/* Lanjutkan Belajar Card */}
       {progress && progress.completedChapters < progress.totalChapters && (
         <Link
-          href="/student/curriculum"
+          href="/student/courses"
           className="block rounded-lg border border-border bg-white p-4 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2"
         >
           <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ export default function StudentDashboardPage() {
             {progress.subjectProgress.map((materi) => (
               <Link
                 key={materi.subjectId}
-                href={`/student/curriculum/${materi.subjectId}`}
+                href={`/student/courses/${materi.subjectId}`}
                 className="block rounded-lg border border-border bg-white p-5 hover:bg-muted/30"
               >
                 <h3 className="mb-3 text-sm font-medium text-foreground">

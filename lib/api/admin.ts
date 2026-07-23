@@ -25,31 +25,31 @@ import type { StudentProgress } from '@/lib/types';
 // --- Curriculum CRUD ---
 
 export async function createSubject(data: { name: string; description?: string; semesterId: string }): Promise<Subject> {
-  const response = await apiClient.post<Subject>('/api/v1/admin/curriculum/subjects', data);
+  const response = await apiClient.post<Subject>('/api/v1/admin/courses/subjects', data);
   return response.data;
 }
 
 export async function updateSubject(subjectId: string, data: { name?: string; description?: string }): Promise<Subject> {
-  const response = await apiClient.put<Subject>(`/api/v1/admin/curriculum/subjects/${subjectId}`, data);
+  const response = await apiClient.put<Subject>(`/api/v1/admin/courses/subjects/${subjectId}`, data);
   return response.data;
 }
 
 export async function deleteSubject(subjectId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/admin/curriculum/subjects/${subjectId}`);
+  await apiClient.delete(`/api/v1/admin/courses/subjects/${subjectId}`);
 }
 
 export async function createSection(data: { subjectId: string; name: string; orderIndex: number }): Promise<Section> {
-  const response = await apiClient.post<Section>('/api/v1/admin/curriculum/sections', data);
+  const response = await apiClient.post<Section>('/api/v1/admin/courses/sections', data);
   return response.data;
 }
 
 export async function updateSection(sectionId: string, data: { name?: string; orderIndex?: number }): Promise<Section> {
-  const response = await apiClient.put<Section>(`/api/v1/admin/curriculum/sections/${sectionId}`, data);
+  const response = await apiClient.put<Section>(`/api/v1/admin/courses/sections/${sectionId}`, data);
   return response.data;
 }
 
 export async function deleteSection(sectionId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/admin/curriculum/sections/${sectionId}`);
+  await apiClient.delete(`/api/v1/admin/courses/sections/${sectionId}`);
 }
 
 export async function createChapter(data: {
@@ -59,17 +59,17 @@ export async function createChapter(data: {
   videoUrl: string;
   passingGrade: number;
 }): Promise<Chapter> {
-  const response = await apiClient.post<Chapter>('/api/v1/admin/curriculum/chapter', data);
+  const response = await apiClient.post<Chapter>('/api/v1/admin/courses/chapter', data);
   return response.data;
 }
 
 export async function updateChapter(chapterId: string, data: Partial<Omit<Chapter, 'id' | 'sectionId'>>): Promise<Chapter> {
-  const response = await apiClient.put<Chapter>(`/api/v1/admin/curriculum/chapter/${chapterId}`, data);
+  const response = await apiClient.put<Chapter>(`/api/v1/admin/courses/chapter/${chapterId}`, data);
   return response.data;
 }
 
 export async function deleteChapter(chapterId: string): Promise<void> {
-  await apiClient.delete(`/api/v1/admin/curriculum/chapter/${chapterId}`);
+  await apiClient.delete(`/api/v1/admin/courses/chapter/${chapterId}`);
 }
 
 // --- Quiz Builder ---

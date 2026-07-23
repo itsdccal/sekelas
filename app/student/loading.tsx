@@ -12,7 +12,7 @@ export default function StudentLoading() {
       {/* Page title skeleton */}
       <div className="h-7 w-48 animate-pulse rounded bg-muted" />
 
-      {/* Content cards skeleton grid - matches dashboard/kurikulum layout */}
+      {/* Content cards skeleton grid - matches dashboard/courses layout */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
           <div

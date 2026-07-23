@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, AlertCircle, Lock, CheckCircle, AlertTriangle, RefreshCw, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { curriculumApi } from '@/lib/api';
+import { coursesApi } from '@/lib/api';
 import { useChapterStore } from '@/stores/chapterStore';
 import type { Chapter, ChapterStatus } from '@/lib/types';
 
@@ -45,7 +45,7 @@ export default function ChapterListPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await curriculumApi.getChapterList(sectionId);
+      const data = await coursesApi.getChapterList(sectionId);
       const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
       setChapters(sorted);
       await fetchProgress(sectionId);
@@ -79,7 +79,7 @@ export default function ChapterListPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push(`/student/curriculum/${subjectId}`)}>
+        <Button variant="ghost" size="sm" onClick={() => router.push(`/student/courses/${subjectId}`)}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
         <div className="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8">
@@ -94,14 +94,14 @@ export default function ChapterListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push(`/student/curriculum/${subjectId}`)}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => router.push(`/student/courses/${subjectId}`)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <ol className="flex items-center gap-1">
-            <li><a href="/student/curriculum" className="hover:text-primary-600">Kurikulum</a></li>
+            <li><a href="/student/courses" className="hover:text-primary-600">Materi Pembelajaran</a></li>
             <li aria-hidden="true">/</li>
-            <li><a href={`/student/curriculum/${subjectId}`} className="hover:text-primary-600">Section</a></li>
+            <li><a href={`/student/courses/${subjectId}`} className="hover:text-primary-600">Section</a></li>
             <li aria-hidden="true">/</li>
             <li className="font-medium text-foreground">Chapter</li>
           </ol>

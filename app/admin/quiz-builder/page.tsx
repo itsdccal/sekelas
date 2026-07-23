@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, ChevronRight } from 'lucide-react';
-import { curriculumApi } from '@/lib/api';
+import { coursesApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
 import type { Subject, Section, Chapter, QuizType } from '@/lib/types';
 
@@ -49,7 +49,7 @@ export default function QuizBuilderIndexPage() {
   useEffect(() => {
     if (!selectedSemesterId) return;
     setIsLoading(true);
-    curriculumApi.getSubjectList(selectedSemesterId)
+    coursesApi.getSubjectList(selectedSemesterId)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
         setSubjectList(sorted);
@@ -62,7 +62,7 @@ export default function QuizBuilderIndexPage() {
   useEffect(() => {
     if (level !== 'Section' || !selectedSubject) return;
     setIsLoading(true);
-    curriculumApi.getSectionList(selectedSubject.id)
+    coursesApi.getSectionList(selectedSubject.id)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
         setSectionList(sorted);
@@ -76,7 +76,7 @@ export default function QuizBuilderIndexPage() {
     if (quizType !== 'CHAPTER_QUIZ') return;
     if (level !== 'chapter' || !selectedSection) return;
     setIsLoading(true);
-    curriculumApi.getChapterList(selectedSection.id)
+    coursesApi.getChapterList(selectedSection.id)
       .then(data => {
         const sorted = Array.isArray(data) ? data.sort((a, b) => a.orderIndex - b.orderIndex) : [];
         setChapterList(sorted);

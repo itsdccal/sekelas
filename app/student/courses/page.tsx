@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BookOpen, AlertCircle, RefreshCw } from 'lucide-react';
-import { curriculumApi } from '@/lib/api';
+import { coursesApi } from '@/lib/api';
 import { useUIStore } from '@/stores';
 import { getErrorMessage } from '@/lib/api/retry';
 import type { Subject } from '@/lib/types';
@@ -19,7 +19,7 @@ const CARD_ACCENTS = [
   'border-l-teal-500',
 ];
 
-export default function KurikulumPage() {
+export default function CoursesPage() {
   const selectedSemesterId = useUIStore((s) => s.selectedSemesterId);
 
   const [subjectList, setSubjectList] = useState<Subject[]>([]);
@@ -40,7 +40,7 @@ export default function KurikulumPage() {
       setError(null);
 
       try {
-        const data = await curriculumApi.getSubjectList(selectedSemesterId!);
+        const data = await coursesApi.getSubjectList(selectedSemesterId!);
         if (!cancelled) {
           const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
           setSubjectList(sorted);
@@ -65,7 +65,7 @@ export default function KurikulumPage() {
     setIsLoading(true);
     setError(null);
 
-    curriculumApi
+    coursesApi
       .getSubjectList(selectedSemesterId)
       .then((data) => {
         const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
@@ -78,7 +78,7 @@ export default function KurikulumPage() {
   if (isLoading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Materi Pembelajaran</h1>
         <p className="text-sm text-muted-foreground">Pilih materi untuk mulai belajar</p>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -92,7 +92,7 @@ export default function KurikulumPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Materi Pembelajaran</h1>
         <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-white p-8 text-center">
           <AlertCircle className="mb-3 h-8 w-8 text-destructive" />
           <p className="mb-4 text-sm text-muted-foreground">{error}</p>
@@ -108,7 +108,7 @@ export default function KurikulumPage() {
   if (subjectList.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Materi Pembelajaran</h1>
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-primary-200 bg-primary-50/50 py-14 text-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary-100">
             <BookOpen className="h-7 w-7 text-primary-400" />
@@ -125,7 +125,7 @@ export default function KurikulumPage() {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Kurikulum</h1>
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground">Materi Pembelajaran</h1>
         <p className="text-sm text-muted-foreground">Pilih materi untuk mulai belajar</p>
       </div>
 
@@ -133,7 +133,7 @@ export default function KurikulumPage() {
         {subjectList.map((Subject, index) => (
           <Link
             key={Subject.id}
-            href={`/student/curriculum/${Subject.id}`}
+            href={`/student/courses/${Subject.id}`}
             className={`block rounded-lg border border-l-4 ${CARD_ACCENTS[index % CARD_ACCENTS.length]} border-border bg-white p-4 transition-all hover:shadow-md active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-600 focus-visible:ring-offset-2`}
           >
             <div className="flex items-center justify-between gap-3">

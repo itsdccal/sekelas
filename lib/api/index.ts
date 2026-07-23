@@ -3,7 +3,7 @@ export { withRetry, classifyError, isRetryable, getErrorMessage } from './retry'
 export type { RetryConfig, ApiErrorType } from './retry';
 
 export * as authApi from './auth';
-export * as curriculumApi from './curriculum';
+export * as coursesApi from './courses';
 export * as videoApi from './video';
 export * as quizApi from './quiz';
 export * as pretestApi from './pretest';

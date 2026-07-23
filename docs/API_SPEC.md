@@ -7,13 +7,13 @@ Dokumentasi lengkap endpoint API yang dibutuhkan frontend. Semua endpoint menggu
 ## Daftar Isi
 
 1. [Auth](#1-auth)
-2. [Curriculum (Student)](#2-curriculum-student)
+2. [Courses (Student)](#2-courses-student)
 3. [Video & Progress](#3-video--progress)
 4. [Quiz Chapter](#4-quiz-chapter)
 5. [Pre Test](#5-pre-test)
 6. [Post Test](#6-post-test)
 7. [Gamification](#7-gamification)
-8. [Admin — Curriculum CRUD](#8-admin--curriculum-crud)
+8. [Admin — Courses CRUD](#8-admin--courses-crud)
 9. [Admin — Quiz Builder](#9-admin--quiz-builder)
 10. [Admin — Quiz Config](#10-admin--quiz-config)
 11. [Admin — Monitoring](#11-admin--monitoring)
@@ -89,9 +89,9 @@ Validasi token dan ambil data user saat ini.
 
 ---
 
-## 2. Curriculum (Student)
+## 2. Courses (Student)
 
-### GET /api/v1/curriculum/subjects?semesterId={id}
+### GET /api/v1/courses/subjects?semesterId={id}
 
 Daftar Subject untuk semester tertentu.
 
@@ -112,7 +112,7 @@ Daftar Subject untuk semester tertentu.
 
 ---
 
-### GET /api/v1/curriculum/subjects/{subjectId}/Section
+### GET /api/v1/courses/subjects/{subjectId}/Section
 
 Daftar Section dalam Subject.
 
@@ -131,7 +131,7 @@ Daftar Section dalam Subject.
 
 ---
 
-### GET /api/v1/curriculum/sections/{sectionId}/chapters
+### GET /api/v1/courses/sections/{sectionId}/chapters
 
 Daftar chapter dalam Section.
 
@@ -557,9 +557,9 @@ Status gamifikasi siswa (XP, badges, milestones).
 
 ---
 
-## 8. Admin — Curriculum CRUD
+## 8. Admin — Courses CRUD
 
-### POST /api/v1/admin/curriculum/subjects
+### POST /api/v1/admin/courses/subjects
 
 Buat Subject baru.
 
@@ -576,7 +576,7 @@ Buat Subject baru.
 
 ---
 
-### PUT /api/v1/admin/curriculum/subjects/{subjectId}
+### PUT /api/v1/admin/courses/subjects/{subjectId}
 
 Update Subject.
 
@@ -590,13 +590,13 @@ Update Subject.
 
 ---
 
-### DELETE /api/v1/admin/curriculum/subjects/{subjectId}
+### DELETE /api/v1/admin/courses/subjects/{subjectId}
 
 Hapus Subject (cascade delete Section dan chapter di dalamnya).
 
 ---
 
-### POST /api/v1/admin/curriculum/sections
+### POST /api/v1/admin/courses/sections
 
 **Request Body:**
 ```json
@@ -609,13 +609,13 @@ Hapus Subject (cascade delete Section dan chapter di dalamnya).
 
 ---
 
-### PUT /api/v1/admin/curriculum/sections/{sectionId}
+### PUT /api/v1/admin/courses/sections/{sectionId}
 
-### DELETE /api/v1/admin/curriculum/sections/{sectionId}
+### DELETE /api/v1/admin/courses/sections/{sectionId}
 
 ---
 
-### POST /api/v1/admin/curriculum/chapter
+### POST /api/v1/admin/courses/chapter
 
 **Request Body:**
 ```json
@@ -630,9 +630,9 @@ Hapus Subject (cascade delete Section dan chapter di dalamnya).
 
 ---
 
-### PUT /api/v1/admin/curriculum/chapter/{chapterId}
+### PUT /api/v1/admin/courses/chapter/{chapterId}
 
-### DELETE /api/v1/admin/curriculum/chapter/{chapterId}
+### DELETE /api/v1/admin/courses/chapter/{chapterId}
 
 ---
 
@@ -1282,5 +1282,5 @@ Semua endpoint menggunakan format error yang sama:
 - Token dikirim via HttpOnly cookie (set by backend on login)
 - Frontend menyertakan `withCredentials: true` di setiap request
 - Token expiry: backend return 401 → frontend redirect ke /login
-- Role-based access: STUDENT hanya bisa akses /api/v1/student/*, /api/v1/quiz/*, /api/v1/curriculum/*, /api/v1/gamification/*
+- Role-based access: STUDENT hanya bisa akses /api/v1/student/*, /api/v1/quiz/*, /api/v1/courses/*, /api/v1/gamification/*
 - ADMIN bisa akses /api/v1/admin/* dan semua endpoint student

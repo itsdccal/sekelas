@@ -24,7 +24,7 @@ import {
 } from 'recharts';
 import { useUIStore } from '@/stores/uiStore';
 import { useGamificationStore } from '@/stores/gamificationStore';
-import { curriculumApi } from '@/lib/api';
+import { coursesApi } from '@/lib/api';
 import { formatXP } from '@/lib/utils/formatters';
 import { Button } from '@/components/ui/button';
 import type {
@@ -255,7 +255,7 @@ export default function RaportPage() {
     setError(null);
 
     try {
-      const data = await curriculumApi.getStudentProgress(selectedSemesterId);
+      const data = await coursesApi.getStudentProgress(selectedSemesterId);
       setProgress(data);
     } catch {
       setError('Gagal memuat data raport. Silakan coba lagi.');

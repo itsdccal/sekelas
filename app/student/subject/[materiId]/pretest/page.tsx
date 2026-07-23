@@ -28,7 +28,7 @@ export default function PreTestPage() {
   }, []);
 
   const handleContinue = useCallback(() => {
-    router.push(`/student/curriculum/${subjectId}`);
+    router.push(`/student/courses/${subjectId}`);
   }, [router, subjectId]);
 
   if (pageState === 'result' && result) {

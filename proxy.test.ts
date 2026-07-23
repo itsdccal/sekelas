@@ -131,7 +131,7 @@ describe('proxy - route protection', () => {
     });
 
     it('should allow access when no expiry timestamp in role cookie', () => {
-      const request = createRequest('/admin/curriculum', {
+      const request = createRequest('/admin/courses', {
         auth_token: 'valid-token',
         user_role: 'ADMIN',
       });
@@ -159,7 +159,7 @@ describe('proxy - route protection', () => {
 
   describe('nested route protection', () => {
     it('should protect deeply nested student routes', () => {
-      const request = createRequest('/student/curriculum/subject-1/section-1');
+      const request = createRequest('/student/courses/subject-1/section-1');
       const response = proxy(request);
       expect(isRedirectToLogin(response)).toBe(true);
     });

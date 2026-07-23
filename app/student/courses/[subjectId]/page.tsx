@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, BookOpen, Loader2, AlertCircle, Lock, CheckCircle, ClipboardCheck, FileQuestion } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { curriculumApi, pretestApi, posttestApi } from '@/lib/api';
+import { coursesApi, pretestApi, posttestApi } from '@/lib/api';
 import type { Section, SectionStatus } from '@/lib/types';
 
 interface SectionWithStatus extends Section {
@@ -43,7 +43,7 @@ export default function BabListPage() {
       }
 
       // Fetch sections
-      const data = await curriculumApi.getSectionList(subjectId);
+      const data = await coursesApi.getSectionList(subjectId);
       const sorted = [...data].sort((a, b) => a.orderIndex - b.orderIndex);
 
       // For now, simple sequential: Section 1 unlocked, rest locked
@@ -85,7 +85,7 @@ export default function BabListPage() {
   if (error) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push('/student/courses')}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
         <div className="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8">
@@ -114,8 +114,8 @@ export default function BabListPage() {
           <Button onClick={() => router.push(`/student/subject/${subjectId}/pretest`)} className="w-full bg-primary-600 hover:bg-primary-700 text-white" size="lg">
             Mulai Pre Test
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')} className="w-full text-muted-foreground">
-            ← Kembali ke Kurikulum
+          <Button variant="ghost" size="sm" onClick={() => router.push('/student/courses')} className="w-full text-muted-foreground">
+            ← Kembali ke Materi Pembelajaran
           </Button>
         </div>
       </div>
@@ -128,12 +128,12 @@ export default function BabListPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/student/curriculum')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push('/student/courses')}>
           <ArrowLeft className="h-4 w-4" /> Kembali
         </Button>
         <nav aria-label="Breadcrumb" className="text-xs text-muted-foreground">
           <ol className="flex items-center gap-1">
-            <li><a href="/student/curriculum" className="hover:text-primary-600">Kurikulum</a></li>
+            <li><a href="/student/courses" className="hover:text-primary-600">Materi Pembelajaran</a></li>
             <li aria-hidden="true">/</li>
             <li className="font-medium text-foreground">Daftar Section</li>
           </ol>
@@ -154,7 +154,7 @@ export default function BabListPage() {
             return (
               <button
                 key={Section.id}
-                onClick={() => !isLocked && router.push(`/student/curriculum/${subjectId}/${Section.id}`)}
+                onClick={() => !isLocked && router.push(`/student/courses/${subjectId}/${Section.id}`)}
                 disabled={isLocked}
                 className={`w-full rounded-lg border p-4 text-left transition-colors ${
                   isLocked ? 'cursor-not-allowed border-gray-200 bg-gray-50 opacity-60 grayscale'

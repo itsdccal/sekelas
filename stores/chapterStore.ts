@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { curriculumApi, videoApi } from '@/lib/api';
+import { coursesApi, videoApi } from '@/lib/api';
 import type { ChapterProgress, ChapterStatus } from '@/lib/types';
 
 interface ChapterState {
@@ -21,7 +21,7 @@ export const useChapterStore = create<ChapterState>((set, get) => ({
   fetchProgress: async (sectionId: string) => {
     set({ isLoading: true });
     try {
-      const chapters = await curriculumApi.getChapterList(sectionId);
+      const chapters = await coursesApi.getChapterList(sectionId);
 
       // Fetch progress for each chapter and build progressMap
       const progressEntries = await Promise.all(
