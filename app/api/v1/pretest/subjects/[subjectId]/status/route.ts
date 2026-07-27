@@ -6,12 +6,26 @@ export async function GET(
 ) {
   const { subjectId } = await params;
 
-  // Demo: materi-1 pre test completed, others not
-  const completedSubjects = ['materi-1'];
-  const isCompleted = completedSubjects.includes(subjectId);
+  // Demo: materi-1 completed, materi-2 pending placement, others not started
+  if (subjectId === 'materi-1') {
+    return NextResponse.json({
+      completed: true,
+      pendingPlacement: false,
+      startSectionIndex: 1,
+    });
+  }
+
+  if (subjectId === 'materi-pending') {
+    return NextResponse.json({
+      completed: true,
+      pendingPlacement: true,
+      startSectionIndex: 0,
+    });
+  }
 
   return NextResponse.json({
-    completed: isCompleted,
-    startSectionIndex: isCompleted ? 1 : 0,
+    completed: false,
+    pendingPlacement: false,
+    startSectionIndex: 0,
   });
 }

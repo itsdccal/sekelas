@@ -33,11 +33,17 @@ export function PreTestComponent({ subjectId, onComplete }: PreTestComponentProp
     if (questions.length > 0 && Object.keys(answers).length > 0) {
       const submission = {
         subjectId,
-        answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({ questionId, selectedOptionId })),
+        answers: Object.entries(answers).map(([questionId, answer]) => {
+          const q = questions.find((q) => q.id === questionId);
+          if (q?.questionType === 'SHORT_ANSWER') {
+            return { questionId, textAnswer: answer };
+          }
+          return { questionId, selectedOptionId: answer };
+        }),
       };
       pretestApi.submitPreTest(submission).then(onComplete).catch(() => {});
     }
-  }, [questions.length, answers, subjectId, onComplete]);
+  }, [questions, answers, subjectId, onComplete]);
 
   const timer = useTimer(20, handleTimeUp, !isLoading && questions.length > 0);
 
@@ -73,10 +79,13 @@ export function PreTestComponent({ subjectId, onComplete }: PreTestComponentProp
     try {
       const submission = {
         subjectId,
-        answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
-          questionId,
-          selectedOptionId,
-        })),
+        answers: Object.entries(answers).map(([questionId, answer]) => {
+          const q = questions.find((q) => q.id === questionId);
+          if (q?.questionType === 'SHORT_ANSWER') {
+            return { questionId, textAnswer: answer };
+          }
+          return { questionId, selectedOptionId: answer };
+        }),
       };
       const result = await pretestApi.submitPreTest(submission);
       onComplete(result);
@@ -84,7 +93,7 @@ export function PreTestComponent({ subjectId, onComplete }: PreTestComponentProp
       setError('Gagal mengirim jawaban. Silakan coba lagi.');
       setIsSubmitting(false);
     }
-  }, [subjectId, answers, onComplete]);
+  }, [subjectId, answers, questions, onComplete]);
 
   const handleRetry = useCallback(() => {
     setIsLoading(true);

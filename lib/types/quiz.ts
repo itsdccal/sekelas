@@ -68,15 +68,16 @@ export interface QuizReviewItem {
 
 export interface PreTestSubmission {
   subjectId: string;
-  answers: { questionId: string; selectedOptionId: string }[];
+  answers: { questionId: string; selectedOptionId?: string; textAnswer?: string }[];
 }
 
 export interface PreTestResult {
   subjectId: string;
-  startSectionIndex: number; // Section index dimana siswa mulai (0-based)
-  startSectionName: string;
+  status: 'PLACED' | 'PENDING_PLACEMENT'; // PENDING_PLACEMENT = ada soal isian, menunggu penilaian admin
+  startSectionIndex: number; // hanya valid jika status = PLACED
+  startSectionName: string;  // hanya valid jika status = PLACED
   totalSectionsSkipped: number;
-  xpEarned: number; // XP dari Section yang dilewati (dihitung backend)
+  xpEarned: number;
   message: string;
 }
 

@@ -48,6 +48,12 @@ export type {
   OverrideRequest,
   StudentMonitoringRow,
   VideoUploadResponse,
+  AnswerReviewStatus,
+  QuizTypeLabel,
+  StudentAnswerItem,
+  StudentSubmission,
+  StudentSubmissionsResponse,
+  GradeAnswerRequest,
 } from './admin';
 
 export { OVERRIDE_ACTION_LABELS } from './admin';

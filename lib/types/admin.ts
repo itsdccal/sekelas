@@ -1,5 +1,57 @@
 export type OverrideAction = 'FORCE_COMPLETE';
 
+// --- Student Answer Review ---
+
+export type AnswerReviewStatus = 'PENDING' | 'GRADED';
+export type QuizTypeLabel = 'PRE_TEST' | 'POST_TEST' | 'CHAPTER_QUIZ';
+
+export interface StudentAnswerItem {
+  questionId: string;
+  questionText: string;
+  questionType: 'MULTIPLE_CHOICE' | 'SHORT_ANSWER';
+  imageUrl?: string;
+  // For multiple choice
+  options?: { id: string; text: string }[];
+  selectedOptionId?: string;
+  correctOptionId?: string;
+  isCorrect?: boolean;
+  // For short answer / essay
+  textAnswer?: string;
+  adminScore?: number | null; // 0-100, null = belum dinilai
+  adminNote?: string | null;
+  // Meta
+  weight: number; // bobot soal
+  xpPerQuestion?: number;
+}
+
+export interface StudentSubmission {
+  submissionId: string;
+  quizType: QuizTypeLabel;
+  subjectId?: string;
+  subjectName?: string;
+  sectionId?: string;
+  sectionName?: string;
+  chapterId?: string;
+  chapterName?: string;
+  submittedAt: string; // ISO
+  score: number | null; // null if has ungraded SHORT_ANSWER
+  status: AnswerReviewStatus; // PENDING = ada soal isian belum dinilai
+  answers: StudentAnswerItem[];
+}
+
+export interface StudentSubmissionsResponse {
+  userId: string;
+  pendingGradeCount: number; // berapa submission yg masih PENDING
+  submissions: StudentSubmission[];
+}
+
+export interface GradeAnswerRequest {
+  submissionId: string;
+  questionId: string;
+  score: number; // 0-100
+  note?: string;
+}
+
 export const OVERRIDE_ACTION_LABELS: Record<OverrideAction, string> = {
   FORCE_COMPLETE: 'Luluskan Chapter',
 };

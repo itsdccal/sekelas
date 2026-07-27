@@ -19,6 +19,8 @@ import type {
   ClassRoom,
   CreateClassRoomRequest,
   UpdateClassRoomRequest,
+  StudentSubmissionsResponse,
+  GradeAnswerRequest,
 } from '@/lib/types';
 import type { StudentProgress } from '@/lib/types';
 
@@ -175,6 +177,22 @@ export async function getStudentDetail(userId: string): Promise<StudentProgress>
     );
     return response.data;
   });
+}
+
+export async function getStudentSubmissions(userId: string): Promise<StudentSubmissionsResponse> {
+  return withRetry(async () => {
+    const response = await apiClient.get<StudentSubmissionsResponse>(
+      `/api/v1/admin/monitoring/students/${userId}/submissions`
+    );
+    return response.data;
+  });
+}
+
+export async function gradeStudentAnswer(userId: string, data: GradeAnswerRequest): Promise<void> {
+  await apiClient.post(
+    `/api/v1/admin/monitoring/students/${userId}/submissions/grade`,
+    data
+  );
 }
 
 // --- Video Upload ---

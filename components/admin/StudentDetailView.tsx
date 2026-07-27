@@ -11,10 +11,13 @@ import {
   Circle,
   ArrowLeft,
   RefreshCw,
+  BarChart2,
+  MessageSquare,
 } from 'lucide-react';
 import { adminApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { OverrideForm } from '@/components/admin/OverrideForm';
+import StudentAnswersView from '@/components/admin/StudentAnswersView';
 import type {
   StudentProgress,
   SubjectProgress,
@@ -30,6 +33,8 @@ export interface StudentDetailViewProps {
   userId: string;
   onBack: () => void;
 }
+
+type ActiveTab = 'progress' | 'answers';
 
 // ─── Status icon component per Req 14.3 ───
 
@@ -235,6 +240,10 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
   const [progress, setProgress] = useState<StudentProgress | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('progress');
+
+  // Badge count for answers tab
+  const [pendingGradeCount, setPendingGradeCount] = useState<number>(0);
 
   // Override dialog state
   const [overrideTarget, setOverrideTarget] = useState<ChapterProgress | null>(null);
@@ -244,10 +253,20 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
     setError(null);
 
     try {
-      const data = await adminApi.getStudentDetail(userId);
-      setProgress(data);
-    } catch {
-      setError('Gagal memuat detail progres siswa. Silakan coba lagi.');
+      const [progressData, submissionsData] = await Promise.allSettled([
+        adminApi.getStudentDetail(userId),
+        adminApi.getStudentSubmissions(userId),
+      ]);
+
+      if (progressData.status === 'fulfilled') {
+        setProgress(progressData.value);
+      } else {
+        setError('Gagal memuat detail progres siswa. Silakan coba lagi.');
+      }
+
+      if (submissionsData.status === 'fulfilled') {
+        setPendingGradeCount(submissionsData.value.pendingGradeCount);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -305,47 +324,90 @@ export default function StudentDetailView({ userId, onBack }: StudentDetailViewP
         Kembali ke daftar
       </Button>
 
-      {/* Error state */}
-      {error && (
-        <div className="rounded-lg border border-border bg-white p-6" role="alert" aria-live="polite">
-          <p className="mb-4 text-sm text-destructive">{error}</p>
-          <Button onClick={fetchDetail} variant="default" size="sm">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Coba Lagi
-          </Button>
-        </div>
-      )}
-
-      {/* Loading state */}
-      {isLoading && <DetailSkeleton />}
-
-      {/* Empty state */}
-      {!isLoading && !error && progress && progress.subjectProgress.length === 0 && (
-        <div className="rounded-lg border border-border bg-white p-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            Belum ada data progres untuk siswa ini.
-          </p>
-        </div>
-      )}
-
-      {/* Content state */}
-      {!isLoading && !error && progress && progress.subjectProgress.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span>
-              {progress.completedChapters}/{progress.totalChapters} Chapter selesai
+      {/* Tab navigation */}
+      <div className="flex gap-1 rounded-lg border border-border bg-muted/30 p-1 w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab('progress')}
+          className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+            activeTab === 'progress'
+              ? 'bg-white shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <BarChart2 className="h-4 w-4" />
+          Progres
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('answers')}
+          className={`flex items-center gap-1.5 rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 ${
+            activeTab === 'answers'
+              ? 'bg-white shadow-sm text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          Jawaban
+          {pendingGradeCount > 0 && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+              {pendingGradeCount > 9 ? '9+' : pendingGradeCount}
             </span>
-            <span>•</span>
-            <span>{progress.totalXP} XP</span>
-          </div>
-          {progress.subjectProgress.map((materi) => (
-            <MateriItem
-              key={materi.subjectId}
-              materi={materi}
-              onOverrideClick={(chapter) => setOverrideTarget(chapter)}
-            />
-          ))}
-        </div>
+          )}
+        </button>
+      </div>
+
+      {/* Tab: Jawaban */}
+      {activeTab === 'answers' && (
+        <StudentAnswersView userId={userId} />
+      )}
+
+      {/* Tab: Progres */}
+      {activeTab === 'progress' && (
+        <>
+          {/* Error state */}
+          {error && (
+            <div className="rounded-lg border border-border bg-white p-6" role="alert" aria-live="polite">
+              <p className="mb-4 text-sm text-destructive">{error}</p>
+              <Button onClick={fetchDetail} variant="default" size="sm">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Coba Lagi
+              </Button>
+            </div>
+          )}
+
+          {/* Loading state */}
+          {isLoading && <DetailSkeleton />}
+
+          {/* Empty state */}
+          {!isLoading && !error && progress && progress.subjectProgress.length === 0 && (
+            <div className="rounded-lg border border-border bg-white p-12 text-center">
+              <p className="text-sm text-muted-foreground">
+                Belum ada data progres untuk siswa ini.
+              </p>
+            </div>
+          )}
+
+          {/* Content state */}
+          {!isLoading && !error && progress && progress.subjectProgress.length > 0 && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>
+                  {progress.completedChapters}/{progress.totalChapters} Chapter selesai
+                </span>
+                <span>•</span>
+                <span>{progress.totalXP} XP</span>
+              </div>
+              {progress.subjectProgress.map((materi) => (
+                <MateriItem
+                  key={materi.subjectId}
+                  materi={materi}
+                  onOverrideClick={(chapter) => setOverrideTarget(chapter)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       {/* Override Dialog */}
