@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import type { StudentProgress, SectionProgress, ChapterProgress } from '@/lib/types/progress';
+import type { StudentProgress, SectionProgress, ChapterProgress, SubjectProgress } from '@/lib/types/progress';
 
 interface StudentExportData {
   userId: string;
@@ -16,8 +16,10 @@ interface StudentExportData {
  * Sheet 1: Ringkasan & Ranking
  *   - Ranking, Nama, Kelas, Rata-rata Nilai, Total Progress
  *
- * Sheet 2: Detail Nilai per Chapter
- *   - Per bab: Pre Test, each chapter with attempt-by-attempt scores, Post Test
+ * Sheet 2: Detail Nilai per Mata Pelajaran
+ *   - Row 1: Nama Mata Pelajaran (merged)
+ *   - Row 2: Pre Test | Nama Bab (merged per bab) | Post Test
+ *   - Row 3: (kosong) | Ch1, Ch2, Ch3... per bab | (kosong)
  */
 export function exportStudentDataToExcel(
   students: StudentExportData[],
@@ -82,48 +84,66 @@ function buildSummarySheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
 }
 
 /**
- * Sheet 2: Detail scores showing every attempt per chapter.
+ * Sheet 2: Detail scores with correct hierarchy.
  *
- * Layout per bab:
- *   | Pre Test | Ch1 Percobaan 1 | Ch1 Percobaan 2 | ... | Ch2 Percobaan 1 | ... | Post Test |
+ * Layout:
+ *   Row 1: | No | Nama | Kelas | ===== Matematika Dasar (merged) ===== | ===== Fisika (merged) ===== |
+ *   Row 2: |    |      |       | Pre Test | Aljabar Dasar (merged) | Geometri (merged) | Post Test | Pre Test | ... | Post Test |
+ *   Row 3: |    |      |       |          | Ch1 P1 | Ch2 P1 | ...  | Ch1 P1 | ...     |           |          | ... |           |
  *
- * We dynamically compute max attempts per chapter across all students.
+ * Pre Test & Post Test are at the Subject (Mata Pelajaran) level.
+ * Chapters belong to Sections (Bab).
  */
 function buildDetailSheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
-  // Collect bab structure: for each bab, collect chapters and max attempts per chapter
-  const babStructure = collectBabStructure(students);
+  const structure = collectSubjectStructure(students);
 
-  // ─── Build header rows ───
-  // Row 1: Bab name (merged across its columns)
-  // Row 2: Sub-headers (Pre Test, Ch1 P1, Ch1 P2, ..., Post Test)
-  const headerRow1: string[] = ['No', 'Nama', 'Kelas'];
-  const headerRow2: string[] = ['', '', ''];
+  // ─── Build 3 header rows ───
+  const headerRow1: string[] = ['No', 'Nama', 'Kelas']; // Subject names
+  const headerRow2: string[] = ['', '', ''];              // Pre Test, Bab names, Post Test
+  const headerRow3: string[] = ['', '', ''];              // Chapter sub-headers
 
-  babStructure.forEach((bab) => {
-    // Count total columns for this bab: 1 (Pre Test) + sum of maxAttempts per chapter + 1 (Post Test)
-    const chapterCols = bab.chapters.reduce((sum, ch) => sum + ch.maxAttempts, 0);
-    const totalBabCols = 1 + chapterCols + 1; // Pre Test + chapters + Post Test
+  structure.forEach((subject) => {
+    // Calculate total columns for this subject:
+    // 1 (Pre Test) + sum of all chapter columns across all sections + 1 (Post Test)
+    const sectionCols = subject.sections.reduce((sum, sec) => {
+      const chCols = sec.chapters.reduce((s, ch) => s + ch.maxAttempts, 0);
+      return sum + chCols;
+    }, 0);
+    const totalSubjectCols = 1 + sectionCols + 1; // Pre Test + chapters + Post Test
 
-    // Row 1: bab name spans all its columns
-    headerRow1.push(bab.babName);
-    for (let i = 1; i < totalBabCols; i++) headerRow1.push('');
+    // Row 1: Subject name merged across all its columns
+    headerRow1.push(subject.subjectName);
+    for (let i = 1; i < totalSubjectCols; i++) headerRow1.push('');
 
-    // Row 2: sub-headers
+    // Row 2: Pre Test | [Bab names merged] | Post Test
     headerRow2.push('Pre Test');
-    bab.chapters.forEach((ch, chIdx) => {
-      for (let attempt = 1; attempt <= ch.maxAttempts; attempt++) {
-        if (ch.maxAttempts === 1) {
-          headerRow2.push(`Ch${chIdx + 1}`);
-        } else {
-          headerRow2.push(`Ch${chIdx + 1} P${attempt}`);
-        }
-      }
+    subject.sections.forEach((sec) => {
+      const chCols = sec.chapters.reduce((s, ch) => s + ch.maxAttempts, 0);
+      headerRow2.push(sec.sectionName);
+      for (let i = 1; i < chCols; i++) headerRow2.push('');
     });
     headerRow2.push('Post Test');
+
+    // Row 3: empty for Pre Test | chapter names | empty for Post Test
+    headerRow3.push(''); // Pre Test column (no sub-header)
+    subject.sections.forEach((sec) => {
+      sec.chapters.forEach((ch, chIdx) => {
+        for (let attempt = 1; attempt <= ch.maxAttempts; attempt++) {
+          if (ch.maxAttempts === 1) {
+            headerRow3.push(`Ch${chIdx + 1}`);
+          } else {
+            headerRow3.push(`Ch${chIdx + 1} P${attempt}`);
+          }
+        }
+      });
+    });
+    headerRow3.push(''); // Post Test column (no sub-header)
   });
 
+  // Add average column
   headerRow1.push('Rata-rata');
-  headerRow2.push('Nilai');
+  headerRow2.push('');
+  headerRow3.push('Nilai');
 
   // ─── Build data rows (ranked by average) ───
   const rankedStudents = students
@@ -143,37 +163,39 @@ function buildDetailSheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
   rankedStudents.forEach((student, index) => {
     const row: (string | number)[] = [index + 1, student.name, student.kelas];
 
-    babStructure.forEach((babRef) => {
-      const babData = findBabInStudent(student.detail!, babRef.babId);
+    structure.forEach((subjectRef) => {
+      const subjectData = student.detail!.subjectProgress.find(
+        (sp) => sp.subjectId === subjectRef.subjectId
+      );
 
-      // Pre Test
-      if (babData) {
-        row.push(babData.preTestScore ?? '-');
-      } else {
-        row.push('-');
-      }
+      // Pre Test (subject level)
+      const preTestScore = getSubjectPreTestScore(subjectData);
+      row.push(preTestScore ?? '-');
 
-      // Chapter scores per attempt
-      babRef.chapters.forEach((chRef) => {
-        const chapterData = babData
-          ? babData.chapters.find((ch) => ch.chapterId === chRef.chapterId)
+      // Sections and their chapters
+      subjectRef.sections.forEach((secRef) => {
+        const sectionData = subjectData
+          ? subjectData.sections.find((s) => s.sectionId === secRef.sectionId)
           : null;
 
-        for (let attempt = 0; attempt < chRef.maxAttempts; attempt++) {
-          if (chapterData && chapterData.scoreHistory && chapterData.scoreHistory[attempt] != null) {
-            row.push(chapterData.scoreHistory[attempt]);
-          } else {
-            row.push('-');
+        secRef.chapters.forEach((chRef) => {
+          const chapterData = sectionData
+            ? sectionData.chapters.find((ch) => ch.chapterId === chRef.chapterId)
+            : null;
+
+          for (let attempt = 0; attempt < chRef.maxAttempts; attempt++) {
+            if (chapterData && chapterData.scoreHistory && chapterData.scoreHistory[attempt] != null) {
+              row.push(chapterData.scoreHistory[attempt]);
+            } else {
+              row.push('-');
+            }
           }
-        }
+        });
       });
 
-      // Post Test
-      if (babData) {
-        row.push(babData.postTestScore ?? '-');
-      } else {
-        row.push('-');
-      }
+      // Post Test (subject level)
+      const postTestScore = getSubjectPostTestScore(subjectData);
+      row.push(postTestScore ?? '-');
     });
 
     // Average score
@@ -182,20 +204,52 @@ function buildDetailSheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
     dataRows.push(row);
   });
 
-  const wsData = [headerRow1, headerRow2, ...dataRows];
+  const wsData = [headerRow1, headerRow2, headerRow3, ...dataRows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-  // ─── Merge bab name cells in header row 1 ───
+  // ─── Merge cells ───
   const merges: XLSX.Range[] = [];
-  let colStart = 3; // after No, Nama, Kelas
-  babStructure.forEach((bab) => {
-    const chapterCols = bab.chapters.reduce((sum, ch) => sum + ch.maxAttempts, 0);
-    const totalBabCols = 1 + chapterCols + 1;
-    if (totalBabCols > 1) {
-      merges.push({ s: { r: 0, c: colStart }, e: { r: 0, c: colStart + totalBabCols - 1 } });
+
+  // Merge "No", "Nama", "Kelas" across all 3 header rows (row 0-2, cols 0-2)
+  for (let c = 0; c < 3; c++) {
+    merges.push({ s: { r: 0, c }, e: { r: 2, c } });
+  }
+
+  // Merge subject names in row 1
+  let colStart = 3;
+  structure.forEach((subject) => {
+    const sectionCols = subject.sections.reduce((sum, sec) => {
+      return sum + sec.chapters.reduce((s, ch) => s + ch.maxAttempts, 0);
+    }, 0);
+    const totalSubjectCols = 1 + sectionCols + 1;
+    if (totalSubjectCols > 1) {
+      merges.push({ s: { r: 0, c: colStart }, e: { r: 0, c: colStart + totalSubjectCols - 1 } });
     }
-    colStart += totalBabCols;
+
+    // Merge "Pre Test" cell across rows 1-2 (row index 1-2)
+    merges.push({ s: { r: 1, c: colStart }, e: { r: 2, c: colStart } });
+
+    // Merge section names in row 2
+    let secColStart = colStart + 1; // after Pre Test
+    subject.sections.forEach((sec) => {
+      const chCols = sec.chapters.reduce((s, ch) => s + ch.maxAttempts, 0);
+      if (chCols > 1) {
+        merges.push({ s: { r: 1, c: secColStart }, e: { r: 1, c: secColStart + chCols - 1 } });
+      }
+      secColStart += chCols;
+    });
+
+    // Merge "Post Test" cell across rows 1-2
+    const postTestCol = colStart + totalSubjectCols - 1;
+    merges.push({ s: { r: 1, c: postTestCol }, e: { r: 2, c: postTestCol } });
+
+    colStart += totalSubjectCols;
   });
+
+  // Merge "Rata-rata" across rows 0-1 (last column)
+  const lastCol = headerRow1.length - 1;
+  merges.push({ s: { r: 0, c: lastCol }, e: { r: 1, c: lastCol } });
+
   ws['!merges'] = merges;
 
   // ─── Column widths ───
@@ -204,12 +258,14 @@ function buildDetailSheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
     { wch: 25 }, // Nama
     { wch: 8 },  // Kelas
   ];
-  babStructure.forEach((bab) => {
+  structure.forEach((subject) => {
     colWidths.push({ wch: 10 }); // Pre Test
-    bab.chapters.forEach((ch) => {
-      for (let i = 0; i < ch.maxAttempts; i++) {
-        colWidths.push({ wch: 10 });
-      }
+    subject.sections.forEach((sec) => {
+      sec.chapters.forEach((ch) => {
+        for (let i = 0; i < ch.maxAttempts; i++) {
+          colWidths.push({ wch: 9 });
+        }
+      });
     });
     colWidths.push({ wch: 10 }); // Post Test
   });
@@ -223,69 +279,113 @@ function buildDetailSheet(wb: XLSX.WorkBook, students: StudentExportData[]) {
 
 interface ChapterRef {
   chapterId: string;
-  maxAttempts: number; // max attempts across all students for this chapter
+  maxAttempts: number;
 }
 
-interface BabStructure {
-  babId: string;
-  babName: string;
+interface SectionRef {
+  sectionId: string;
+  sectionName: string;
   chapters: ChapterRef[];
 }
 
-interface BabWithScores extends SectionProgress {
-  preTestScore: number | null;
-  postTestScore: number | null;
+interface SubjectStructure {
+  subjectId: string;
+  subjectName: string;
+  sections: SectionRef[];
 }
 
 /**
- * Collect all sections and chapters across students, determining max attempts per chapter.
+ * Collect subject → section → chapter structure across all students,
+ * determining max attempts per chapter.
  */
-function collectBabStructure(students: StudentExportData[]): BabStructure[] {
-  const babMap = new Map<string, { babName: string; chapters: Map<string, number> }>();
+function collectSubjectStructure(students: StudentExportData[]): SubjectStructure[] {
+  const subjectMap = new Map<string, {
+    subjectName: string;
+    sections: Map<string, { sectionName: string; chapters: Map<string, number> }>;
+  }>();
 
   students.forEach((s) => {
     if (!s.detail) return;
     s.detail.subjectProgress.forEach((subject) => {
+      if (!subjectMap.has(subject.subjectId)) {
+        subjectMap.set(subject.subjectId, {
+          subjectName: subject.subjectName,
+          sections: new Map(),
+        });
+      }
+      const subjectEntry = subjectMap.get(subject.subjectId)!;
+
       subject.sections.forEach((section) => {
-        if (!babMap.has(section.sectionId)) {
-          babMap.set(section.sectionId, { babName: section.sectionName, chapters: new Map() });
+        if (!subjectEntry.sections.has(section.sectionId)) {
+          subjectEntry.sections.set(section.sectionId, {
+            sectionName: section.sectionName,
+            chapters: new Map(),
+          });
         }
-        const babEntry = babMap.get(section.sectionId)!;
+        const sectionEntry = subjectEntry.sections.get(section.sectionId)!;
 
         section.chapters.forEach((ch) => {
-          const currentMax = babEntry.chapters.get(ch.chapterId) || 0;
+          const currentMax = sectionEntry.chapters.get(ch.chapterId) || 0;
           const attempts = ch.scoreHistory ? ch.scoreHistory.length : ch.quizAttempts;
-          // At minimum 1 column per chapter (even if no attempts yet)
-          const effectiveAttempts = Math.max(attempts, currentMax);
-          babEntry.chapters.set(ch.chapterId, Math.max(effectiveAttempts, 1));
+          sectionEntry.chapters.set(ch.chapterId, Math.max(attempts, currentMax, 1));
         });
       });
     });
   });
 
-  return Array.from(babMap.entries()).map(([babId, entry]) => ({
-    babId,
-    babName: entry.babName,
-    chapters: Array.from(entry.chapters.entries()).map(([chapterId, maxAttempts]) => ({
-      chapterId,
-      maxAttempts,
+  return Array.from(subjectMap.entries()).map(([subjectId, entry]) => ({
+    subjectId,
+    subjectName: entry.subjectName,
+    sections: Array.from(entry.sections.entries()).map(([sectionId, secEntry]) => ({
+      sectionId,
+      sectionName: secEntry.sectionName,
+      chapters: Array.from(secEntry.chapters.entries()).map(([chapterId, maxAttempts]) => ({
+        chapterId,
+        maxAttempts,
+      })),
     })),
   }));
 }
 
-function findBabInStudent(detail: StudentProgress, babId: string): BabWithScores | null {
-  for (const subject of detail.subjectProgress) {
-    for (const section of subject.sections) {
-      if (section.sectionId === babId) {
-        const sectionAny = section as SectionProgress & { preTestScore?: number | null; postTestScore?: number | null };
-        return {
-          ...section,
-          preTestScore: sectionAny.preTestScore ?? null,
-          postTestScore: sectionAny.postTestScore ?? null,
-        };
-      }
-    }
+/**
+ * Get pre test score from subject data.
+ * The API returns preTestScore at section level in mock data,
+ * but conceptually pre test belongs to subject level.
+ * We look for it in the subject or fall back to first section's preTestScore.
+ */
+function getSubjectPreTestScore(subjectData: SubjectProgress | undefined): number | null {
+  if (!subjectData) return null;
+
+  // Check if subject-level preTestScore exists (future-proof)
+  const subjectAny = subjectData as SubjectProgress & { preTestScore?: number | null };
+  if (subjectAny.preTestScore != null) return subjectAny.preTestScore;
+
+  // Fallback: use first section's preTestScore (current mock data structure)
+  for (const section of subjectData.sections) {
+    const sectionAny = section as SectionProgress & { preTestScore?: number | null };
+    if (sectionAny.preTestScore != null) return sectionAny.preTestScore;
   }
+
+  return null;
+}
+
+/**
+ * Get post test score from subject data.
+ * Same logic as pre test — subject level first, fallback to last section.
+ */
+function getSubjectPostTestScore(subjectData: SubjectProgress | undefined): number | null {
+  if (!subjectData) return null;
+
+  // Check if subject-level postTestScore exists (future-proof)
+  const subjectAny = subjectData as SubjectProgress & { postTestScore?: number | null };
+  if (subjectAny.postTestScore != null) return subjectAny.postTestScore;
+
+  // Fallback: use last section's postTestScore (current mock data structure)
+  for (let i = subjectData.sections.length - 1; i >= 0; i--) {
+    const sectionAny = subjectData.sections[i] as SectionProgress & { postTestScore?: number | null };
+    if (sectionAny.postTestScore != null) return sectionAny.postTestScore;
+  }
+
   return null;
 }
 
@@ -293,18 +393,19 @@ function calculateAverageScore(detail: StudentProgress): number | null {
   const allScores: number[] = [];
 
   detail.subjectProgress.forEach((subject) => {
-    subject.sections.forEach((section) => {
-      const sectionAny = section as SectionProgress & { preTestScore?: number | null; postTestScore?: number | null };
-      if (sectionAny.preTestScore != null) allScores.push(sectionAny.preTestScore);
-      if (sectionAny.postTestScore != null) allScores.push(sectionAny.postTestScore);
+    // Subject-level pre/post test scores
+    const preScore = getSubjectPreTestScore(subject);
+    const postScore = getSubjectPostTestScore(subject);
+    if (preScore != null) allScores.push(preScore);
+    if (postScore != null) allScores.push(postScore);
 
+    subject.sections.forEach((section) => {
       section.chapters.forEach((ch: ChapterProgress) => {
-        // Use scoreHistory[0] as official score (first attempt) if available
-        // Falls back to lastScore for backward compatibility
-        const officialScore = ch.scoreHistory && ch.scoreHistory.length > 0
-          ? ch.scoreHistory[0]
+        // Use latest score (last in scoreHistory) as the chapter grade
+        const score = ch.scoreHistory && ch.scoreHistory.length > 0
+          ? ch.scoreHistory[ch.scoreHistory.length - 1]
           : ch.lastScore;
-        if (officialScore != null) allScores.push(officialScore);
+        if (score != null) allScores.push(score);
       });
     });
   });
