@@ -35,6 +35,8 @@ export interface SubjectProgress {
   completionPercentage: number; // 0 - 100 integer
   preTestCompleted: boolean;
   postTestCompleted: boolean;
+  preTestScore?: number | null;
+  postTestScore?: number | null;
   sections: SectionProgress[];
 }
 

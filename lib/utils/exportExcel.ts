@@ -297,6 +297,7 @@ interface SubjectStructure {
 /**
  * Collect subject → section → chapter structure across all students,
  * determining max attempts per chapter.
+ * Only includes subjects that have at least 1 chapter with data across all students.
  */
 function collectSubjectStructure(students: StudentExportData[]): SubjectStructure[] {
   const subjectMap = new Map<string, {
@@ -333,34 +334,35 @@ function collectSubjectStructure(students: StudentExportData[]): SubjectStructur
     });
   });
 
-  return Array.from(subjectMap.entries()).map(([subjectId, entry]) => ({
-    subjectId,
-    subjectName: entry.subjectName,
-    sections: Array.from(entry.sections.entries()).map(([sectionId, secEntry]) => ({
-      sectionId,
-      sectionName: secEntry.sectionName,
-      chapters: Array.from(secEntry.chapters.entries()).map(([chapterId, maxAttempts]) => ({
-        chapterId,
-        maxAttempts,
-      })),
-    })),
-  }));
+  return Array.from(subjectMap.entries())
+    .map(([subjectId, entry]) => ({
+      subjectId,
+      subjectName: entry.subjectName,
+      sections: Array.from(entry.sections.entries())
+        .map(([sectionId, secEntry]) => ({
+          sectionId,
+          sectionName: secEntry.sectionName,
+          chapters: Array.from(secEntry.chapters.entries()).map(([chapterId, maxAttempts]) => ({
+            chapterId,
+            maxAttempts,
+          })),
+        }))
+        .filter((sec) => sec.chapters.length > 0), // Only sections with chapters
+    }))
+    .filter((subj) => subj.sections.length > 0); // Only subjects with sections that have chapters
 }
 
 /**
  * Get pre test score from subject data.
- * The API returns preTestScore at section level in mock data,
- * but conceptually pre test belongs to subject level.
- * We look for it in the subject or fall back to first section's preTestScore.
+ * Backend sends preTestScore at subject level.
+ * Fallback: check sections for backward compat with older mock data.
  */
 function getSubjectPreTestScore(subjectData: SubjectProgress | undefined): number | null {
   if (!subjectData) return null;
 
-  // Check if subject-level preTestScore exists (future-proof)
-  const subjectAny = subjectData as SubjectProgress & { preTestScore?: number | null };
-  if (subjectAny.preTestScore != null) return subjectAny.preTestScore;
+  if (subjectData.preTestScore != null) return subjectData.preTestScore;
 
-  // Fallback: use first section's preTestScore (current mock data structure)
+  // Fallback: first section that has preTestScore (older data shape)
   for (const section of subjectData.sections) {
     const sectionAny = section as SectionProgress & { preTestScore?: number | null };
     if (sectionAny.preTestScore != null) return sectionAny.preTestScore;
@@ -371,16 +373,14 @@ function getSubjectPreTestScore(subjectData: SubjectProgress | undefined): numbe
 
 /**
  * Get post test score from subject data.
- * Same logic as pre test — subject level first, fallback to last section.
+ * Backend sends postTestScore at subject level.
  */
 function getSubjectPostTestScore(subjectData: SubjectProgress | undefined): number | null {
   if (!subjectData) return null;
 
-  // Check if subject-level postTestScore exists (future-proof)
-  const subjectAny = subjectData as SubjectProgress & { postTestScore?: number | null };
-  if (subjectAny.postTestScore != null) return subjectAny.postTestScore;
+  if (subjectData.postTestScore != null) return subjectData.postTestScore;
 
-  // Fallback: use last section's postTestScore (current mock data structure)
+  // Fallback: last section that has postTestScore
   for (let i = subjectData.sections.length - 1; i >= 0; i--) {
     const sectionAny = subjectData.sections[i] as SectionProgress & { postTestScore?: number | null };
     if (sectionAny.postTestScore != null) return sectionAny.postTestScore;
