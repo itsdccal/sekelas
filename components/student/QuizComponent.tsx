@@ -58,7 +58,14 @@ export function QuizComponent({ chapterId, onComplete }: QuizComponentProps) {
     };
   }, [answers]);
 
-  const answeredCount = Object.keys(answers).length;
+  const answeredCount = questions.filter(
+    (q) => {
+      const ans = answers[q.id];
+      if (!ans) return false;
+      if (q.questionType === 'SHORT_ANSWER') return ans.trim().length > 0;
+      return true;
+    }
+  ).length;
   const totalQuestions = questions.length;
   const allAnswered = totalQuestions > 0 && answeredCount === totalQuestions;
   const currentQuestion = questions[currentIndex];
@@ -126,6 +133,8 @@ export function QuizComponent({ chapterId, onComplete }: QuizComponentProps) {
   }
 
   const selectedOptionId = answers[currentQuestion.id] || null;
+  const isShortAnswer = currentQuestion.questionType === 'SHORT_ANSWER';
+  const textAnswerValue = isShortAnswer ? (answers[currentQuestion.id] || '') : '';
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
@@ -149,34 +158,50 @@ export function QuizComponent({ chapterId, onComplete }: QuizComponentProps) {
         </p>
       </div>
 
-      {/* Options */}
-      <fieldset className="space-y-3" aria-label={`Opsi jawaban untuk soal ${currentIndex + 1}`}>
-        <legend className="sr-only">Pilih jawaban</legend>
-        {currentQuestion.options.map((option) => {
-          const isSelected = selectedOptionId === option.id;
-          return (
-            <label
-              key={option.id}
-              className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
-                isSelected
-                  ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
-                  : 'border-border hover:border-primary-300 hover:bg-muted/50'
-              }`}
-            >
-              <input
-                type="radio"
-                name={`question-${currentQuestion.id}`}
-                value={option.id}
-                checked={isSelected}
-                onChange={() => handleOptionSelect(option.id)}
-                className="h-4 w-4 text-primary-600 focus:ring-primary-600 focus:ring-2"
-                aria-label={option.text}
-              />
-              <span className="text-sm">{option.text}</span>
-            </label>
-          );
-        })}
-      </fieldset>
+      {/* Answer input — conditional on question type */}
+      {isShortAnswer ? (
+        <div className="space-y-2">
+          <label htmlFor={`answer-${currentQuestion.id}`} className="text-sm font-medium text-muted-foreground">
+            Tulis jawaban Anda
+          </label>
+          <textarea
+            id={`answer-${currentQuestion.id}`}
+            value={textAnswerValue}
+            onChange={(e) => setAnswer(currentQuestion.id, e.target.value)}
+            placeholder="Ketik jawaban di sini..."
+            className="w-full min-h-[120px] resize-y rounded-lg border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+            aria-label={`Jawaban untuk soal ${currentIndex + 1}`}
+          />
+        </div>
+      ) : (
+        <fieldset className="space-y-3" aria-label={`Opsi jawaban untuk soal ${currentIndex + 1}`}>
+          <legend className="sr-only">Pilih jawaban</legend>
+          {currentQuestion.options.map((option) => {
+            const isSelected = selectedOptionId === option.id;
+            return (
+              <label
+                key={option.id}
+                className={`flex items-center gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
+                  isSelected
+                    ? 'border-primary-600 bg-primary-50 ring-1 ring-primary-600'
+                    : 'border-border hover:border-primary-300 hover:bg-muted/50'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`question-${currentQuestion.id}`}
+                  value={option.id}
+                  checked={isSelected}
+                  onChange={() => handleOptionSelect(option.id)}
+                  className="h-4 w-4 text-primary-600 focus:ring-primary-600 focus:ring-2"
+                  aria-label={option.text}
+                />
+                <span className="text-sm">{option.text}</span>
+              </label>
+            );
+          })}
+        </fieldset>
+      )}
 
       {/* Error message (submission error — answers preserved) */}
       {error && questions.length > 0 && (

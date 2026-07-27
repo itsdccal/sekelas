@@ -4,14 +4,14 @@ import type { Question, QuizResult } from '@/lib/types';
 
 interface QuizStoreState {
   questions: Question[];
-  answers: Record<string, string>; // questionId -> selectedOptionId
+  answers: Record<string, string>; // questionId -> selectedOptionId or textAnswer
   result: QuizResult | null;
   isLoading: boolean;
   isSubmitting: boolean;
   error: string | null;
 
   loadQuestions: (chapterId: string) => Promise<void>;
-  setAnswer: (questionId: string, optionId: string) => void;
+  setAnswer: (questionId: string, value: string) => void;
   submitQuiz: (chapterId: string) => Promise<QuizResult>;
   reset: () => void;
 }
@@ -46,24 +46,32 @@ export const useQuizStore = create<QuizStoreState>((set, get) => ({
     }
   },
 
-  setAnswer: (questionId: string, optionId: string) => {
+  setAnswer: (questionId: string, value: string) => {
     const { answers } = get();
     set({
-      answers: { ...answers, [questionId]: optionId },
+      answers: { ...answers, [questionId]: value },
     });
   },
 
   submitQuiz: async (chapterId: string) => {
-    const { answers } = get();
+    const { answers, questions } = get();
 
     set({ isSubmitting: true, error: null });
     try {
+      // Build answers with correct field based on question type
+      const questionMap = new Map(questions.map((q) => [q.id, q]));
       const submission = {
         chapterId,
-        answers: Object.entries(answers).map(([questionId, selectedOptionId]) => ({
-          questionId,
-          selectedOptionId,
-        })),
+        answers: Object.entries(answers).map(([questionId, value]) => {
+          const question = questionMap.get(questionId);
+          const isShortAnswer = question?.questionType === 'SHORT_ANSWER';
+          return {
+            questionId,
+            ...(isShortAnswer
+              ? { textAnswer: value }
+              : { selectedOptionId: value }),
+          };
+        }),
       };
 
       const result = await quizApi.submitQuiz(submission);
